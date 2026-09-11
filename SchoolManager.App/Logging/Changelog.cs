@@ -29,7 +29,7 @@ public static class Changelog
     /// <summary>Die Fassungen, die neueste zuoberst.</summary>
     public static IReadOnlyList<Entry> All { get; } =
     [
-        new("1.1.1", "11.09.2026", true,
+        new("1.1.1", "11.09.2026", false,
         [
             "Die Einstellungen liessen sich nur ein Stück weit blättern: Sobald der Zeiger über einem Auswahlfeld stand, verschluckte dieses das Mausrad. Das Rad wird jetzt an die Seite weitergereicht - auch auf den Seiten Aufträge, Aufgaben, Hausaufgaben, Prüfungen und Lehrkräfte.",
             "Neue Seite „Protokoll“ mit eigenem Punkt in der Navigation, sichtbar nur im Entwicklermodus: Der Reiter „Fehler“ sammelt alle Fehlermeldungen der Anwendung samt Abstürzen, der Reiter „Changelog“ zeigt, was diese Vorabversion seit der letzten öffentlichen Version enthält.",
