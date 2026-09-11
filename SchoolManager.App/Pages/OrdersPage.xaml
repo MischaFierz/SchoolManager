@@ -1,7 +1,8 @@
 <UserControl x:Class="SchoolManager.App.Pages.OrdersPage"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:app="clr-namespace:SchoolManager.App">
+             xmlns:app="clr-namespace:SchoolManager.App"
+             xmlns:c="clr-namespace:SchoolManager.App.Controls">
     <UserControl.Resources>
         <app:DoneGroupNameConverter x:Key="DoneGroupName" />
 
@@ -170,11 +171,9 @@
                                                Style="{StaticResource FieldLabel}" />
                                     <StackPanel Grid.Row="5" Grid.Column="1" Orientation="Horizontal"
                                                 Margin="0,0,0,12">
-                                        <TextBox Width="140"
-                                                 ToolTip="Format tt.mm.jjjj - leer lassen für kein Enddatum"
-                                                 LostFocus="DueBox_LostFocus"
-                                                 AutomationProperties.AutomationId="OrderDue"
-                                                 Text="{Binding DueText, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" />
+                                        <c:DateBox Width="176"
+                                                   AutomationProperties.AutomationId="OrderDue"
+                                                   Text="{Binding DueText, Mode=TwoWay}" />
                                         <TextBlock Text="{Binding DueDescription}" Style="{StaticResource Hint}"
                                                    VerticalAlignment="Center" Margin="12,0,0,0" />
                                     </StackPanel>

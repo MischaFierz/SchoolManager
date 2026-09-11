@@ -176,13 +176,6 @@ public partial class HomeworkPage : UserControl
 
     // ==== Oberfläche ====
 
-    private void DueBox_LostFocus(object sender, RoutedEventArgs e)
-    {
-        if (sender is TextBox { Text.Length: > 0 } box && !DateTime.TryParse(box.Text,
-                CultureInfo.GetCultureInfo("de-CH"), DateTimeStyles.None, out _))
-            status.SetStatus($"„{box.Text}“ ist kein Datum - erwartet wird tt.mm.jjjj.", StatusKind.Error);
-    }
-
     private void FilterBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         view.Refresh();

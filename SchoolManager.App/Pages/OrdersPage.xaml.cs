@@ -123,14 +123,6 @@ public partial class OrdersPage : UserControl
                 StatusKind.Error);
     }
 
-    private void DueBox_LostFocus(object sender, RoutedEventArgs e)
-    {
-        if (sender is TextBox { Text.Length: > 0 } box && !DateTime.TryParse(box.Text,
-                System.Globalization.CultureInfo.GetCultureInfo("de-CH"),
-                System.Globalization.DateTimeStyles.None, out _))
-            status.SetStatus($"„{box.Text}“ ist kein Datum - erwartet wird tt.mm.jjjj.", StatusKind.Error);
-    }
-
     private void OrderList_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (SelectedOrder is { } selected)

@@ -1,6 +1,7 @@
 <UserControl x:Class="SchoolManager.App.Pages.ExamsPage"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:c="clr-namespace:SchoolManager.App.Controls">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -112,10 +113,9 @@
                                                Style="{StaticResource FieldLabel}" />
                                     <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal"
                                                 Margin="0,0,0,10">
-                                        <TextBox Width="130" ToolTip="Format tt.mm.jjjj"
-                                                 LostFocus="DateBox_LostFocus"
-                                                 AutomationProperties.AutomationId="DateBox"
-                                                 Text="{Binding DateText, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" />
+                                        <c:DateBox Width="166"
+                                                   AutomationProperties.AutomationId="DateBox"
+                                                   Text="{Binding DateText, Mode=TwoWay}" />
                                         <TextBlock Text="Beginn" Style="{StaticResource FieldLabel}"
                                                    Margin="16,0,10,0" />
                                         <TextBox Width="90" ToolTip="Format hh:mm"

@@ -88,7 +88,7 @@ public partial class TodoPage : UserControl
 
         NewTodoBox.Clear();
         NewSubjectBox.Clear();
-        NewDueBox.Clear();
+        NewDueBox.Text = "";
         NewTodoBox.Focus();
 
         var dateLost = dueGiven && todo.DueDate is null;

@@ -154,13 +154,6 @@ public partial class ExamsPage : UserControl
 
     // ==== Eingabefelder mit eigener Prüfung ====
 
-    private void DateBox_LostFocus(object sender, RoutedEventArgs e)
-    {
-        if (sender is TextBox box && !DateTime.TryParse(box.Text,
-                CultureInfo.GetCultureInfo("de-CH"), DateTimeStyles.None, out _))
-            status.SetStatus($"„{box.Text}“ ist kein Datum - erwartet wird tt.mm.jjjj.", StatusKind.Error);
-    }
-
     private void TimeBox_LostFocus(object sender, RoutedEventArgs e)
     {
         if (sender is TextBox box && !TimeSpan.TryParse(box.Text,
