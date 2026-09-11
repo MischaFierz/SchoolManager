@@ -41,23 +41,31 @@
         <StandardDirectory Id="DesktopFolder" />
 
         <Component Id="MainExecutable" Directory="INSTALLFOLDER" Guid="9c2b7f18-3d54-4f6a-8b21-71e6c0a95f33">
-            <File Id="SchoolManagerExe" Name="SchoolManager.exe" Source="$(var.ExeFile)" KeyPath="yes" />
+            <!--
+              Die beiden Verknüpfungen stehen INNERHALB von File, und das ist
+              der entscheidende Punkt: Nur so zeigen sie auf SchoolManager.exe.
+              Stehen sie daneben - als Geschwister von File, ohne Target -,
+              nimmt der Installer den Ordner der Komponente als Ziel. Ein
+              Doppelklick öffnet dann bloss den Explorer, statt die Anwendung
+              zu starten.
+            -->
+            <File Id="SchoolManagerExe" Name="SchoolManager.exe" Source="$(var.ExeFile)" KeyPath="yes">
+                <Shortcut Id="StartMenuShortcut"
+                          Directory="AppMenuFolder"
+                          Name="School Manager"
+                          Description="Aufträge, Aufgaben, Hausaufgaben, Prüfungen, Kalender und E-Mail"
+                          WorkingDirectory="INSTALLFOLDER"
+                          Icon="AppIcon"
+                          Advertise="no" />
 
-            <Shortcut Id="StartMenuShortcut"
-                      Directory="AppMenuFolder"
-                      Name="School Manager"
-                      Description="Aufträge, Aufgaben, Hausaufgaben, Prüfungen, Kalender und E-Mail"
-                      WorkingDirectory="INSTALLFOLDER"
-                      Icon="AppIcon"
-                      Advertise="no" />
-
-            <Shortcut Id="DesktopShortcut"
-                      Directory="DesktopFolder"
-                      Name="School Manager"
-                      Description="Aufträge, Aufgaben, Hausaufgaben, Prüfungen, Kalender und E-Mail"
-                      WorkingDirectory="INSTALLFOLDER"
-                      Icon="AppIcon"
-                      Advertise="no" />
+                <Shortcut Id="DesktopShortcut"
+                          Directory="DesktopFolder"
+                          Name="School Manager"
+                          Description="Aufträge, Aufgaben, Hausaufgaben, Prüfungen, Kalender und E-Mail"
+                          WorkingDirectory="INSTALLFOLDER"
+                          Icon="AppIcon"
+                          Advertise="no" />
+            </File>
 
             <RemoveFolder Id="RemoveAppMenuFolder" Directory="AppMenuFolder" On="uninstall" />
         </Component>

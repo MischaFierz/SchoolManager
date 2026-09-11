@@ -7,7 +7,6 @@ using System.Windows.Media;
 using SchoolManager.App.Data;
 using SchoolManager.App.Pages;
 using SchoolManager.App.Update;
-using SchoolManager.Core;
 
 namespace SchoolManager.App;
 
@@ -112,50 +111,28 @@ public partial class MainWindow : Window, IStatusSink
             StatusKind.Info);
 
         _ = CheckForUpdateOnStartupAsync();
-        _ = CheckMailOnStartupAsync();
+        ShowMailWarning();
     }
 
     /// <summary>
-    /// Prüft beim Start still, ob sich der Postausgang überhaupt erreichen lässt,
-    /// und zeigt sonst oben einen roten Streifen. Gesendet wird dabei nichts - es
-    /// wird nur die Verbindung aufgebaut und die Anmeldung geprüft. Geht der
-    /// Versand wieder, bleibt der Streifen beim nächsten Start von selbst weg.
+    /// Der E-Mail-Versand ist in dieser Fassung noch nicht benutzbar, darum
+    /// sagt es ein Streifen oben gleich beim Start. Er ist bewusst eine feste
+    /// Aussage über diese Version und nicht das Ergebnis einer Prüfung: Die
+    /// Seite E-Mail und die Einstellungen bleiben bedienbar, verlassen sollte
+    /// man sich aber auf nichts davon.
     /// </summary>
-    private async Task CheckMailOnStartupAsync()
+    private void ShowMailWarning()
     {
-        if (!settingsService.IsConfigured)
-        {
-            ShowMailWarning("Für den E-Mail-Versand ist noch kein Konto eingerichtet.");
-            return;
-        }
+        MailWarningText.Text =
+            "Der E-Mail-Versand ist in dieser Version noch nicht verfügbar und wird "
+            + "mit einem späteren Update nachgereicht.";
 
-        try
-        {
-            var settings = settingsService.Current;
+        MailWarningText.ToolTip =
+            "Die Seite E-Mail und die Postausgangs-Einstellungen lassen sich zwar öffnen, "
+            + "der Versand ist aber noch nicht einsatzbereit. Sobald er es ist, kommt er "
+            + "über die eingebaute Update-Suche von selbst nach.";
 
-            await new EmailService(settings, SmtpSettingsService.CreateTokenSource(settings))
-                .TestConnectionAsync();
-        }
-        catch (Exception ex)
-        {
-            ShowMailWarning($"E-Mail-Versand ist zurzeit nicht möglich: {FirstLine(ex.Message)}");
-        }
-    }
-
-    private void ShowMailWarning(string message)
-    {
-        MailWarningText.Text = message;
-        MailWarningText.ToolTip = message;
         MailWarningBanner.Visibility = Visibility.Visible;
-    }
-
-    /// <summary>Serverantworten sind oft mehrzeilig; im Streifen ist Platz für eine.</summary>
-    private static string FirstLine(string message)
-    {
-        var line = message.Split('\n', '\r').FirstOrDefault(part => part.Trim().Length > 0)?.Trim()
-                   ?? message;
-
-        return line.Length > 200 ? line[..200] + "…" : line;
     }
 
     private void MailWarningSettings_Click(object sender, RoutedEventArgs e)

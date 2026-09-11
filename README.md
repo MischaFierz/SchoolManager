@@ -128,12 +128,11 @@ und, unten abgesetzt, **Einstellungen**. `Strg`+`1` bis `Strg`+`9` schalten
 direkt um, `Strg`+`0` zu den Einstellungen. Unten quer läuft eine gemeinsame
 Statuszeile: grau für Hinweise, grün für Erfolg, rot für Fehler.
 
-Beim Start prüft School Manager still im Hintergrund, ob sich der Postausgang
-überhaupt erreichen lässt — es wird nur die Verbindung aufgebaut und die
-Anmeldung geprüft, gesendet wird nichts. Klappt das nicht, erscheint oben ein
-roter Streifen mit dem Grund, dazu **Einstellungen öffnen** und ein **✕** zum
-Ausblenden bis zum nächsten Start. Sobald der Versand wieder geht, bleibt der
-Streifen von selbst weg.
+Oben steht ein roter Streifen: **der E-Mail-Versand ist in dieser Version noch
+nicht verfügbar und wird mit einem späteren Update nachgereicht.** Die Seite
+E-Mail und die Postausgangs-Einstellungen lassen sich zwar öffnen, verlassen
+sollte man sich aber auf nichts davon. Daneben führen **Einstellungen öffnen**
+dorthin und **✕** blendet den Hinweis bis zum nächsten Start aus.
 
 ### Aufträge, Aufgaben, Leistungsdetails
 
