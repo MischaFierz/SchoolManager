@@ -96,6 +96,7 @@
                                         <RowDefinition Height="Auto" />
                                         <RowDefinition Height="Auto" />
                                         <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
                                     </Grid.RowDefinitions>
 
                                     <TextBlock Grid.Row="0" Grid.Column="0" Text="Fach"
@@ -112,23 +113,24 @@
 
                                     <TextBlock Grid.Row="2" Grid.Column="0" Text="Datum"
                                                Style="{StaticResource FieldLabel}" />
-                                    <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal"
-                                                Margin="0,0,0,10">
-                                        <c:DateBox Width="166"
-                                                   AutomationProperties.AutomationId="DateBox"
-                                                   Text="{Binding DateText, Mode=TwoWay}" />
-                                        <TextBlock Text="Beginn" Style="{StaticResource FieldLabel}"
-                                                   Margin="16,0,10,0" />
-                                        <TextBox Width="90" ToolTip="Format hh:mm"
-                                                 LostFocus="TimeBox_LostFocus"
-                                                 IsEnabled="{Binding IsAllDay, Converter={StaticResource InverseBool}}"
-                                                 AutomationProperties.AutomationId="StartTimeBox"
-                                                 Text="{Binding StartTimeText, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" />
-                                    </StackPanel>
+                                    <c:DateBox Grid.Row="2" Grid.Column="1" Width="166"
+                                               HorizontalAlignment="Left" Margin="0,0,0,10"
+                                               AutomationProperties.AutomationId="DateBox"
+                                               Text="{Binding DateText, Mode=TwoWay}" />
 
-                                    <TextBlock Grid.Row="3" Grid.Column="0" Text="Dauer"
+                                    <TextBlock Grid.Row="3" Grid.Column="0" Text="Beginn"
                                                Style="{StaticResource FieldLabel}" />
-                                    <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal"
+                                    <TextBox Grid.Row="3" Grid.Column="1" Width="166" Margin="0,0,0,10"
+                                             HorizontalAlignment="Left"
+                                             ToolTip="Format hh:mm"
+                                             LostFocus="TimeBox_LostFocus"
+                                             IsEnabled="{Binding IsAllDay, Converter={StaticResource InverseBool}}"
+                                             AutomationProperties.AutomationId="StartTimeBox"
+                                             Text="{Binding StartTimeText, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" />
+
+                                    <TextBlock Grid.Row="4" Grid.Column="0" Text="Dauer"
+                                               Style="{StaticResource FieldLabel}" />
+                                    <StackPanel Grid.Row="4" Grid.Column="1" Orientation="Horizontal"
                                                 Margin="0,0,0,10">
                                         <TextBox Width="130" ToolTip="Zum Beispiel 45, 1:30 oder 1,5h"
                                                  LostFocus="DurationBox_LostFocus"
@@ -140,17 +142,17 @@
                                                   IsChecked="{Binding IsAllDay, Mode=TwoWay}" />
                                     </StackPanel>
 
-                                    <TextBlock Grid.Row="4" Grid.Column="0" Text="Raum"
+                                    <TextBlock Grid.Row="5" Grid.Column="0" Text="Raum"
                                                Style="{StaticResource FieldLabel}" />
-                                    <TextBox Grid.Row="4" Grid.Column="1" Margin="0,0,0,10" Width="200"
+                                    <TextBox Grid.Row="5" Grid.Column="1" Margin="0,0,0,10" Width="200"
                                              HorizontalAlignment="Left"
                                              AutomationProperties.AutomationId="RoomBox"
                                              Text="{Binding Room, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 
-                                    <TextBlock Grid.Row="5" Grid.Column="0" Text="Notiz"
+                                    <TextBlock Grid.Row="6" Grid.Column="0" Text="Notiz"
                                                Style="{StaticResource FieldLabel}" VerticalAlignment="Top"
                                                Margin="0,8,14,0" />
-                                    <TextBox Grid.Row="5" Grid.Column="1" MinHeight="90"
+                                    <TextBox Grid.Row="6" Grid.Column="1" MinHeight="90"
                                              AcceptsReturn="True" AcceptsTab="True" TextWrapping="Wrap"
                                              VerticalScrollBarVisibility="Auto"
                                              AutomationProperties.AutomationId="NotesBox"

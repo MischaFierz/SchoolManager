@@ -29,6 +29,11 @@ public static class Changelog
     /// <summary>Die Fassungen, die neueste zuoberst.</summary>
     public static IReadOnlyList<Entry> All { get; } =
     [
+        new("1.1.2", "11.09.2026", false,
+        [
+            "Bei den Prüfungen stand die Uhrzeit in derselben Zeile wie das Datum; seit das Datumsfeld den Kalender mitbringt, wurde die Zeile dafür zu lang. „Beginn“ hat jetzt eine eigene Zeile."
+        ]),
+
         new("1.1.1", "11.09.2026", false,
         [
             "Die Einstellungen liessen sich nur ein Stück weit blättern: Sobald der Zeiger über einem Auswahlfeld stand, verschluckte dieses das Mausrad. Das Rad wird jetzt an die Seite weitergereicht - auch auf den Seiten Aufträge, Aufgaben, Hausaufgaben, Prüfungen und Lehrkräfte.",
