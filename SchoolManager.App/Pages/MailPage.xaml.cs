@@ -5,6 +5,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using Microsoft.Win32;
 using SchoolManager.App.Data;
+using SchoolManager.App.Logging;
 using SchoolManager.Core;
 
 namespace SchoolManager.App.Pages;
@@ -211,6 +212,7 @@ public partial class MailPage : UserControl
         catch (Exception ex)
         {
             status.SetStatus($"Senden fehlgeschlagen: {ex.Message}", StatusKind.Error);
+            AppLog.Detail(ex, "E-Mail senden");
         }
         finally
         {

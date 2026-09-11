@@ -6,6 +6,7 @@ using System.Windows.Input;
 using System.Windows.Threading;
 using Microsoft.Win32;
 using SchoolManager.App.Data;
+using SchoolManager.App.Logging;
 using SchoolManager.App.Notifications;
 using SchoolManager.App.Update;
 using SchoolManager.Core;
@@ -238,16 +239,26 @@ public partial class SettingsPage : UserControl
         if (ReadSettings() is not { } value)
             return;
 
-        using var busy = Busy($"Verbindung zu {value.Host}:{value.Port} wird geprüft…");
+        // Bei Microsoft 365 gibt es keinen Server, zu dem eine Verbindung
+        // aufgebaut würde - geprüft wird dort die Anmeldung bei Graph.
+        using var busy = Busy(value.UsesOAuth
+            ? "Anmeldung bei Microsoft 365 wird geprüft…"
+            : $"Verbindung zu {value.Host}:{value.Port} wird geprüft…");
 
         try
         {
             await new EmailService(value, SmtpSettingsService.CreateTokenSource(value)).TestConnectionAsync();
-            status.SetStatus("Verbindung und Anmeldung erfolgreich.", StatusKind.Success);
+
+            status.SetStatus(
+                value.UsesOAuth
+                    ? $"Anmeldung erfolgreich - gesendet wird über {value.UserName}."
+                    : "Verbindung und Anmeldung erfolgreich.",
+                StatusKind.Success);
         }
         catch (Exception ex)
         {
             status.SetStatus($"Verbindung fehlgeschlagen: {ex.Message}", StatusKind.Error);
+            AppLog.Detail(ex, "Postausgang prüfen");
         }
     }
 
@@ -290,6 +301,7 @@ public partial class SettingsPage : UserControl
         catch (Exception ex)
         {
             status.SetStatus($"Anmeldung fehlgeschlagen: {ex.Message}", StatusKind.Error);
+            AppLog.Detail(ex, "Microsoft-Anmeldung");
         }
 
         await ShowSignInStateAsync();
@@ -858,13 +870,15 @@ public partial class SettingsPage : UserControl
         public override string ToString() => label;
 
         /// <summary>
-        /// Die auswählbaren Konto-Arten. Microsoft 365 ist noch nicht
-        /// einsatzbereit - ohne eingebaute Anwendungs-ID führt es nur in eine
-        /// Sackgasse - und erscheint deshalb nur im Entwicklermodus. Wer es
-        /// bereits eingestellt hat, behält es aber sichtbar.
+        /// Die auswählbaren Konto-Arten. Microsoft 365 steht allen offen, sobald
+        /// eine Anwendungs-ID eingebaut ist - dann genügt ein Klick auf „Mit
+        /// Microsoft anmelden“. Fehlt sie, führte die Anmeldung nur in eine
+        /// Sackgasse; die Konto-Art bleibt dann dem Entwicklermodus vorbehalten.
+        /// Wer sie bereits eingestellt hat, behält sie in jedem Fall sichtbar.
         /// </summary>
         public static AccountChoice[] Available(MailAccountKind current) =>
             All.Where(choice => choice.Value != MailAccountKind.Microsoft365
+                                || SmtpSettings.HasBuiltInClientId
                                 || DevMode.IsEnabled
                                 || current == MailAccountKind.Microsoft365)
                 .ToArray();

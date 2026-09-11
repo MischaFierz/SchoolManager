@@ -10,6 +10,7 @@ using SchoolManager.App.Logging;
 using SchoolManager.App.Notifications;
 using SchoolManager.App.Pages;
 using SchoolManager.App.Update;
+using SchoolManager.Core;
 
 namespace SchoolManager.App;
 
@@ -171,14 +172,20 @@ public partial class MainWindow : Window, IStatusSink
     }
 
     /// <summary>
-    /// Der E-Mail-Versand ist in dieser Fassung noch nicht benutzbar, darum
-    /// sagt es ein Streifen oben gleich beim Start. Er ist bewusst eine feste
-    /// Aussage über diese Version und nicht das Ergebnis einer Prüfung: Die
-    /// Seite E-Mail und die Einstellungen bleiben bedienbar, verlassen sollte
-    /// man sich aber auf nichts davon.
+    /// Solange keine Anwendungs-ID eingebaut ist, führt die Anmeldung bei
+    /// Microsoft 365 ins Leere und der Versand ist damit nicht fertig - das
+    /// sagt ein Streifen oben gleich beim Start. Steckt eine ID darin, ist der
+    /// Versand vollständig und der Streifen entfällt; dann genügt der Hinweis
+    /// in der Fussleiste, falls noch kein Konto eingerichtet ist.
     /// </summary>
     private void ShowMailWarning()
     {
+        if (SmtpSettings.HasBuiltInClientId)
+        {
+            MailWarningBanner.Visibility = Visibility.Collapsed;
+            return;
+        }
+
         MailWarningText.Text =
             "Der E-Mail-Versand ist in dieser Version noch nicht verfügbar und wird "
             + "mit einem späteren Update nachgereicht.";

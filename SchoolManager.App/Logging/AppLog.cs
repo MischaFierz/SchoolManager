@@ -85,7 +85,38 @@ public static class AppLog
 
     /// <summary>Zeichnet einen Absturz mit Art und Ort auf.</summary>
     public static void Crash(Exception exception, string source) =>
-        Error($"{exception.GetType().Name}: {exception.Message}", source);
+        Error(Describe(exception), source);
+
+    /// <summary>
+    /// Schreibt die ganze Ausnahme ins Protokoll, auch wenn die Fussleiste nur
+    /// eine kurze Fassung zeigt. Beim E-Mail-Versand ist das der Unterschied
+    /// zwischen einer brauchbaren und einer nutzlosen Meldung: MailKit und die
+    /// Microsoft-Anmeldung verpacken die eigentliche Ursache regelmässig in
+    /// einer inneren Ausnahme, die in <c>Message</c> gar nicht vorkommt.
+    /// </summary>
+    public static void Detail(Exception exception, string source)
+    {
+        // Die Fussleiste hat ihre eigene, kurze Meldung schon aufgezeichnet.
+        // Ein zweiter Eintrag lohnt nur, wenn eine Ursachenkette dahinter
+        // steckt, die dort nicht vorkommt.
+        if (exception.InnerException is not null)
+            Error(Describe(exception), source);
+    }
+
+    /// <summary>
+    /// Art und Wortlaut der Ausnahme samt ihrer Ursachenkette, als eine Zeile.
+    /// Die Kette wird bei fünf Gliedern abgebrochen - tiefer wird es nur lang
+    /// und nicht aufschlussreicher.
+    /// </summary>
+    private static string Describe(Exception exception)
+    {
+        var parts = new List<string>();
+
+        for (var current = exception; current is not null && parts.Count < 5; current = current.InnerException)
+            parts.Add($"{current.GetType().Name}: {current.Message}");
+
+        return string.Join(" ← ", parts);
+    }
 
     /// <summary>Leert Protokoll und Datei.</summary>
     public static void Clear()

@@ -332,9 +332,29 @@ Abonnement nötig):
 3. *Authentifizierung* → **Plattform hinzufügen** → **Mobile Geräte und
    Desktopanwendungen** → `http://localhost` ankreuzen
 4. *API-Berechtigungen* → **Berechtigung hinzufügen** → *Microsoft Graph* →
-   **Delegierte Berechtigungen** → **Mail.Send**
+   **Delegierte Berechtigungen** → **Mail.Send** und **User.Read**
 5. Die **Anwendungs-ID (Client)** von der Übersichtsseite kopieren und als
    `BuiltInClientId` eintragen
+
+`Mail.Send` ist fürs Verschicken da, `User.Read` nur fürs Nachsehen: „Verbindung
+testen“ und die Anzeige, als wer man angemeldet ist, fragen bei Graph `/me` ab,
+und das lässt Microsoft ohne `User.Read` nicht zu. Fehlt sie, schlägt der
+Verbindungstest mit „keine Berechtigung“ fehl, obwohl das Senden selbst ginge.
+
+Mit der Azure-Befehlszeile geht dasselbe in einem Schritt (`az login
+--allow-no-subscriptions` vorausgesetzt):
+
+```bash
+az ad app create --display-name "School Manager" \
+  --sign-in-audience AzureADandPersonalMicrosoftAccount \
+  --public-client-redirect-uris http://localhost \
+  --required-resource-accesses '[{"resourceAppId":"00000003-0000-0000-c000-000000000000","resourceAccess":[{"id":"e383f46e-2787-4529-855e-0e479a3ffac0","type":"Scope"},{"id":"e1fe6dd8-ba31-4d61-89e7-88639da4683d","type":"Scope"}]}]' \
+  --query appId -o tsv
+```
+
+Ein privates Microsoft-Konto braucht dafür einmal ein Verzeichnis: Wer noch nie
+im Azure-Portal war, hat keines, und die Befehlszeile findet dann nichts zum
+Anmelden. Einmal [portal.azure.com](https://portal.azure.com) öffnen legt es an.
 
 Bei einem Schulkonto kann es sein, dass die Anmeldung mit „Zustimmung des
 Administrators erforderlich“ abbricht — dann muss die Schul-IT die Berechtigung
@@ -386,9 +406,10 @@ Er bringt zweierlei:
 * **Dev-Patches statt Releases beziehen** — die Update-Suche nimmt dann die
   Vorabversionen mit `-dev` im Namen. Diese Stände sind ungetestet; vorher
   lohnt sich „Alle Daten exportieren…“.
-* Die Konto-Art **Microsoft 365 / Exchange Online** wird sichtbar. Sie ist noch
-  nicht einsatzbereit: Ohne eingebaute Anwendungs-ID führt die Anmeldung ins
-  Leere (siehe „Microsoft 365 einrichten“).
+* Die Konto-Art **Microsoft 365 / Exchange Online** wird sichtbar, solange keine
+  Anwendungs-ID eingebaut ist - ohne sie führt die Anmeldung ins Leere (siehe
+  „Microsoft 365 einrichten“). Steckt eine ID im Programm, steht die Konto-Art
+  ohnehin allen offen und der Entwicklermodus ändert daran nichts mehr.
 
 **Entwicklermodus verlassen** schaltet beides wieder ab. Der Zustand steht in
 `%APPDATA%\SchoolManager\entwickler.json`.

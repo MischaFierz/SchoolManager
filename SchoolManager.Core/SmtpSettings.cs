@@ -47,6 +47,18 @@ public sealed class SmtpSettings
     public const string Microsoft365SendScope = "https://graph.microsoft.com/Mail.Send";
 
     /// <summary>
+    /// Berechtigung, um das eigene Postfach zu lesen. Sie wird nicht zum Senden
+    /// gebraucht, wohl aber für „Verbindung testen“ und die Anzeige, als wer man
+    /// angemeldet ist: beides fragt bei Graph <c>/me</c> ab, und dafür genügt
+    /// <see cref="Microsoft365SendScope"/> nicht - Graph antwortet sonst mit 403.
+    /// </summary>
+    public const string Microsoft365ProfileScope = "https://graph.microsoft.com/User.Read";
+
+    /// <summary>Die Berechtigungen, die die Anmeldung anfordert.</summary>
+    public static readonly string[] Microsoft365Scopes =
+        [Microsoft365SendScope, Microsoft365ProfileScope];
+
+    /// <summary>
     /// Anwendungs-ID, die in School Manager eingebaut ist. Ist sie gesetzt,
     /// genügt in den Einstellungen ein Klick auf „Mit Microsoft anmelden“;
     /// ist sie leer, muss jeder seine eigene Azure-App-Registrierung eintragen.

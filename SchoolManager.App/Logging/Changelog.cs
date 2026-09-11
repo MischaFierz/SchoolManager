@@ -29,6 +29,14 @@ public static class Changelog
     /// <summary>Die Fassungen, die neueste zuoberst.</summary>
     public static IReadOnlyList<Entry> All { get; } =
     [
+        new("1.1.3", "11.09.2026", true,
+        [
+            "„Verbindung testen“ hätte bei Microsoft 365 nie funktionieren können: Geprüft wird über Microsoft Graph mit einem Blick auf das eigene Konto, angefordert wurde bei der Anmeldung aber nur die Berechtigung zum Senden (Mail.Send). Graph antwortete darauf mit „keine Berechtigung“. Die Anmeldung fragt jetzt zusätzlich User.Read - nötig nur zum Nachsehen, als wer man angemeldet ist, nicht zum Senden.",
+            "Beim Prüfen eines Microsoft-365-Kontos stand in der Fussleiste „Verbindung zu smtp.office365.com:587 wird geprüft“, obwohl dort weder Server noch Port eine Rolle spielen. Jetzt steht dort, dass die Anmeldung geprüft wird, und bei Erfolg, über welches Postfach gesendet wird.",
+            "Scheitert das Senden, die Anmeldung oder der Verbindungstest, steht im Protokoll unter „Fehler“ jetzt die ganze Ursachenkette statt nur der äussersten Meldung. MailKit und die Microsoft-Anmeldung verpacken den eigentlichen Grund regelmässig in einer inneren Ausnahme, die in der Fussleiste gar nicht vorkam.",
+            "Der Hinweisstreifen „E-Mail-Versand noch nicht verfügbar“ und die Beschränkung der Konto-Art Microsoft 365 auf den Entwicklermodus hängen jetzt beide daran, ob eine Anwendungs-ID eingebaut ist. Sobald sie es ist, verschwindet der Streifen von selbst und Microsoft 365 steht allen offen - ohne weitere Änderung am Programm."
+        ]),
+
         new("1.1.2", "11.09.2026", false,
         [
             "Bei den Prüfungen stand die Uhrzeit in derselben Zeile wie das Datum; seit das Datumsfeld den Kalender mitbringt, wurde die Zeile dafür zu lang. „Beginn“ hat jetzt eine eigene Zeile.",
