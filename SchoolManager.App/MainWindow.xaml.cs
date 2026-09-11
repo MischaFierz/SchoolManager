@@ -6,6 +6,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
 using SchoolManager.App.Data;
+using SchoolManager.App.Logging;
 using SchoolManager.App.Notifications;
 using SchoolManager.App.Pages;
 using SchoolManager.App.Update;
@@ -393,6 +394,12 @@ public partial class MainWindow : Window, IStatusSink
 
     public void SetStatus(string text, StatusKind kind)
     {
+        // Die Fussleiste ist flüchtig - die nächste Meldung überschreibt sie.
+        // Fehler wandern deshalb zusätzlich ins Protokoll, wo sie stehen
+        // bleiben und im Entwicklermodus nachzulesen sind.
+        if (kind == StatusKind.Error)
+            AppLog.Error(text, "Oberfläche");
+
         StatusText.Text = text;
         StatusText.ToolTip = text.Length > 90 ? text : null;
 

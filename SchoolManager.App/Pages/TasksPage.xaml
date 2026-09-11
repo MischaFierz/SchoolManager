@@ -119,6 +119,7 @@
                     <!-- Aufgabe bearbeiten -->
                     <Grid Grid.Column="1">
                         <ScrollViewer x:Name="DetailScroller" VerticalScrollBarVisibility="Auto"
+                                      c:WheelScroll.Forward="True"
                                       DataContext="{Binding SelectedItem, ElementName=TaskList}">
                             <StackPanel>
                                 <TextBlock Text="Aufgabe" Style="{StaticResource SectionTitle}" Margin="0" />

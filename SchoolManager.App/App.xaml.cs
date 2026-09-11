@@ -1,4 +1,5 @@
 using System.Windows;
+using SchoolManager.App.Logging;
 using SchoolManager.App.Notifications;
 
 namespace SchoolManager.App;
@@ -29,6 +30,8 @@ public partial class App : Application
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
+
+        RecordCrashes();
 
         var background = e.Args.Any(argument =>
             string.Equals(argument, AutoStartService.BackgroundArgument, StringComparison.OrdinalIgnoreCase));
@@ -63,6 +66,24 @@ public partial class App : Application
             window.Show();
 
         ListenForSecondStart(window);
+    }
+
+    /// <summary>
+    /// Schreibt Abstürze ins Protokoll, bevor sie die Anwendung mitnehmen.
+    /// Aufgehalten werden sie nicht - eine Anwendung, die nach einem Absturz
+    /// weiterläuft, arbeitet mit einem Zustand, dem niemand mehr trauen kann.
+    /// Nachzulesen ist es danach im Entwicklermodus oder in der Datei.
+    /// </summary>
+    private void RecordCrashes()
+    {
+        DispatcherUnhandledException += (_, args) =>
+            AppLog.Crash(args.Exception, "Abgestürzt");
+
+        AppDomain.CurrentDomain.UnhandledException += (_, args) =>
+        {
+            if (args.ExceptionObject is Exception crash)
+                AppLog.Crash(crash, "Abgestürzt im Hintergrund");
+        };
     }
 
     /// <summary>

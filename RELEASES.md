@@ -115,7 +115,17 @@ sucht genau diesen Dateinamen.
 
 ## 5. Eine Vorabversion (Dev-Patch) veröffentlichen
 
-Genau dasselbe, nur mit `-dev` am Tag:
+**Vorher: den Changelog ergänzen.** In
+`SchoolManager.App/Logging/Changelog.cs` steht zuoberst ein Eintrag je
+Fassung. Für die neue Vorabversion kommt einer dazu, mit `IsPreRelease: true`
+und je einem Punkt für alles, was seit der letzten öffentlichen Version
+dazugekommen ist. Der Entwicklerbereich zeigt genau diese Punkte unter
+Protokoll → Changelog; ohne Eintrag steht dort nichts.
+
+Wird die Vorabversion später zur öffentlichen Version, werden ihre Punkte in
+einen Eintrag mit `IsPreRelease: false` zusammengefasst.
+
+Danach genau wie beim regulären Release, nur mit `-dev` am Tag:
 
 ```bash
 # Version in der Projektdatei auf 1.2.1 setzen, dann:

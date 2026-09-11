@@ -105,6 +105,7 @@
                     <!-- Auftrag bearbeiten -->
                     <Grid Grid.Column="1">
                         <ScrollViewer x:Name="DetailScroller" VerticalScrollBarVisibility="Auto"
+                                      c:WheelScroll.Forward="True"
                                       DataContext="{Binding SelectedItem, ElementName=OrderList}">
                             <StackPanel>
                                 <TextBlock Text="Auftrag" Style="{StaticResource SectionTitle}" Margin="0" />

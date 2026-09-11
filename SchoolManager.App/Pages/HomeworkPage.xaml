@@ -96,6 +96,7 @@
                     <!-- Bearbeiten -->
                     <Grid Grid.Column="1">
                         <ScrollViewer x:Name="DetailScroller" VerticalScrollBarVisibility="Auto"
+                                      c:WheelScroll.Forward="True"
                                       DataContext="{Binding SelectedItem, ElementName=HomeworkList}">
                             <StackPanel>
                                 <TextBlock Text="Hausaufgabe" Style="{StaticResource SectionTitle}" Margin="0" />
