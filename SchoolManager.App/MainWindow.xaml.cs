@@ -4,7 +4,9 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Threading;
 using SchoolManager.App.Data;
+using SchoolManager.App.Notifications;
 using SchoolManager.App.Pages;
 using SchoolManager.App.Update;
 
@@ -25,6 +27,25 @@ public partial class MainWindow : Window, IStatusSink
     private readonly TeacherStore teacherStore = new();
 
     private readonly CalendarFeed calendarFeed;
+    private readonly ReminderService reminders;
+
+    /// <summary>Prüft von Zeit zu Zeit, ob etwas offen ist.</summary>
+    private readonly DispatcherTimer reminderTimer = new() { Interval = TimeSpan.FromHours(1) };
+
+    /// <summary>Symbol im Infobereich; nur vorhanden, solange Erinnerungen eingeschaltet sind.</summary>
+    private TrayNotifier? tray;
+
+    /// <summary>Wurde das Fenster ohne sichtbares Fenster gestartet (Autostart)?</summary>
+    private readonly bool startedHidden;
+
+    /// <summary>Beim Schliessen wirklich beenden - statt in den Infobereich zu gehen.</summary>
+    private bool isExiting;
+
+    /// <summary>Der Hinweis "läuft weiter im Infobereich" kommt nur einmal.</summary>
+    private bool closeHintShown;
+
+    /// <summary>So lange bleibt es nach einer Meldung still.</summary>
+    private static readonly TimeSpan QuietPeriod = TimeSpan.FromHours(4);
 
     private readonly OrdersPage ordersPage;
     private readonly TasksPage tasksPage;
@@ -37,8 +58,18 @@ public partial class MainWindow : Window, IStatusSink
     private readonly NotesPage notesPage;
     private readonly SettingsPage settingsPage;
 
-    public MainWindow()
+    public MainWindow() : this(false)
     {
+    }
+
+    /// <param name="startHidden">
+    /// Beim Anmelden mitgestartet: Das Fenster bleibt zu, nur der Infobereich
+    /// läuft mit und erinnert.
+    /// </param>
+    public MainWindow(bool startHidden)
+    {
+        startedHidden = startHidden;
+
         InitializeComponent();
 
         calendarFeed = new CalendarFeed(
@@ -92,8 +123,29 @@ public partial class MainWindow : Window, IStatusSink
         lessonPlanStore.SaveFailed += error =>
             SetStatus($"Der Stundenplan konnte nicht gespeichert werden: {error}", StatusKind.Error);
 
+        reminders = new ReminderService(workStore, homeworkStore, eventStore);
+
         ShowDevMode();
         DevMode.Changed += ShowDevMode;
+
+        // Die Erinnerungen hängen nicht am Fenster: Beim Autostart wird es nie
+        // angezeigt, und trotzdem muss gemeldet werden, was offen ist.
+        reminderTimer.Tick += (_, _) => CheckReminders(force: false);
+        NotificationSettings.Changed += ApplyNotificationSettings;
+        ApplyNotificationSettings();
+
+        // Kurz nach dem Start einmal nachsehen. Das läuft über einen Zeitgeber
+        // und nicht über das geladene Fenster, weil es beim Autostart gar kein
+        // geladenes Fenster gibt.
+        var ersterBlick = new DispatcherTimer { Interval = TimeSpan.FromSeconds(8) };
+
+        ersterBlick.Tick += (_, _) =>
+        {
+            ersterBlick.Stop();
+            CheckReminders(force: false);
+        };
+
+        ersterBlick.Start();
 
         Loaded += MainWindow_Loaded;
     }
@@ -112,6 +164,7 @@ public partial class MainWindow : Window, IStatusSink
 
         _ = CheckForUpdateOnStartupAsync();
         ShowMailWarning();
+        AskAboutNotifications();
     }
 
     /// <summary>
@@ -224,11 +277,28 @@ public partial class MainWindow : Window, IStatusSink
             return;
 
         settingsPage.ShowAvailableUpdate(update);
-
-        var toast = new UpdateToast(update.Version) { Owner = this };
-        toast.OpenSettingsRequested += () => NavSettings.IsChecked = true;
-        toast.Show();
+        ShowUpdateBanner(update);
     }
+
+    /// <summary>
+    /// Zeigt den Hinweis auf ein Update oben im Fenster. Über ein Update wird
+    /// immer informiert - anders als bei den Erinnerungen gibt es dafür keinen
+    /// Schalter.
+    /// </summary>
+    private void ShowUpdateBanner(UpdateInfo update)
+    {
+        UpdateBannerText.Text = $"Version {update.Version} steht bereit.";
+        UpdateBanner.Visibility = Visibility.Visible;
+    }
+
+    private void UpdateBannerSettings_Click(object sender, RoutedEventArgs e)
+    {
+        UpdateBanner.Visibility = Visibility.Collapsed;
+        NavSettings.IsChecked = true;
+    }
+
+    private void UpdateBannerClose_Click(object sender, RoutedEventArgs e) =>
+        UpdateBanner.Visibility = Visibility.Collapsed;
 
     // ==== Navigation ====
 
@@ -337,6 +407,159 @@ public partial class MainWindow : Window, IStatusSink
         StatusText.Foreground = brush;
     }
 
+    // ==== Benachrichtigungen ====
+
+    /// <summary>
+    /// Fragt beim allerersten Start, ob erinnert werden soll. Voreingestellt
+    /// ist Ja - wer die Frage einfach bestätigt, wird erinnert und findet den
+    /// Schalter später in den Einstellungen.
+    /// </summary>
+    private void AskAboutNotifications()
+    {
+        if (NotificationSettings.WasAsked)
+            return;
+
+        var wanted = MessageBox.Show(
+            this,
+            "Soll School Manager an offene Sachen erinnern - überfällige Aufträge und Aufgaben, "
+            + "Hausaufgaben, bevorstehende Prüfungen und To-Dos?\n\n"
+            + "Die Erinnerungen kommen auch dann, wenn kein Fenster offen ist: School Manager "
+            + "startet dafür beim Anmelden im Hintergrund mit und legt ein Symbol neben die Uhr.\n\n"
+            + "Das lässt sich in den Einstellungen jederzeit ändern.",
+            "Erinnerungen einschalten?",
+            MessageBoxButton.YesNo,
+            MessageBoxImage.Question,
+            MessageBoxResult.Yes) == MessageBoxResult.Yes;
+
+        NotificationSettings.MarkAsked();
+        NotificationSettings.SetEnabled(wanted);
+        NotificationSettings.SetAutoStart(wanted);
+
+        // Stand die Einstellung schon auf dem gewünschten Wert, hat sich nichts
+        // gemeldet - der Autostart muss trotzdem eingerichtet werden.
+        ApplyNotificationSettings();
+
+        SetStatus(
+            wanted
+                ? "Erinnerungen sind eingeschaltet."
+                : "Erinnerungen bleiben aus - einschalten in den Einstellungen.",
+            StatusKind.Info);
+    }
+
+    /// <summary>Richtet Symbol, Zeitgeber und Autostart nach der Einstellung aus.</summary>
+    private void ApplyNotificationSettings()
+    {
+        if (NotificationSettings.Enabled)
+        {
+            tray ??= CreateTray();
+            reminderTimer.Start();
+        }
+        else
+        {
+            reminderTimer.Stop();
+            tray?.Dispose();
+            tray = null;
+        }
+
+        AutoStartService.Apply();
+    }
+
+    private TrayNotifier CreateTray()
+    {
+        var notifier = new TrayNotifier();
+
+        notifier.OpenRequested += ShowFromTray;
+        notifier.ExitRequested += ExitApplication;
+
+        return notifier;
+    }
+
+    /// <summary>
+    /// Holt das Fenster aus dem Infobereich zurück nach vorne. Das ruft auch
+    /// ein zweiter Programmstart auf, statt ein weiteres Fenster zu öffnen.
+    /// </summary>
+    public void ShowFromTray()
+    {
+        Show();
+
+        if (WindowState == WindowState.Minimized)
+            WindowState = WindowState.Normal;
+
+        Activate();
+    }
+
+    /// <summary>
+    /// Beendet School Manager wirklich - samt Symbol im Infobereich.
+    ///
+    /// Nach dem Autostart gab es nie ein sichtbares Fenster, und ein solches
+    /// Fenster lässt sich auch nicht schliessen. Dann wird gleich hier
+    /// gesichert und aufgeräumt, statt den Umweg über das Schliessen zu gehen.
+    /// </summary>
+    private void ExitApplication()
+    {
+        isExiting = true;
+
+        if (IsVisible)
+        {
+            Close();
+            return;
+        }
+
+        FlushPages();
+
+        tray?.Dispose();
+        tray = null;
+
+        Application.Current.Shutdown();
+    }
+
+    /// <summary>
+    /// Sieht nach, was offen ist, und meldet es über den Infobereich.
+    /// <paramref name="force"/> übergeht die Schonfrist zwischen zwei
+    /// Meldungen; das braucht die Schaltfläche in den Einstellungen.
+    /// </summary>
+    /// <returns>Wie viele offene Sachen gefunden wurden.</returns>
+    public int CheckReminders(bool force)
+    {
+        if (!NotificationSettings.Enabled && !force)
+            return 0;
+
+        var open = reminders.Collect(NotificationSettings.LeadDays);
+
+        if (open.Count == 0)
+            return 0;
+
+        // Nicht ständig dasselbe melden: zwischen zwei Meldungen liegen
+        // mindestens ein paar Stunden.
+        if (!force && NotificationSettings.LastReminded is { } last
+                   && DateTimeOffset.Now - last < QuietPeriod)
+            return open.Count;
+
+        if (tray is { } notifier)
+        {
+            notifier.Show(TitleFor(open.Count), TextFor(open));
+            NotificationSettings.MarkReminded();
+        }
+
+        return open.Count;
+    }
+
+    private static string TitleFor(int count) =>
+        count == 1 ? "1 offene Sache" : $"{count} offene Sachen";
+
+    /// <summary>Höchstens ein paar Zeilen - eine Sprechblase ist kein Bericht.</summary>
+    private static string TextFor(IReadOnlyList<Reminder> open)
+    {
+        const int maxLines = 4;
+
+        var lines = open.Take(maxLines).Select(item => item.Line).ToList();
+
+        if (open.Count > maxLines)
+            lines.Add($"… und {open.Count - maxLines} weitere");
+
+        return string.Join(Environment.NewLine, lines);
+    }
+
     // ==== Tastenkuerzel ====
 
     protected override async void OnPreviewKeyDown(KeyEventArgs e)
@@ -406,11 +629,41 @@ public partial class MainWindow : Window, IStatusSink
         }
     }
 
-    /// <summary>Beim Schliessen noch nicht gespeicherte Eingaben sichern.</summary>
+    /// <summary>
+    /// Beim Schliessen die Eingaben sichern - und, solange erinnert werden
+    /// soll, nur das Fenster zumachen. School Manager läuft dann im
+    /// Infobereich weiter, sonst kämen nach dem Schliessen keine Erinnerungen
+    /// mehr. Beendet wird er dort über "Beenden".
+    /// </summary>
     protected override void OnClosing(CancelEventArgs e)
     {
         FlushPages();
+
+        if (!isExiting && tray is { } notifier && NotificationSettings.Enabled)
+        {
+            e.Cancel = true;
+            Hide();
+
+            if (!closeHintShown)
+            {
+                notifier.Show("School Manager läuft weiter",
+                    "Das Symbol neben der Uhr erinnert an offene Sachen. "
+                    + "Dort lässt sich School Manager auch ganz beenden.");
+
+                closeHintShown = true;
+            }
+
+            return;
+        }
+
         base.OnClosing(e);
+
+        tray?.Dispose();
+        tray = null;
+
+        // Das Programm läuft mit ShutdownMode.OnExplicitShutdown; ohne diesen
+        // Aufruf bliebe es nach dem letzten Fenster als Prozess zurück.
+        Application.Current.Shutdown();
     }
 
     /// <summary>Schreibt offene Änderungen der Seiten auf die Festplatte.</summary>

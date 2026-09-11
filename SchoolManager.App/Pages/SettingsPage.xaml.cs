@@ -6,6 +6,7 @@ using System.Windows.Input;
 using System.Windows.Threading;
 using Microsoft.Win32;
 using SchoolManager.App.Data;
+using SchoolManager.App.Notifications;
 using SchoolManager.App.Update;
 using SchoolManager.Core;
 
@@ -43,6 +44,8 @@ public partial class SettingsPage : UserControl
         VersionText.Text = UpdateService.CurrentVersion.ToString(3);
 
         ShowInstallState();
+        ShowNotificationSection();
+        NotificationSettings.Changed += ShowNotificationSection;
         ShowDevSection();
         DevMode.Changed += ShowDevSection;
 
@@ -549,6 +552,91 @@ public partial class SettingsPage : UserControl
             Process.Start(exePath);
 
         Environment.Exit(0);
+    }
+
+    // ==== Benachrichtigungen ====
+
+    /// <summary>Zeigt die Schalter so an, wie die Einstellung gerade steht.</summary>
+    private void ShowNotificationSection()
+    {
+        loading = true;
+
+        NotificationsBox.IsChecked = NotificationSettings.Enabled;
+        AutoStartBox.IsChecked = NotificationSettings.AutoStart;
+        LeadDaysBox.Text = NotificationSettings.LeadDays.ToString();
+
+        // Ohne Erinnerungen haben Vorlauf, Autostart und Prüfen keinen Sinn.
+        AutoStartBox.IsEnabled = NotificationSettings.Enabled;
+        LeadDaysBox.IsEnabled = NotificationSettings.Enabled;
+        TestNotificationButton.IsEnabled = NotificationSettings.Enabled;
+
+        loading = false;
+
+        NotificationStateText.Text = NotificationSettings.Enabled
+            ? AutoStartService.IsEnabled
+                ? "Erinnerungen sind eingeschaltet und starten beim Anmelden mit."
+                : "Erinnerungen sind eingeschaltet, kommen aber nur bei geöffnetem School Manager."
+            : "Erinnerungen sind ausgeschaltet.";
+    }
+
+    private void Notifications_Changed(object sender, RoutedEventArgs e)
+    {
+        if (loading)
+            return;
+
+        NotificationSettings.SetEnabled(NotificationsBox.IsChecked == true);
+
+        status.SetStatus(
+            NotificationSettings.Enabled
+                ? "School Manager erinnert ab jetzt an offene Sachen."
+                : "Es wird nicht mehr erinnert.",
+            StatusKind.Info);
+    }
+
+    private void AutoStart_Changed(object sender, RoutedEventArgs e)
+    {
+        if (loading)
+            return;
+
+        NotificationSettings.SetAutoStart(AutoStartBox.IsChecked == true);
+
+        status.SetStatus(
+            NotificationSettings.AutoStart
+                ? "School Manager startet beim Anmelden im Hintergrund mit."
+                : "School Manager startet nicht mehr beim Anmelden mit.",
+            StatusKind.Info);
+    }
+
+    /// <summary>Übernimmt den Vorlauf; eine unlesbare Eingabe wird zurückgesetzt.</summary>
+    private void LeadDays_Changed(object sender, RoutedEventArgs e)
+    {
+        if (loading)
+            return;
+
+        if (int.TryParse(LeadDaysBox.Text.Trim(), out var days) && days is >= 0 and <= 30)
+            NotificationSettings.SetLeadDays(days);
+        else
+            status.SetStatus("Der Vorlauf muss eine Zahl von 0 bis 30 Tagen sein.", StatusKind.Error);
+
+        ShowNotificationSection();
+    }
+
+    /// <summary>
+    /// Sieht sofort nach, was offen ist. Das ist der Weg, die Erinnerungen
+    /// auszuprobieren, ohne auf den nächsten Durchlauf zu warten.
+    /// </summary>
+    private void TestNotification_Click(object sender, RoutedEventArgs e)
+    {
+        if (Window.GetWindow(this) is not MainWindow main)
+            return;
+
+        var count = main.CheckReminders(force: true);
+
+        status.SetStatus(
+            count == 0
+                ? "Nichts offen - es gibt gerade nichts zu melden."
+                : $"{count} offene Sache(n) gemeldet.",
+            count == 0 ? StatusKind.Success : StatusKind.Info);
     }
 
     // ==== Entwicklermodus ====

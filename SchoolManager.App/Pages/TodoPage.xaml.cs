@@ -77,10 +77,27 @@ public partial class TodoPage : UserControl
             return;
         }
 
-        todos.Insert(0, new TodoItem { Text = text });
+        var todo = new TodoItem { Text = text, Subject = NewSubjectBox.Text.Trim() };
+        var dueGiven = NewDueBox.Text.Trim().Length > 0;
+
+        // Über DueText gesetzt, damit ein unlesbares Datum hier genauso
+        // behandelt wird wie beim Bearbeiten in der Liste: Es gilt als keines.
+        todo.DueText = NewDueBox.Text.Trim();
+
+        todos.Insert(0, todo);
+
         NewTodoBox.Clear();
+        NewSubjectBox.Clear();
+        NewDueBox.Clear();
         NewTodoBox.Focus();
-        status.SetStatus("Aufgabe hinzugefügt.", StatusKind.Success);
+
+        var dateLost = dueGiven && todo.DueDate is null;
+
+        status.SetStatus(
+            dateLost
+                ? "Aufgabe hinzugefügt - das Datum war nicht lesbar und wurde weggelassen."
+                : "Aufgabe hinzugefügt.",
+            dateLost ? StatusKind.Error : StatusKind.Success);
     }
 
     private void Delete_Click(object sender, RoutedEventArgs e)

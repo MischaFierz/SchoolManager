@@ -7,6 +7,11 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
 
+    <!-- Nur für das Symbol im Infobereich und dessen Sprechblasen: die
+         Benachrichtigungen sollen auch dann erscheinen, wenn kein Fenster
+         offen ist, und dafür gibt es in WPF selbst nichts. -->
+    <UseWindowsForms>true</UseWindowsForms>
+
     <!-- Name der erzeugten Datei: SchoolManager.exe -->
     <AssemblyName>SchoolManager</AssemblyName>
     <RootNamespace>SchoolManager.App</RootNamespace>
@@ -14,9 +19,18 @@
 
     <Product>School Manager</Product>
     <AssemblyTitle>School Manager</AssemblyTitle>
-    <Version>1.0.2</Version>
+    <Version>1.1.0</Version>
     <Company>$(Product)</Company>
   </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Windows Forms bringt von sich aus System.Windows.Forms und
+         System.Drawing als globale Namensräume mit. Zusammen mit WPF wird
+         damit jedes Size, Brush oder UserControl mehrdeutig, darum bleiben
+         sie draussen: Wer sie braucht, schreibt sie hin (siehe TrayNotifier). -->
+    <Using Remove="System.Windows.Forms" />
+    <Using Remove="System.Drawing" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\SchoolManager.Core\SchoolManager.Core.csproj" />

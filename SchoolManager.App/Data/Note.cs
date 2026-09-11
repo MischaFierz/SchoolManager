@@ -8,6 +8,7 @@ namespace SchoolManager.App.Data;
 public sealed class Note : INotifyPropertyChanged
 {
     private string title = "";
+    private string subject = "";
     private string body = "";
     private DateTimeOffset updatedAt = DateTimeOffset.Now;
 
@@ -15,6 +16,13 @@ public sealed class Note : INotifyPropertyChanged
     {
         get => title;
         set => Set(ref title, value);
+    }
+
+    /// <summary>Fach, etwa Mathematik - darf leer bleiben.</summary>
+    public string Subject
+    {
+        get => subject;
+        set => Set(ref subject, value);
     }
 
     public string Body
@@ -33,13 +41,16 @@ public sealed class Note : INotifyPropertyChanged
     [JsonIgnore]
     public string DisplayTitle => string.IsNullOrWhiteSpace(Title) ? "Ohne Titel" : Title;
 
-    /// <summary>Zweite Zeile der Liste: Zeitpunkt und Anfang des Textes.</summary>
+    /// <summary>Zweite Zeile der Liste: Fach, Zeitpunkt und Anfang des Textes.</summary>
     [JsonIgnore]
     public string Preview
     {
         get
         {
             var stamp = UpdatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm");
+
+            if (!string.IsNullOrWhiteSpace(Subject))
+                stamp = $"{Subject} · {stamp}";
             var firstLine = Body.Replace("\r", " ").Replace("\n", " ").Trim();
 
             if (firstLine.Length == 0)

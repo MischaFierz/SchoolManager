@@ -97,7 +97,9 @@
 
             <!-- Hinweisstreifen, wenn der Postausgang beim Start nicht erreichbar
                  war. Er verschwindet von selbst, sobald der Versand wieder geht. -->
-            <Border x:Name="MailWarningBanner" Grid.Row="0" Visibility="Collapsed"
+            <StackPanel Grid.Row="0">
+
+            <Border x:Name="MailWarningBanner" Visibility="Collapsed"
                     Background="#33D98C8C" BorderBrush="{StaticResource Error}"
                     BorderThickness="1" CornerRadius="8" Margin="26,18,26,0" Padding="12,9"
                     AutomationProperties.AutomationId="MailWarningBanner">
@@ -131,6 +133,45 @@
                             Click="MailWarningClose_Click" />
                 </Grid>
             </Border>
+
+            <!-- Hinweis auf ein bereitstehendes Update. Er steht hier im
+                 Fenster und nicht mehr als eigenes Fenster unten rechts am
+                 Bildschirm: Wer arbeitet, soll nicht angesprungen werden. -->
+            <Border x:Name="UpdateBanner" Visibility="Collapsed"
+                    Background="#3363666C" BorderBrush="{StaticResource AccentHover}"
+                    BorderThickness="1" CornerRadius="8" Margin="26,18,26,0" Padding="12,9"
+                    AutomationProperties.AutomationId="UpdateBanner">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <Border Width="8" Height="8" CornerRadius="4" VerticalAlignment="Center"
+                            Background="{StaticResource AccentHover}" />
+
+                    <TextBlock x:Name="UpdateBannerText" Grid.Column="1" Margin="10,0,10,0"
+                               VerticalAlignment="Center"
+                               AutomationProperties.AutomationId="UpdateBannerText"
+                               FontFamily="{StaticResource UiFont}" FontSize="12.5"
+                               Foreground="{StaticResource Text}"
+                               TextTrimming="CharacterEllipsis" />
+
+                    <Button Grid.Column="2" Content="Jetzt aktualisieren"
+                            Style="{StaticResource GhostButton}" FontSize="12"
+                            AutomationProperties.AutomationId="UpdateBannerButton"
+                            Click="UpdateBannerSettings_Click" />
+
+                    <Button Grid.Column="3" Content="✕" Margin="4,0,0,0"
+                            Style="{StaticResource GhostButton}" FontSize="12"
+                            ToolTip="Hinweis bis zum nächsten Start ausblenden"
+                            Click="UpdateBannerClose_Click" />
+                </Grid>
+            </Border>
+
+            </StackPanel>
 
             <ContentControl x:Name="PageHost" Grid.Row="1" Margin="26,24,26,0" />
 

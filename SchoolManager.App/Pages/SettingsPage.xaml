@@ -200,6 +200,48 @@
 
                     <Border Height="1" Background="{StaticResource Line}" Margin="0,18,0,18" />
 
+                    <!-- Benachrichtigungen -->
+                    <TextBlock Text="Benachrichtigungen" Style="{StaticResource SectionTitle}" />
+
+                    <CheckBox x:Name="NotificationsBox" Content="An offene Sachen erinnern"
+                              AutomationProperties.AutomationId="NotificationsBox"
+                              Checked="Notifications_Changed" Unchecked="Notifications_Changed" />
+                    <TextBlock Style="{StaticResource Hint}" Margin="0,8,0,0"
+                               Text="Meldet überfällige und bald fällige Aufträge, Aufgaben, Hausaufgaben, Prüfungen, Termine und To-Dos als Sprechblase beim Symbol neben der Uhr - auch dann, wenn kein Fenster offen ist." />
+
+                    <CheckBox x:Name="AutoStartBox" Content="Beim Anmelden im Hintergrund mitstarten"
+                              Margin="0,12,0,0"
+                              AutomationProperties.AutomationId="AutoStartBox"
+                              Checked="AutoStart_Changed" Unchecked="AutoStart_Changed" />
+                    <TextBlock Style="{StaticResource Hint}" Margin="0,8,0,0"
+                               Text="Ohne diesen Start kommen Erinnerungen erst, sobald School Manager einmal geöffnet wurde. Schliesst man das Fenster, läuft er im Infobereich weiter; dort lässt er sich über „Beenden“ auch ganz schliessen." />
+
+                    <Grid Margin="0,12,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="130" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Text="Vorlauf" Style="{StaticResource FieldLabel}" />
+                        <StackPanel Grid.Column="1" Orientation="Horizontal">
+                            <TextBox x:Name="LeadDaysBox" Width="60"
+                                     AutomationProperties.AutomationId="LeadDaysBox"
+                                     ToolTip="Wie viele Tage im Voraus erinnert wird"
+                                     LostFocus="LeadDays_Changed" />
+                            <TextBlock Text="Tage im Voraus" VerticalAlignment="Center" Margin="10,0,0,0"
+                                       FontFamily="{StaticResource UiFont}" FontSize="11.5"
+                                       Foreground="{StaticResource TextFaint}" />
+                            <Button x:Name="TestNotificationButton" Content="Jetzt prüfen" Margin="16,0,0,0"
+                                    AutomationProperties.AutomationId="TestNotificationButton"
+                                    ToolTip="Sieht sofort nach, was offen ist, und zeigt die Sprechblase"
+                                    Click="TestNotification_Click" />
+                        </StackPanel>
+                    </Grid>
+                    <TextBlock x:Name="NotificationStateText" Style="{StaticResource Hint}" Margin="130,8,0,0"
+                               AutomationProperties.AutomationId="NotificationStateText" />
+
+                    <Border Height="1" Background="{StaticResource Line}" Margin="0,18,0,18" />
+
                     <!-- Daten -->
                     <TextBlock Text="Daten" Style="{StaticResource SectionTitle}" />
                     <StackPanel Orientation="Horizontal">

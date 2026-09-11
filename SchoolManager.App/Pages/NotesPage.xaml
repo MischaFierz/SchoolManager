@@ -57,9 +57,27 @@
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
 
-                    <TextBox x:Name="TitleBox" Grid.Row="0" Margin="0,0,0,10" FontSize="14"
-                             Text="{Binding Title, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                             ToolTip="Titel der Notiz" />
+                    <!-- Titel und Fach; das Fach darf leer bleiben. -->
+                    <Grid x:Name="EditorHeader" Grid.Row="0" Margin="0,0,0,10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="160" />
+                        </Grid.ColumnDefinitions>
+
+                        <TextBox x:Name="TitleBox" FontSize="14"
+                                 AutomationProperties.AutomationId="NoteTitleBox"
+                                 Text="{Binding Title, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                 ToolTip="Titel der Notiz" />
+
+                        <TextBlock Grid.Column="1" Text="Fach" Style="{StaticResource FieldLabel}"
+                                   VerticalAlignment="Center" Margin="14,0,8,0" />
+
+                        <TextBox x:Name="SubjectBox" Grid.Column="2" FontSize="14"
+                                 AutomationProperties.AutomationId="NoteSubjectBox"
+                                 Text="{Binding Subject, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                 ToolTip="Fach, etwa Mathematik - darf leer bleiben" />
+                    </Grid>
 
                     <TextBox x:Name="BodyBox" Grid.Row="1"
                              AcceptsReturn="True" AcceptsTab="True" TextWrapping="Wrap"

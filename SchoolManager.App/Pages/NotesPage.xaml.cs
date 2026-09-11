@@ -102,7 +102,7 @@ public partial class NotesPage : UserControl
         var hasSelection = NotesList.SelectedItem is Note;
 
         DeleteNoteButton.IsEnabled = hasSelection;
-        TitleBox.Visibility = hasSelection ? Visibility.Visible : Visibility.Hidden;
+        EditorHeader.Visibility = hasSelection ? Visibility.Visible : Visibility.Hidden;
         BodyBox.Visibility = hasSelection ? Visibility.Visible : Visibility.Hidden;
         NoSelectionText.Visibility = hasSelection ? Visibility.Collapsed : Visibility.Visible;
     }
@@ -124,7 +124,7 @@ public partial class NotesPage : UserControl
         if (suppressChanges || sender is not Note note)
             return;
 
-        if (e.PropertyName is not (nameof(Note.Title) or nameof(Note.Body)))
+        if (e.PropertyName is not (nameof(Note.Title) or nameof(Note.Subject) or nameof(Note.Body)))
             return;
 
         pendingNote = note;

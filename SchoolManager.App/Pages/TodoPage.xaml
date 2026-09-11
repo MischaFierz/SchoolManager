@@ -38,19 +38,39 @@
                 </Grid.RowDefinitions>
 
                 <!-- Neue Aufgabe -->
-                <Grid Grid.Row="0" Margin="0,0,0,16">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-                    <TextBox x:Name="NewTodoBox" KeyDown="NewTodoBox_KeyDown"
-                             ToolTip="Aufgabe eintippen und mit Enter hinzufügen" />
-                    <Button x:Name="AddTodoButton" Grid.Column="1" Content="Hinzufügen" Margin="10,0,0,0"
-                            Style="{StaticResource AccentButton}" Click="Add_Click" />
-                    <ComboBox x:Name="FilterBox" Grid.Column="2" Width="130" Margin="10,0,0,0"
-                              SelectionChanged="FilterBox_SelectionChanged" />
-                </Grid>
+                <StackPanel Grid.Row="0" Margin="0,0,0,16">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <TextBox x:Name="NewTodoBox" KeyDown="NewTodoBox_KeyDown"
+                                 ToolTip="Aufgabe eintippen und mit Enter hinzufügen" />
+
+                        <TextBox x:Name="NewSubjectBox" Grid.Column="1" Width="120" Margin="10,0,0,0"
+                                 KeyDown="NewTodoBox_KeyDown"
+                                 AutomationProperties.AutomationId="NewTodoSubjectBox"
+                                 ToolTip="Fach, etwa Mathematik - darf leer bleiben" />
+
+                        <TextBox x:Name="NewDueBox" Grid.Column="2" Width="105" Margin="10,0,0,0"
+                                 KeyDown="NewTodoBox_KeyDown"
+                                 AutomationProperties.AutomationId="NewTodoDueBox"
+                                 ToolTip="Bis wann, etwa 24.09.2026 - darf leer bleiben" />
+
+                        <Button x:Name="AddTodoButton" Grid.Column="3" Content="Hinzufügen" Margin="10,0,0,0"
+                                Style="{StaticResource AccentButton}" Click="Add_Click" />
+
+                        <ComboBox x:Name="FilterBox" Grid.Column="4" Width="130" Margin="10,0,0,0"
+                                  SelectionChanged="FilterBox_SelectionChanged" />
+                    </Grid>
+
+                    <TextBlock Style="{StaticResource Hint}" Margin="0,8,0,0"
+                               Text="Fach und Datum sind freiwillig. Das Datum erscheint bewusst nicht im Kalender - es gilt nur für die Liste und die Erinnerungen." />
+                </StackPanel>
 
                 <!-- Liste -->
                 <Border Grid.Row="1" Background="{StaticResource SurfaceAlt}"
@@ -68,6 +88,8 @@
                                                     <ColumnDefinition Width="*" />
                                                     <ColumnDefinition Width="Auto" />
                                                     <ColumnDefinition Width="Auto" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                    <ColumnDefinition Width="Auto" />
                                                 </Grid.ColumnDefinitions>
 
                                                 <CheckBox IsChecked="{Binding IsDone, Mode=TwoWay}"
@@ -78,13 +100,36 @@
                                                            Text="{Binding Text}"
                                                            Style="{StaticResource TodoText}" />
 
-                                                <TextBlock Grid.Column="2" VerticalAlignment="Center"
-                                                           Margin="0,0,8,0"
-                                                           FontFamily="{StaticResource UiFont}" FontSize="11"
-                                                           Foreground="{StaticResource TextFaint}"
-                                                           Text="{Binding CreatedAt, StringFormat='{}{0:dd.MM.yyyy}'}" />
+                                                <TextBox Grid.Column="2" Width="110" FontSize="11.5"
+                                                         VerticalAlignment="Center" Margin="0,0,8,0"
+                                                         Text="{Binding Subject, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
+                                                         ToolTip="Fach - darf leer bleiben" />
 
-                                                <Button Grid.Column="3" Content="Löschen"
+                                                <TextBox Grid.Column="3" Width="95" FontSize="11.5"
+                                                         VerticalAlignment="Center" Margin="0,0,8,0"
+                                                         Text="{Binding DueText, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
+                                                         ToolTip="Bis wann, etwa 24.09.2026 - darf leer bleiben" />
+
+                                                <TextBlock Grid.Column="4" VerticalAlignment="Center"
+                                                           Margin="0,0,8,0" MinWidth="118"
+                                                           FontFamily="{StaticResource UiFont}" FontSize="11"
+                                                           Text="{Binding DueDescription}">
+                                                    <TextBlock.Style>
+                                                        <Style TargetType="TextBlock">
+                                                            <Setter Property="Foreground"
+                                                                    Value="{StaticResource TextFaint}" />
+                                                            <Style.Triggers>
+                                                                <!-- Überfälliges sticht hervor. -->
+                                                                <DataTrigger Binding="{Binding IsOverdue}" Value="True">
+                                                                    <Setter Property="Foreground"
+                                                                            Value="{StaticResource Error}" />
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </TextBlock.Style>
+                                                </TextBlock>
+
+                                                <Button Grid.Column="5" Content="Löschen"
                                                         Style="{StaticResource GhostButton}"
                                                         FontSize="11.5"
                                                         Click="Delete_Click"

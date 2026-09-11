@@ -117,6 +117,14 @@ public static class UninstallService
             }
         }
 
+        if (removeProgram)
+        {
+            // Sonst versuchte Windows bei jeder Anmeldung, die geloeschte
+            // Programmdatei zu starten.
+            text.AppendLine(@"reg delete ""HKCU\Software\Microsoft\Windows\CurrentVersion\Run"" "
+                            + @"/v ""School Manager"" /f >nul 2>nul");
+        }
+
         text.AppendLine(Remove(DataFolder));
         // Heruntergeladene Installationspakete der Update-Suche; UpdateService
         // legt sie als SchoolManagerSetup-<Version>.msi im Temp-Ordner ab.
