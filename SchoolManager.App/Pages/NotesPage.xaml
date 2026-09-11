@@ -54,37 +54,48 @@
                 <Grid Grid.Column="1" DataContext="{Binding SelectedItem, ElementName=NotesList}">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
 
-                    <!-- Titel und Fach; das Fach darf leer bleiben. -->
+                    <!-- Titel und Fach, jeweils beschriftet; das Fach darf leer bleiben. -->
                     <Grid x:Name="EditorHeader" Grid.Row="0" Margin="0,0,0,10">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="160" />
+                            <ColumnDefinition Width="180" />
                         </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
 
-                        <TextBox x:Name="TitleBox" FontSize="14"
+                        <TextBlock Text="Titel" Style="{StaticResource FieldLabel}" Margin="0,0,0,5" />
+                        <TextBlock Grid.Column="1" Text="Fach" Style="{StaticResource FieldLabel}"
+                                   Margin="12,0,0,5" />
+
+                        <TextBox x:Name="TitleBox" Grid.Row="1" FontSize="14"
                                  AutomationProperties.AutomationId="NoteTitleBox"
                                  Text="{Binding Title, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                 ToolTip="Titel der Notiz" />
+                                 ToolTip="Überschrift der Notiz" />
 
-                        <TextBlock Grid.Column="1" Text="Fach" Style="{StaticResource FieldLabel}"
-                                   VerticalAlignment="Center" Margin="14,0,8,0" />
-
-                        <TextBox x:Name="SubjectBox" Grid.Column="2" FontSize="14"
+                        <TextBox x:Name="SubjectBox" Grid.Row="1" Grid.Column="1" FontSize="14"
+                                 Margin="12,0,0,0"
                                  AutomationProperties.AutomationId="NoteSubjectBox"
                                  Text="{Binding Subject, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                  ToolTip="Fach, etwa Mathematik - darf leer bleiben" />
                     </Grid>
 
-                    <TextBox x:Name="BodyBox" Grid.Row="1"
+                    <TextBlock x:Name="BodyLabel" Grid.Row="1" Text="Text"
+                               Style="{StaticResource FieldLabel}" Margin="0,0,0,5"
+                               VerticalAlignment="Top" />
+
+                    <TextBox x:Name="BodyBox" Grid.Row="2"
                              AcceptsReturn="True" AcceptsTab="True" TextWrapping="Wrap"
                              VerticalScrollBarVisibility="Auto"
+                             ToolTip="Der Inhalt der Notiz"
                              Text="{Binding Body, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 
-                    <TextBlock x:Name="NoSelectionText" Grid.Row="0" Grid.RowSpan="2"
+                    <TextBlock x:Name="NoSelectionText" Grid.Row="0" Grid.RowSpan="3"
                                Style="{StaticResource Placeholder}" VerticalAlignment="Center"
                                Text="Links eine Notiz auswählen&#10;oder eine neue anlegen." />
                 </Grid>

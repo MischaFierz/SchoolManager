@@ -489,6 +489,26 @@ public partial class MainWindow : Window, IStatusSink
     }
 
     /// <summary>
+    /// Meldet, dass das Fenster diesmal wirklich zugehen darf, statt in den
+    /// Infobereich auszuweichen.
+    ///
+    /// Das brauchen die Wege, die School Manager beenden, um sich selbst
+    /// ersetzen zu lassen: Update einspielen, auf die öffentliche Version
+    /// zurück, Daten einlesen, zurücksetzen, deinstallieren. Bei allen wartet
+    /// ein Skript darauf, dass dieser Prozess endet - bliebe er im Infobereich
+    /// stehen, wartete es ewig.
+    /// </summary>
+    public void PrepareForExit()
+    {
+        isExiting = true;
+
+        reminderTimer.Stop();
+
+        tray?.Dispose();
+        tray = null;
+    }
+
+    /// <summary>
     /// Beendet School Manager wirklich - samt Symbol im Infobereich.
     ///
     /// Nach dem Autostart gab es nie ein sichtbares Fenster, und ein solches

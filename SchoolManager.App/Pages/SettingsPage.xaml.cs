@@ -424,6 +424,8 @@ public partial class SettingsPage : UserControl
         try
         {
             var installerPath = await UpdateService.DownloadAsync(update);
+
+            PrepareForExit();
             UpdateService.RunInstallerAndExit(installerPath);
         }
         catch (Exception ex)
@@ -536,6 +538,8 @@ public partial class SettingsPage : UserControl
         try
         {
             DataImportService.ImportAll(dialog.FileName);
+
+            PrepareForExit();
             RestartApplication();
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidDataException)
@@ -543,6 +547,14 @@ public partial class SettingsPage : UserControl
             status.SetStatus($"Import fehlgeschlagen: {ex.Message}", StatusKind.Error);
         }
     }
+
+    /// <summary>
+    /// Sagt dem Fenster, dass es diesmal wirklich zugehen darf. Ohne das ginge
+    /// School Manager beim Beenden nur in den Infobereich, und das wartende
+    /// Aufräum-Skript käme nie an die Reihe.
+    /// </summary>
+    private void PrepareForExit() =>
+        (Window.GetWindow(this) as MainWindow)?.PrepareForExit();
 
     /// <summary>Startet School Manager neu, ohne das normale Speichern beim Schliessen auszulösen -
     /// das würde sonst die gerade importierten Dateien mit dem alten Stand im Speicher überschreiben.</summary>
@@ -724,6 +736,8 @@ public partial class SettingsPage : UserControl
             var installerPath = await UpdateService.DownloadAsync(release);
 
             DevMode.Disable();
+
+            PrepareForExit();
             DevBackupService.RestoreAndExit(installerPath, backup);
         }
         catch (Exception ex)
@@ -761,6 +775,7 @@ public partial class SettingsPage : UserControl
 
         try
         {
+            PrepareForExit();
             UninstallService.ResetDataAndRestart();
         }
         catch (Exception ex)
@@ -790,6 +805,7 @@ public partial class SettingsPage : UserControl
 
         try
         {
+            PrepareForExit();
             UninstallService.UninstallAndExit();
         }
         catch (Exception ex)

@@ -19,7 +19,7 @@
 
     <Product>School Manager</Product>
     <AssemblyTitle>School Manager</AssemblyTitle>
-    <Version>1.1.0</Version>
+    <Version>1.1.1</Version>
     <Company>$(Product)</Company>
   </PropertyGroup>
 

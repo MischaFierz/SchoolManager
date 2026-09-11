@@ -78,6 +78,9 @@ public static class DevBackupService
         Application.Current.Shutdown();
     }
 
+    /// <summary>Das Protokoll des Rückwegs - die einzige Spur, wenn etwas schiefgeht.</summary>
+    public static string LogPath => Path.Combine(Path.GetTempPath(), "schoolmanager-zurueck.log");
+
     private static string WriteScript(string installerPath, string? backupPath)
     {
         var script = Path.Combine(Path.GetTempPath(), "schoolmanager-dev-zurueck.cmd");
@@ -87,6 +90,9 @@ public static class DevBackupService
         var text = new StringBuilder()
             .AppendLine("@echo off")
             .AppendLine("rem Stellt den Stand von vor dem Entwicklermodus wieder her.")
+            .AppendLine("setlocal")
+            .AppendLine($"set \"protokoll={LogPath}\"")
+            .AppendLine("echo ==== %date% %time% ==== >>\"%protokoll%\"")
             .AppendLine(":warten")
             .AppendLine($"tasklist /fi \"PID eq {pid}\" /nh 2>nul | find \"{pid}\" >nul")
             .AppendLine("if not errorlevel 1 (")
@@ -99,24 +105,50 @@ public static class DevBackupService
         // Der Dev-Patch trägt eine höhere Versionsnummer; das Setup lehnt die
         // ältere öffentliche Version deshalb als Rückschritt ab. Darum wird die
         // vorhandene Installation zuerst entfernt und danach neu installiert.
+        //
+        // Beides mit "start /wait": Ohne das kehrt msiexec sofort zurück, die
+        // Installation liefe noch, und die nächste Zeile scheiterte daran, dass
+        // Windows immer nur eine Installation gleichzeitig zulässt.
         if (installation is { } found)
-            text.AppendLine($"msiexec /x {found.ProductCode} /qn");
+        {
+            text.AppendLine($"start /wait \"\" msiexec /x {found.ProductCode} /qn")
+                .AppendLine("set \"ergebnis=%errorlevel%\"")
+                .AppendLine("echo Deinstallation beendet mit %ergebnis% >>\"%protokoll%\"");
+        }
 
-        text.AppendLine($"msiexec /i \"{installerPath}\" /qb");
+        text.AppendLine($"start /wait \"\" msiexec /i \"{installerPath}\" /qb")
+            .AppendLine("set \"ergebnis=%errorlevel%\"")
+            .AppendLine("echo Installation beendet mit %ergebnis% >>\"%protokoll%\"")
+            // 0 ist erledigt, 3010 heisst "erledigt, Neustart waere gut".
+            .AppendLine("if \"%ergebnis%\"==\"0\" goto weiter")
+            .AppendLine("if \"%ergebnis%\"==\"3010\" goto weiter")
+            .AppendLine("goto fehler")
+            .AppendLine(":weiter");
 
         if (backupPath is not null)
         {
             var folder = LocalStore.Folder.TrimEnd(Path.DirectorySeparatorChar);
 
-            text.AppendLine($"rmdir /s /q \"{folder}\"");
-            text.AppendLine("powershell -NoProfile -ExecutionPolicy Bypass -Command "
-                            + $"\"Expand-Archive -LiteralPath '{backupPath}' -DestinationPath '{folder}' -Force\"");
+            text.AppendLine($"rmdir /s /q \"{folder}\"")
+                .AppendLine("powershell -NoProfile -ExecutionPolicy Bypass -Command "
+                            + $"\"Expand-Archive -LiteralPath '{backupPath}' -DestinationPath '{folder}' -Force\""
+                            + " >>\"%protokoll%\" 2>&1");
         }
 
-        text.AppendLine($"start \"\" \"{RestartPath(installation)}\"");
+        text.AppendLine($"start \"\" \"{RestartPath(installation)}\"")
+            .AppendLine("goto ende")
 
-        // Zum Schluss loescht sich das Skript selbst.
-        text.AppendLine("(goto) 2>nul & del \"%~f0\"");
+            // Ohne diesen Hinweis stünde man nach einem gescheiterten Setup vor
+            // gar nichts - das Fenster ist zu, und niemand sagt, warum.
+            .AppendLine(":fehler")
+            .AppendLine("powershell -NoProfile -Command \"Add-Type -AssemblyName PresentationFramework; "
+                        + "[void][System.Windows.MessageBox]::Show("
+                        + $"'Der Rueckweg auf die oeffentliche Version ist gescheitert. Das Installationspaket liegt unter {installerPath} und laesst sich von Hand starten. Einzelheiten stehen in {LogPath}.'"
+                        + ", 'School Manager')\"")
+            .AppendLine(":ende")
+
+            // Zum Schluss loescht sich das Skript selbst.
+            .AppendLine("(goto) 2>nul & del \"%~f0\"");
 
         File.WriteAllText(script, text.ToString(), Encoding.Default);
 

@@ -103,6 +103,7 @@ public partial class NotesPage : UserControl
 
         DeleteNoteButton.IsEnabled = hasSelection;
         EditorHeader.Visibility = hasSelection ? Visibility.Visible : Visibility.Hidden;
+        BodyLabel.Visibility = hasSelection ? Visibility.Visible : Visibility.Hidden;
         BodyBox.Visibility = hasSelection ? Visibility.Visible : Visibility.Hidden;
         NoSelectionText.Visibility = hasSelection ? Visibility.Collapsed : Visibility.Visible;
     }

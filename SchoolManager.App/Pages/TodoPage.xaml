@@ -39,6 +39,8 @@
 
                 <!-- Neue Aufgabe -->
                 <StackPanel Grid.Row="0" Margin="0,0,0,16">
+                    <!-- Über jedem Feld steht, was hineingehört; ohne das rät
+                         man bei drei gleich aussehenden Kästchen. -->
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
@@ -47,29 +49,45 @@
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
 
-                        <TextBox x:Name="NewTodoBox" KeyDown="NewTodoBox_KeyDown"
-                                 ToolTip="Aufgabe eintippen und mit Enter hinzufügen" />
+                        <TextBlock Text="Neue Aufgabe" Style="{StaticResource FieldLabel}"
+                                   Margin="0,0,0,5" />
+                        <TextBlock Grid.Column="1" Text="Fach" Style="{StaticResource FieldLabel}"
+                                   Margin="10,0,0,5" />
+                        <TextBlock Grid.Column="2" Text="Bis wann" Style="{StaticResource FieldLabel}"
+                                   Margin="10,0,0,5" />
 
-                        <TextBox x:Name="NewSubjectBox" Grid.Column="1" Width="120" Margin="10,0,0,0"
+                        <TextBox x:Name="NewTodoBox" Grid.Row="1" KeyDown="NewTodoBox_KeyDown"
+                                 ToolTip="Was zu tun ist - eintippen und mit Enter hinzufügen" />
+
+                        <TextBox x:Name="NewSubjectBox" Grid.Row="1" Grid.Column="1"
+                                 Width="120" Margin="10,0,0,0"
                                  KeyDown="NewTodoBox_KeyDown"
                                  AutomationProperties.AutomationId="NewTodoSubjectBox"
                                  ToolTip="Fach, etwa Mathematik - darf leer bleiben" />
 
-                        <TextBox x:Name="NewDueBox" Grid.Column="2" Width="105" Margin="10,0,0,0"
+                        <TextBox x:Name="NewDueBox" Grid.Row="1" Grid.Column="2"
+                                 Width="105" Margin="10,0,0,0"
                                  KeyDown="NewTodoBox_KeyDown"
                                  AutomationProperties.AutomationId="NewTodoDueBox"
-                                 ToolTip="Bis wann, etwa 24.09.2026 - darf leer bleiben" />
+                                 ToolTip="Datum im Format TT.MM.JJJJ - darf leer bleiben" />
 
-                        <Button x:Name="AddTodoButton" Grid.Column="3" Content="Hinzufügen" Margin="10,0,0,0"
+                        <Button x:Name="AddTodoButton" Grid.Row="1" Grid.Column="3" Content="Hinzufügen"
+                                Margin="10,0,0,0"
                                 Style="{StaticResource AccentButton}" Click="Add_Click" />
 
-                        <ComboBox x:Name="FilterBox" Grid.Column="4" Width="130" Margin="10,0,0,0"
+                        <ComboBox x:Name="FilterBox" Grid.Row="1" Grid.Column="4" Width="130"
+                                  Margin="10,0,0,0"
+                                  ToolTip="Welche Aufgaben die Liste zeigt"
                                   SelectionChanged="FilterBox_SelectionChanged" />
                     </Grid>
 
                     <TextBlock Style="{StaticResource Hint}" Margin="0,8,0,0"
-                               Text="Fach und Datum sind freiwillig. Das Datum erscheint bewusst nicht im Kalender - es gilt nur für die Liste und die Erinnerungen." />
+                               Text="Fach und Datum sind freiwillig; das Datum im Format TT.MM.JJJJ, etwa 24.09.2026. Es erscheint bewusst nicht im Kalender - es gilt nur für die Liste und die Erinnerungen." />
                 </StackPanel>
 
                 <!-- Liste -->
@@ -90,6 +108,8 @@
                                                     <ColumnDefinition Width="Auto" />
                                                     <ColumnDefinition Width="Auto" />
                                                     <ColumnDefinition Width="Auto" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                    <ColumnDefinition Width="Auto" />
                                                 </Grid.ColumnDefinitions>
 
                                                 <CheckBox IsChecked="{Binding IsDone, Mode=TwoWay}"
@@ -100,17 +120,30 @@
                                                            Text="{Binding Text}"
                                                            Style="{StaticResource TodoText}" />
 
-                                                <TextBox Grid.Column="2" Width="110" FontSize="11.5"
-                                                         VerticalAlignment="Center" Margin="0,0,8,0"
-                                                         Text="{Binding Subject, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
-                                                         ToolTip="Fach - darf leer bleiben" />
+                                                <!-- Die Beschriftung steht in jeder Zeile, statt als
+                                                     Kopfzeile über der Liste: Die rutscht mit dem
+                                                     Rollbalken aus der Flucht, das hier nicht. -->
+                                                <TextBlock Grid.Column="2" Text="Fach"
+                                                           VerticalAlignment="Center" Margin="0,0,6,0"
+                                                           FontFamily="{StaticResource UiFont}" FontSize="11"
+                                                           Foreground="{StaticResource TextFaint}" />
 
-                                                <TextBox Grid.Column="3" Width="95" FontSize="11.5"
+                                                <TextBox Grid.Column="3" Width="110" FontSize="11.5"
+                                                         VerticalAlignment="Center" Margin="0,0,10,0"
+                                                         Text="{Binding Subject, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
+                                                         ToolTip="Fach, etwa Mathematik - darf leer bleiben" />
+
+                                                <TextBlock Grid.Column="4" Text="bis"
+                                                           VerticalAlignment="Center" Margin="0,0,6,0"
+                                                           FontFamily="{StaticResource UiFont}" FontSize="11"
+                                                           Foreground="{StaticResource TextFaint}" />
+
+                                                <TextBox Grid.Column="5" Width="95" FontSize="11.5"
                                                          VerticalAlignment="Center" Margin="0,0,8,0"
                                                          Text="{Binding DueText, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
-                                                         ToolTip="Bis wann, etwa 24.09.2026 - darf leer bleiben" />
+                                                         ToolTip="Datum im Format TT.MM.JJJJ - darf leer bleiben" />
 
-                                                <TextBlock Grid.Column="4" VerticalAlignment="Center"
+                                                <TextBlock Grid.Column="6" VerticalAlignment="Center"
                                                            Margin="0,0,8,0" MinWidth="118"
                                                            FontFamily="{StaticResource UiFont}" FontSize="11"
                                                            Text="{Binding DueDescription}">
@@ -129,7 +162,7 @@
                                                     </TextBlock.Style>
                                                 </TextBlock>
 
-                                                <Button Grid.Column="5" Content="Löschen"
+                                                <Button Grid.Column="7" Content="Löschen"
                                                         Style="{StaticResource GhostButton}"
                                                         FontSize="11.5"
                                                         Click="Delete_Click"
