@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Installationspaket für School Manager.
+
+  Installiert wird ohne Administratorrechte in das Benutzerprofil
+  (%LOCALAPPDATA%\Programs\School Manager), dazu ein Eintrag im Startmenü, eine
+  Verknüpfung auf dem Desktop und ein Eintrag in "Apps & Features" zum
+  Deinstallieren. Die Datei SchoolManager.exe bringt die .NET-Laufzeit mit, es
+  muss also nichts weiter installiert werden.
+-->
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+    <Package Name="School Manager"
+             Manufacturer="School Manager"
+             Version="$(var.Version)"
+             UpgradeCode="6f3a1c94-6b1e-4a8c-9f2d-5d7c8e1b4a20"
+             Scope="perUser"
+             Compressed="yes"
+             InstallerVersion="500">
+
+        <MajorUpgrade DowngradeErrorMessage="Es ist bereits eine neuere Version von School Manager installiert." />
+        <MediaTemplate EmbedCab="yes" />
+
+        <Icon Id="AppIcon" SourceFile="$(var.IconFile)" />
+        <Property Id="ARPPRODUCTICON" Value="AppIcon" />
+        <Property Id="ARPNOREPAIR" Value="1" />
+
+        <!-- Damit in "Apps & Features" der Zielordner steht -->
+        <SetProperty Id="ARPINSTALLLOCATION" Value="[INSTALLFOLDER]" After="CostFinalize" />
+
+        <!-- Zielordner im Benutzerprofil, kein Administrator nötig -->
+        <StandardDirectory Id="LocalAppDataFolder">
+            <Directory Id="ProgramsFolder" Name="Programs">
+                <Directory Id="INSTALLFOLDER" Name="School Manager" />
+            </Directory>
+        </StandardDirectory>
+
+        <StandardDirectory Id="ProgramMenuFolder">
+            <Directory Id="AppMenuFolder" Name="School Manager" />
+        </StandardDirectory>
+
+        <StandardDirectory Id="DesktopFolder" />
+
+        <Component Id="MainExecutable" Directory="INSTALLFOLDER" Guid="9c2b7f18-3d54-4f6a-8b21-71e6c0a95f33">
+            <File Id="SchoolManagerExe" Name="SchoolManager.exe" Source="$(var.ExeFile)" KeyPath="yes" />
+
+            <Shortcut Id="StartMenuShortcut"
+                      Directory="AppMenuFolder"
+                      Name="School Manager"
+                      Description="Aufträge, Aufgaben, Hausaufgaben, Prüfungen, Kalender und E-Mail"
+                      WorkingDirectory="INSTALLFOLDER"
+                      Icon="AppIcon"
+                      Advertise="no" />
+
+            <Shortcut Id="DesktopShortcut"
+                      Directory="DesktopFolder"
+                      Name="School Manager"
+                      Description="Aufträge, Aufgaben, Hausaufgaben, Prüfungen, Kalender und E-Mail"
+                      WorkingDirectory="INSTALLFOLDER"
+                      Icon="AppIcon"
+                      Advertise="no" />
+
+            <RemoveFolder Id="RemoveAppMenuFolder" Directory="AppMenuFolder" On="uninstall" />
+        </Component>
+
+        <Feature Id="Main" Title="School Manager" Level="1">
+            <ComponentRef Id="MainExecutable" />
+        </Feature>
+    </Package>
+</Wix>

@@ -1,0 +1,445 @@
+<UserControl x:Class="SchoolManager.App.Pages.CalendarPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:app="clr-namespace:SchoolManager.App"
+             AllowDrop="True" Drop="Page_Drop" DragOver="Page_DragOver">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Margin="0,0,0,18">
+            <TextBlock Text="Kalender" Style="{StaticResource PageTitle}" />
+            <TextBlock x:Name="SummaryText" Style="{StaticResource PageSubtitle}"
+                       Text="Noch keine Einträge" />
+        </StackPanel>
+
+        <Border Grid.Row="1" Style="{StaticResource Card}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <!-- Woche wählen und ausgeben -->
+                <Grid Grid.Row="0" Margin="0,0,0,16">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <Button Content="◀" Width="40"
+                            AutomationProperties.AutomationId="PreviousWeekButton"
+                            Click="PreviousWeek_Click" ToolTip="Eine Woche zurück" />
+                    <Button Grid.Column="1" Content="Heute" Margin="8,0,0,0"
+                            AutomationProperties.AutomationId="TodayButton"
+                            Click="Today_Click" />
+                    <Button Grid.Column="2" Content="▶" Width="40" Margin="8,0,0,0"
+                            AutomationProperties.AutomationId="NextWeekButton"
+                            Click="NextWeek_Click" ToolTip="Eine Woche vorwärts" />
+
+                    <TextBlock x:Name="WeekText" Grid.Column="3" VerticalAlignment="Center" Margin="18,0,0,0"
+                               AutomationProperties.AutomationId="WeekText"
+                               FontFamily="{StaticResource UiFont}" FontSize="13.5" FontWeight="SemiBold"
+                               Foreground="{StaticResource Text}" />
+
+                    <Button Grid.Column="4" Content="Woche exportieren…"
+                            AutomationProperties.AutomationId="ExportWeekButton"
+                            Click="ExportWeek_Click"
+                            ToolTip="Alle Einträge dieser Woche als ICS-Datei" />
+                    <Button Grid.Column="5" Content="Alles exportieren…" Margin="10,0,0,0"
+                            Style="{StaticResource AccentButton}"
+                            AutomationProperties.AutomationId="ExportAllButton"
+                            Click="ExportAll_Click"
+                            ToolTip="Ein Jahr voraus und zurück als ICS-Datei" />
+                </Grid>
+
+                <!-- Woche Montag bis Freitag als Zeitraster.
+                     Drei Reihen: Kopf, ganztägige Einträge und das scrollbare
+                     Raster. Alle drei ordnen die Tage mit dem gleichen
+                     UniformGrid an, damit die Spalten übereinander liegen. -->
+                <Grid Grid.Row="1">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="54" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <!-- Kopf jedes Tages. Breite und Beginn kommen von WeekDays
+                         im Raster darunter: nur dort steht fest, wie viel die
+                         Bildlaufleiste wegnimmt. Ohne das laufen die Spalten
+                         nach rechts hin um die Breite der Leiste auseinander. -->
+                    <ItemsControl x:Name="DayHeads" Grid.Row="0" Grid.Column="1"
+                                  HorizontalAlignment="Left"
+                                  Width="{Binding ActualWidth, ElementName=WeekDays}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <UniformGrid Rows="1" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Background="{StaticResource SurfaceAlt}"
+                                        BorderBrush="{Binding BorderBrush}" BorderThickness="1,1,1,0"
+                                        CornerRadius="7,7,0,0" Margin="0,0,6,0">
+                                    <!-- Gleicher Einzug wie bei den ganztägigen Einträgen und im Raster -->
+                                    <Grid Margin="7,9,5,9">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding DayName}" FontWeight="SemiBold"
+                                                       FontFamily="{StaticResource UiFont}" FontSize="12.5"
+                                                       Foreground="{Binding TitleBrush}" />
+                                            <TextBlock Text="{Binding DateText}" FontSize="11" Margin="0,1,0,0"
+                                                       FontFamily="{StaticResource UiFont}"
+                                                       Foreground="{StaticResource TextFaint}" />
+                                            <TextBlock Text="{Binding TotalText}" FontSize="11" Margin="0,3,0,0"
+                                                       FontFamily="{StaticResource UiFont}"
+                                                       Foreground="{StaticResource TextMuted}" />
+                                        </StackPanel>
+
+                                        <Button Grid.Column="1" Content="+" VerticalAlignment="Top"
+                                                Style="{StaticResource GhostButton}"
+                                                FontSize="15" Padding="8,0,8,2"
+                                                Click="AddLesson_Click"
+                                                ToolTip="Lektion an diesem Wochentag hinzufügen" />
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <!-- Ganztägige Einträge stehen über dem Raster, sie haben keine Uhrzeit -->
+                    <TextBlock x:Name="AllDayLabel" Grid.Row="1" Grid.Column="0" Text="ganztägig"
+                               FontFamily="{StaticResource UiFont}" FontSize="10.5"
+                               Foreground="{StaticResource TextFaint}"
+                               HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,8,8,0" />
+
+                    <!-- Höhe begrenzt, damit viele Abgaben an einem Tag nicht das
+                         ganze Raster verdrängen; darüber hinaus wird gescrollt.
+                         Die Bildlaufleiste hält die Spalten auf gleicher Breite
+                         wie im Kopf und im Raster. Das Verlaufsband unten zeigt,
+                         dass dort noch etwas abgeschnitten ist, statt die letzte
+                         Karte einfach hart durchzuschneiden. -->
+                    <Grid Grid.Row="1" Grid.Column="1">
+                    <ScrollViewer x:Name="AllDayScroll"
+                                  AutomationProperties.AutomationId="AllDayScroll"
+                                  MaxHeight="120"
+                                  VerticalScrollBarVisibility="Visible"
+                                  HorizontalScrollBarVisibility="Disabled"
+                                  ScrollChanged="AllDayScroll_ScrollChanged">
+                    <ItemsControl x:Name="AllDayRow"
+                                  HorizontalAlignment="Left"
+                                  Width="{Binding ActualWidth, ElementName=WeekDays}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <UniformGrid Rows="1" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Background="{StaticResource SurfaceAlt}"
+                                        BorderBrush="{Binding BorderBrush}" BorderThickness="1,0,1,0"
+                                        Margin="0,0,6,0" Padding="7,4,5,4">
+                                    <!-- Eine Zeile je Eintrag: farbiger Streifen für die
+                                         Art, danach die Art und der Titel. Was nicht
+                                         hineinpasst, steht im Tooltip. So passen auch
+                                         an einem vollen Tag mehrere übereinander. -->
+                                    <ItemsControl ItemsSource="{Binding AllDay}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border Background="{StaticResource Surface}"
+                                                        BorderBrush="{StaticResource Line}"
+                                                        BorderThickness="1"
+                                                        CornerRadius="5" Margin="0,0,0,3"
+                                                        ClipToBounds="True"
+                                                        ToolTip="{Binding TooltipText}">
+                                                    <Border.ContextMenu>
+                                                        <ContextMenu>
+                                                            <MenuItem Header="Bearbeiten…"
+                                                                      Click="EditEntry_Click" />
+                                                            <MenuItem Header="Aus dem Stundenplan entfernen"
+                                                                      Click="RemoveEntry_Click" />
+                                                            <MenuItem Header="Diesen Termin exportieren…"
+                                                                      Click="ExportEntry_Click" />
+                                                        </ContextMenu>
+                                                    </Border.ContextMenu>
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="3" />
+                                                            <ColumnDefinition Width="Auto" />
+                                                            <ColumnDefinition Width="*" />
+                                                        </Grid.ColumnDefinitions>
+
+                                                        <Rectangle Fill="{Binding KindBrush}" />
+
+                                                        <TextBlock Grid.Column="1" Text="{Binding KindLabel}"
+                                                                   Margin="7,3,0,3"
+                                                                   VerticalAlignment="Center"
+                                                                   FontFamily="{StaticResource UiFont}"
+                                                                   FontSize="10" FontWeight="SemiBold"
+                                                                   Foreground="{Binding KindBrush}" />
+
+                                                        <TextBlock Grid.Column="2" Text="{Binding Title}"
+                                                                   Margin="6,3,6,3"
+                                                                   VerticalAlignment="Center"
+                                                                   FontFamily="{StaticResource UiFont}"
+                                                                   FontSize="11.5" FontWeight="SemiBold"
+                                                                   Foreground="{StaticResource Text}"
+                                                                   TextTrimming="CharacterEllipsis" />
+                                                    </Grid>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    </ScrollViewer>
+
+                    <Border x:Name="AllDayFade" Height="18" VerticalAlignment="Bottom" Margin="0,0,6,0"
+                            IsHitTestVisible="False" Visibility="Collapsed">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                <GradientStop Color="#00121316" Offset="0" />
+                                <GradientStop Color="#B0121316" Offset="1" />
+                            </LinearGradientBrush>
+                        </Border.Background>
+                    </Border>
+                    </Grid>
+
+                    <!-- Das Raster: links die Stunden, rechts die fünf Tage. Alles
+                         in einem Scroller, damit die Tage auf gleicher Höhe bleiben. -->
+                    <ScrollViewer Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2"
+                                  VerticalScrollBarVisibility="Visible"
+                                  HorizontalScrollBarVisibility="Disabled"
+                                  Padding="0,12,0,0">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="54" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <ItemsControl x:Name="HourAxis" Grid.Column="0">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Height="{Binding Height}">
+                                            <TextBlock Text="{Binding Label}"
+                                                       FontFamily="{StaticResource UiFont}" FontSize="10.5"
+                                                       Foreground="{StaticResource TextFaint}"
+                                                       HorizontalAlignment="Right" VerticalAlignment="Top"
+                                                       Margin="0,2,8,0" />
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+
+                            <ItemsControl x:Name="WeekDays" Grid.Column="1">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <UniformGrid Rows="1" />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Background="{StaticResource SurfaceAlt}"
+                                                BorderBrush="{Binding BorderBrush}" BorderThickness="1"
+                                                CornerRadius="0,0,7,7" Margin="0,0,6,0">
+                                            <Grid Margin="7,0,5,6">
+                                                <!-- Stundenlinien -->
+                                                <ItemsControl ItemsSource="{Binding Hours}">
+                                                    <ItemsControl.ItemTemplate>
+                                                        <DataTemplate>
+                                                            <Border Height="{Binding Height}"
+                                                                    BorderBrush="{StaticResource Line}"
+                                                                    BorderThickness="0,1,0,0" />
+                                                        </DataTemplate>
+                                                    </ItemsControl.ItemTemplate>
+                                                </ItemsControl>
+
+                                                <!-- Die Einträge mit Uhrzeit -->
+                                                <ItemsControl ItemsSource="{Binding Timed}">
+                                                    <ItemsControl.ItemsPanel>
+                                                        <ItemsPanelTemplate>
+                                                            <app:TimeGridPanel DayStart="{Binding DayStart}"
+                                                                               DayEnd="{Binding DayEnd}"
+                                                                               MinuteHeight="{Binding MinuteHeight}" />
+                                                        </ItemsPanelTemplate>
+                                                    </ItemsControl.ItemsPanel>
+                                                    <ItemsControl.ItemContainerStyle>
+                                                        <Style TargetType="ContentPresenter">
+                                                            <Setter Property="app:TimeGridPanel.StartMinutes"
+                                                                    Value="{Binding StartMinutes}" />
+                                                            <Setter Property="app:TimeGridPanel.EndMinutes"
+                                                                    Value="{Binding EndMinutes}" />
+                                                            <Setter Property="app:TimeGridPanel.Column"
+                                                                    Value="{Binding Column}" />
+                                                            <Setter Property="app:TimeGridPanel.ColumnCount"
+                                                                    Value="{Binding ColumnCount}" />
+                                                        </Style>
+                                                    </ItemsControl.ItemContainerStyle>
+                                                    <ItemsControl.ItemTemplate>
+                                                        <DataTemplate>
+                                                            <Border Background="{StaticResource Surface}"
+                                                                    BorderBrush="{StaticResource LineHover}"
+                                                                    BorderThickness="1"
+                                                                    CornerRadius="6" Padding="7,4"
+                                                                    ClipToBounds="True"
+                                                                    ToolTip="{Binding TooltipText}">
+                                                                <Border.ContextMenu>
+                                                                    <ContextMenu>
+                                                                        <MenuItem Header="Bearbeiten…"
+                                                                                  Click="EditEntry_Click" />
+                                                                        <MenuItem Header="Aus dem Stundenplan entfernen"
+                                                                                  Click="RemoveEntry_Click" />
+                                                                        <MenuItem Header="Diesen Termin exportieren…"
+                                                                                  Click="ExportEntry_Click" />
+                                                                    </ContextMenu>
+                                                                </Border.ContextMenu>
+                                                                <StackPanel>
+                                                                    <TextBlock Text="{Binding Entry.KindLabel}"
+                                                                               Visibility="{Binding Entry.KindVisibility}"
+                                                                               FontFamily="{StaticResource UiFont}"
+                                                                               FontSize="10" FontWeight="SemiBold"
+                                                                               Foreground="{StaticResource AccentText}"
+                                                                               Background="{StaticResource Accent}"
+                                                                               Padding="5,1" Margin="0,0,0,3"
+                                                                               HorizontalAlignment="Left" />
+                                                                    <TextBlock Text="{Binding Entry.TimeText}"
+                                                                               FontFamily="{StaticResource UiFont}"
+                                                                               FontSize="10.5"
+                                                                               Foreground="{StaticResource TextMuted}"
+                                                                               TextTrimming="CharacterEllipsis" />
+                                                                    <TextBlock Text="{Binding Entry.Title}"
+                                                                               FontFamily="{StaticResource UiFont}"
+                                                                               FontSize="12" FontWeight="SemiBold"
+                                                                               Foreground="{StaticResource Text}"
+                                                                               TextTrimming="CharacterEllipsis" />
+                                                                    <TextBlock Text="{Binding Entry.Subtitle}"
+                                                                               FontFamily="{StaticResource UiFont}"
+                                                                               FontSize="10.5"
+                                                                               Foreground="{StaticResource TextFaint}"
+                                                                               TextTrimming="CharacterEllipsis" />
+                                                                </StackPanel>
+                                                            </Border>
+                                                        </DataTemplate>
+                                                    </ItemsControl.ItemTemplate>
+                                                </ItemsControl>
+
+                                                <TextBlock Text="frei" Style="{StaticResource Placeholder}"
+                                                           VerticalAlignment="Top" Margin="0,6,0,0"
+                                                           Visibility="{Binding EmptyVisibility}" />
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </Grid>
+                    </ScrollViewer>
+                </Grid>
+
+                <!-- Wochenende, nur wenn es dort etwas gibt -->
+                <StackPanel x:Name="WeekendPanel" Grid.Row="2" Margin="0,12,0,0" Visibility="Collapsed">
+                    <TextBlock Text="Wochenende" Style="{StaticResource FieldLabel}" Margin="0,0,0,6" />
+                    <ItemsControl x:Name="WeekendList">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Style="{StaticResource Hint}" Margin="0,0,0,3">
+                                    <Run Text="{Binding Start, StringFormat='{}{0:ddd dd.MM.}', Mode=OneWay}" />
+                                    <Run Text="{Binding TimeText, Mode=OneWay}" />
+                                    <Run Text="·" />
+                                    <Run Text="{Binding KindLabel, Mode=OneWay}" />
+                                    <Run Text="{Binding Title, Mode=OneWay}" FontWeight="SemiBold" />
+                                    <Run Text="{Binding Subtitle, Mode=OneWay}" />
+                                </TextBlock>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+
+                <!-- Einlesen und Quellen -->
+                <Grid Grid.Row="3" Margin="0,14,0,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <Border Height="1" Background="{StaticResource Line}" Margin="0,0,0,12" />
+
+                    <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,10">
+                        <Button Content="Stundenplan-Datei einlesen…"
+                                AutomationProperties.AutomationId="ImportSourceButton"
+                                Click="ImportSource_Click"
+                                ToolTip="Wiederkehrende Lektionen aus einer ICS-Datei" />
+                        <Button Content="Termine importieren…" Margin="10,0,0,0"
+                                AutomationProperties.AutomationId="ImportEventsButton"
+                                Click="ImportEvents_Click"
+                                ToolTip="Einzelne Termine aus einer ICS-Datei übernehmen" />
+                        <Button x:Name="RestoreHiddenButton" Content="Ausgeblendete zurückholen" Margin="10,0,0,0"
+                                Visibility="Collapsed"
+                                AutomationProperties.AutomationId="RestoreHiddenButton"
+                                Click="RestoreHidden_Click"
+                                ToolTip="Aus dem Stundenplan entfernte Lektionen wieder anzeigen" />
+                        <TextBlock Style="{StaticResource Hint}" VerticalAlignment="Center" Margin="14,0,0,0"
+                                   Text="oder eine .ics-Datei ins Fenster ziehen" />
+                    </StackPanel>
+
+                    <Grid Grid.Row="2">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Text="Quellen" Style="{StaticResource FieldLabel}" VerticalAlignment="Top"
+                                   Margin="0,3,14,0" />
+
+                        <StackPanel Grid.Column="1">
+                            <ItemsControl x:Name="SourceList">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid Margin="0,0,0,4">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel>
+                                                <TextBlock Text="{Binding DisplayName}"
+                                                           FontFamily="{StaticResource UiFont}" FontSize="12.5"
+                                                           Foreground="{StaticResource Text}"
+                                                           TextTrimming="CharacterEllipsis" />
+                                                <TextBlock Text="{Binding Summary}" Style="{StaticResource Hint}" />
+                                            </StackPanel>
+                                            <Button Grid.Column="1" Content="Entfernen"
+                                                    Style="{StaticResource GhostButton}" FontSize="11.5"
+                                                    VerticalAlignment="Center"
+                                                    Click="RemoveSource_Click" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+
+                            <TextBlock x:Name="NoSourceText" Style="{StaticResource Hint}"
+                                       Text="Noch keine Stundenplan-Datei eingelesen. Prüfungen, Hausaufgaben und Abgabetermine erscheinen trotzdem im Kalender." />
+                        </StackPanel>
+                    </Grid>
+                </Grid>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

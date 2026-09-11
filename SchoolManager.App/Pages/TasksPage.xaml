@@ -1,0 +1,329 @@
+<UserControl x:Class="SchoolManager.App.Pages.TasksPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:app="clr-namespace:SchoolManager.App">
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis" />
+        <app:DoneGroupNameConverter x:Key="DoneGroupName" />
+
+        <!-- Überschrift über „Offen“ bzw. „Abgeschlossen“ in der Liste -->
+        <DataTemplate x:Key="DoneGroupHeader">
+            <StackPanel Margin="0,12,0,4">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="{Binding Name, Converter={StaticResource DoneGroupName}}"
+                               FontFamily="{StaticResource UiFont}" FontSize="11" FontWeight="SemiBold"
+                               Foreground="{StaticResource TextFaint}" />
+                    <TextBlock Grid.Column="1" Text="{Binding ItemCount}"
+                               FontFamily="{StaticResource UiFont}" FontSize="11"
+                               Foreground="{StaticResource TextFaint}" />
+                </Grid>
+                <Border Height="1" Background="{StaticResource Line}" Margin="0,5,0,0" />
+            </StackPanel>
+        </DataTemplate>
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Margin="0,0,0,18">
+            <TextBlock Text="Aufgaben" Style="{StaticResource PageTitle}" />
+            <TextBlock x:Name="SummaryText" Style="{StaticResource PageSubtitle}" Text="Keine Aufgaben" />
+        </StackPanel>
+
+        <Border Grid.Row="1" Style="{StaticResource Card}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <!-- Werkzeugleiste -->
+                <Grid Grid.Row="0" Margin="0,0,0,16">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="220" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Text="Auftrag" Style="{StaticResource FieldLabel}" />
+                    <ComboBox x:Name="OrderBox" Grid.Column="1"
+                              AutomationProperties.AutomationId="OrderBox"
+                              ToolTip="In welchem Auftrag die neue Aufgabe angelegt wird">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding DisplayTitle}" TextTrimming="CharacterEllipsis" />
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                    <Button x:Name="NewTaskButton" Grid.Column="2" Content="Neue Aufgabe" Margin="10,0,0,0"
+                            Style="{StaticResource AccentButton}" Click="NewTask_Click" />
+                    <Button x:Name="DeleteTaskButton" Grid.Column="4" Content="Aufgabe löschen"
+                            Click="DeleteTask_Click" IsEnabled="False" />
+                </Grid>
+
+                <Grid Grid.Row="1">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="290" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Alle Aufgaben -->
+                    <Grid Grid.Column="0" Margin="0,0,18,0">
+                        <ListBox x:Name="TaskList" SelectionChanged="TaskList_SelectionChanged">
+                            <ListBox.GroupStyle>
+                                <GroupStyle HeaderTemplate="{StaticResource DoneGroupHeader}" />
+                            </ListBox.GroupStyle>
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <CheckBox IsChecked="{Binding IsDone, Mode=TwoWay}"
+                                                  VerticalAlignment="Center"
+                                                  ToolTip="Aufgabe als fertig markieren" />
+
+                                        <StackPanel Grid.Column="1" Margin="10,0,8,0">
+                                            <TextBlock Text="{Binding DisplayTitle}" FontWeight="SemiBold"
+                                                       TextTrimming="CharacterEllipsis" />
+                                            <TextBlock Text="{Binding Parent.DisplayTitle}" FontSize="11"
+                                                       Opacity="0.75" TextTrimming="CharacterEllipsis"
+                                                       Margin="0,2,0,0" />
+                                        </StackPanel>
+
+                                        <TextBlock Grid.Column="2" Text="{Binding TotalText}"
+                                                   VerticalAlignment="Center" FontSize="11.5" Opacity="0.85" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+
+                        <TextBlock x:Name="EmptyListText" Style="{StaticResource Placeholder}"
+                                   VerticalAlignment="Center"
+                                   Text="Noch keine Aufgaben.&#10;Oben einen Auftrag wählen&#10;und „Neue Aufgabe“ drücken." />
+                    </Grid>
+
+                    <!-- Aufgabe bearbeiten -->
+                    <Grid Grid.Column="1">
+                        <ScrollViewer x:Name="DetailScroller" VerticalScrollBarVisibility="Auto"
+                                      DataContext="{Binding SelectedItem, ElementName=TaskList}">
+                            <StackPanel>
+                                <TextBlock Text="Aufgabe" Style="{StaticResource SectionTitle}" Margin="0" />
+                                <TextBlock Style="{StaticResource Hint}" Margin="0,4,0,0"
+                                           Text="{Binding EstimateSummary}" />
+                                <TextBlock Style="{StaticResource Hint}" Margin="0,2,0,16"
+                                           Text="{Binding Parent.DisplayTitle, StringFormat='Gehört zum Auftrag: {0}'}" />
+
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="120" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Titel"
+                                               Style="{StaticResource FieldLabel}" />
+                                    <TextBox Grid.Row="0" Grid.Column="1" Margin="0,0,0,10"
+                                             AutomationProperties.AutomationId="TaskTitle"
+                                             Text="{Binding Title, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Auftraggeber"
+                                               Style="{StaticResource FieldLabel}" />
+                                    <TextBox Grid.Row="1" Grid.Column="1" Margin="0,0,0,10"
+                                             AutomationProperties.AutomationId="TaskClient"
+                                             Text="{Binding Client, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Fach"
+                                               Style="{StaticResource FieldLabel}" />
+                                    <TextBox Grid.Row="2" Grid.Column="1" Margin="0,0,0,6"
+                                             AutomationProperties.AutomationId="TaskSubject"
+                                             Text="{Binding Subject, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+                                    <Button Grid.Row="3" Grid.Column="1" HorizontalAlignment="Left"
+                                            Margin="0,0,0,12"
+                                            Content="Vom Auftrag übernehmen"
+                                            Style="{StaticResource GhostButton}"
+                                            AutomationProperties.AutomationId="TaskInherit"
+                                            Click="Inherit_Click" />
+
+                                    <TextBlock Grid.Row="4" Grid.Column="0" Text="Fertig"
+                                               Style="{StaticResource FieldLabel}" />
+                                    <CheckBox Grid.Row="4" Grid.Column="1" Margin="0,0,0,12"
+                                              Content="Aufgabe ist abgeschlossen"
+                                              AutomationProperties.AutomationId="TaskDone"
+                                              IsChecked="{Binding IsDone, Mode=TwoWay}" />
+
+                                    <TextBlock Grid.Row="5" Grid.Column="0" Text="Benötigte Zeit"
+                                               Style="{StaticResource FieldLabel}" VerticalAlignment="Top"
+                                               Margin="0,7,14,0" />
+                                    <StackPanel Grid.Row="5" Grid.Column="1" Margin="0,0,0,12">
+                                        <CheckBox Content="Benötigte Arbeitszeit angeben"
+                                                  AutomationProperties.AutomationId="TaskHasEstimate"
+                                                  IsChecked="{Binding HasEstimate, Mode=TwoWay}" />
+                                        <TextBox Width="140" HorizontalAlignment="Left" Margin="0,8,0,0"
+                                                 IsEnabled="{Binding HasEstimate}"
+                                                 ToolTip="Zum Beispiel 90, 1:30 oder 1,5h"
+                                                 LostFocus="DurationBox_LostFocus"
+                                                 AutomationProperties.AutomationId="TaskEstimate"
+                                                 Text="{Binding EstimateText, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" />
+                                    </StackPanel>
+
+                                    <TextBlock Grid.Row="6" Grid.Column="0" Text="Enddatum"
+                                               Style="{StaticResource FieldLabel}" />
+                                    <StackPanel Grid.Row="6" Grid.Column="1" Orientation="Horizontal"
+                                                Margin="0,0,0,12">
+                                        <TextBox Width="140"
+                                                 ToolTip="Format tt.mm.jjjj - leer lassen für kein Enddatum"
+                                                 LostFocus="DueBox_LostFocus"
+                                                 AutomationProperties.AutomationId="TaskDue"
+                                                 Text="{Binding DueText, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" />
+                                        <TextBlock Text="{Binding DueDescription}" Style="{StaticResource Hint}"
+                                                   VerticalAlignment="Center" Margin="12,0,0,0" />
+                                    </StackPanel>
+                                </Grid>
+
+                                <TextBlock Text="Details" Style="{StaticResource FieldLabel}" Margin="0,0,0,6" />
+                                <TextBox MinHeight="70" AcceptsReturn="True" AcceptsTab="True" TextWrapping="Wrap"
+                                         VerticalScrollBarVisibility="Auto"
+                                         AutomationProperties.AutomationId="TaskDetails"
+                                         Text="{Binding Details, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+                                <Border Height="1" Background="{StaticResource Line}" Margin="0,18,0,14" />
+
+                                <!-- Leistungsdetails dieser Aufgabe -->
+                                <Grid Margin="0,0,0,10">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="Leistungsdetails" Style="{StaticResource SectionTitle}"
+                                               Margin="0" VerticalAlignment="Center" />
+                                    <Button Grid.Column="1" Content="Neues Leistungsdetail"
+                                            AutomationProperties.AutomationId="NewEntryButton"
+                                            Click="NewEntry_Click" />
+                                </Grid>
+
+                                <ItemsControl ItemsSource="{Binding Entries}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Background="{StaticResource SurfaceAlt}"
+                                                    BorderBrush="{StaticResource Line}" BorderThickness="1"
+                                                    CornerRadius="7" Padding="10,8" Margin="0,0,0,6">
+                                                <StackPanel>
+                                                    <!-- Zeile: Haken, Titel, Datum, Dauer, Aufklappen, Löschen -->
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="Auto" />
+                                                            <ColumnDefinition Width="*" />
+                                                            <ColumnDefinition Width="100" />
+                                                            <ColumnDefinition Width="80" />
+                                                            <ColumnDefinition Width="Auto" />
+                                                            <ColumnDefinition Width="Auto" />
+                                                        </Grid.ColumnDefinitions>
+
+                                                        <CheckBox IsChecked="{Binding IsDone, Mode=TwoWay}"
+                                                                  VerticalAlignment="Center"
+                                                                  ToolTip="Leistungsdetail als fertig markieren" />
+
+                                                        <TextBox Grid.Column="1" Margin="10,0,8,0"
+                                                                 Text="{Binding Title, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                                 ToolTip="Was wurde gemacht" />
+
+                                                        <TextBox Grid.Column="2" Margin="0,0,8,0"
+                                                                 ToolTip="Datum, Format tt.mm.jjjj"
+                                                                 LostFocus="DateBox_LostFocus"
+                                                                 Text="{Binding DateText, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" />
+
+                                                        <TextBox Grid.Column="3" Margin="0,0,8,0"
+                                                                 ToolTip="Dauer: 90, 1:30 oder 1,5h"
+                                                                 LostFocus="DurationBox_LostFocus"
+                                                                 Text="{Binding DurationText, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" />
+
+                                                        <ToggleButton Grid.Column="4" Content="Mehr"
+                                                                      Style="{StaticResource GhostToggle}"
+                                                                      IsChecked="{Binding IsEditorOpen, Mode=TwoWay}"
+                                                                      ToolTip="Auftraggeber, Fach und Beschreibung" />
+
+                                                        <Button Grid.Column="5" Content="Löschen"
+                                                                Style="{StaticResource GhostButton}" FontSize="11.5"
+                                                                Click="DeleteEntry_Click" />
+                                                    </Grid>
+
+                                                    <!-- Aufgeklappt: die übrigen Felder -->
+                                                    <Grid Margin="0,10,0,2"
+                                                          Visibility="{Binding IsEditorOpen, Converter={StaticResource BoolToVis}}">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="100" />
+                                                            <ColumnDefinition Width="*" />
+                                                        </Grid.ColumnDefinitions>
+                                                        <Grid.RowDefinitions>
+                                                            <RowDefinition Height="Auto" />
+                                                            <RowDefinition Height="Auto" />
+                                                            <RowDefinition Height="Auto" />
+                                                            <RowDefinition Height="Auto" />
+                                                        </Grid.RowDefinitions>
+
+                                                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Auftraggeber"
+                                                                   Style="{StaticResource FieldLabel}" />
+                                                        <TextBox Grid.Row="0" Grid.Column="1" Margin="0,0,0,8"
+                                                                 Text="{Binding Client, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+                                                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Fach"
+                                                                   Style="{StaticResource FieldLabel}" />
+                                                        <TextBox Grid.Row="1" Grid.Column="1" Margin="0,0,0,6"
+                                                                 Text="{Binding Subject, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+                                                        <Button Grid.Row="2" Grid.Column="1" HorizontalAlignment="Left"
+                                                                Margin="0,0,0,8"
+                                                                Content="Von der Aufgabe übernehmen"
+                                                                Style="{StaticResource GhostButton}"
+                                                                Click="Inherit_Click" />
+
+                                                        <TextBlock Grid.Row="3" Grid.Column="0" Text="Beschreibung"
+                                                                   Style="{StaticResource FieldLabel}"
+                                                                   VerticalAlignment="Top" Margin="0,7,14,0" />
+                                                        <TextBox Grid.Row="3" Grid.Column="1" MinHeight="60"
+                                                                 AcceptsReturn="True" TextWrapping="Wrap"
+                                                                 VerticalScrollBarVisibility="Auto"
+                                                                 Text="{Binding Details, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                                    </Grid>
+                                                </StackPanel>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+
+                                <TextBlock x:Name="NoEntriesText" Style="{StaticResource Hint}"
+                                           Text="Noch keine Leistungsdetails. Zeit wird hier erfasst." />
+                            </StackPanel>
+                        </ScrollViewer>
+
+                        <TextBlock x:Name="NoSelectionText" Style="{StaticResource Placeholder}"
+                                   VerticalAlignment="Center"
+                                   Text="Links eine Aufgabe auswählen&#10;oder eine neue anlegen." />
+                    </Grid>
+                </Grid>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

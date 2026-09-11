@@ -1,0 +1,30 @@
+# Bauergebnisse. Alles hier entsteht neu aus dem Quelltext
+# (dotnet build, publish.cmd, build-installer.cmd) und gehoert
+# deshalb nicht in die Versionsverwaltung.
+[Bb]in/
+[Oo]bj/
+
+# Die fertige EXE und das Installationspaket, je rund 60 MB und bei
+# jedem Bauvorgang neu. Veroeffentlicht werden sie als GitHub-Release,
+# siehe README, Abschnitt "Neue Version veroeffentlichen".
+publish/
+
+# Visual Studio und Rider: eigene Einstellungen und Zwischenstaende
+.vs/
+*.user
+*.suo
+.idea/**/workspace.xml
+.idea/**/tasks.xml
+.idea/**/usage.statistics.xml
+.idea/**/shelf/
+.idea/**/contentModel.xml
+.idea/**/dataSources/
+.idea/httpRequests/
+
+# NuGet
+*.nupkg
+packages/
+
+# Betriebssystem
+Thumbs.db
+desktop.ini

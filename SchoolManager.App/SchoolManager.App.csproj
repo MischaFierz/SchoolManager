@@ -1,0 +1,34 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+
+    <!-- Name der erzeugten Datei: SchoolManager.exe -->
+    <AssemblyName>SchoolManager</AssemblyName>
+    <RootNamespace>SchoolManager.App</RootNamespace>
+    <ApplicationIcon>app.ico</ApplicationIcon>
+
+    <Product>School Manager</Product>
+    <AssemblyTitle>School Manager</AssemblyTitle>
+    <Version>1.0.0</Version>
+    <Company>$(Product)</Company>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SchoolManager.Core\SchoolManager.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Zusätzlich als Resource, damit das Fenster das Symbol anzeigen kann -->
+    <Resource Include="app.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Identity.Client" Version="4.88.0" />
+  </ItemGroup>
+
+</Project>

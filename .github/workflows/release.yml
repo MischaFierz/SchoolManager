@@ -1,0 +1,75 @@
+name: Release
+
+# Läuft bei jedem Versions-Tag: baut die App und das Installationspaket und
+# veröffentlicht beides als GitHub-Release.
+#
+# Zwei Kanäle, am Tag unterscheidbar:
+#   v1.2.0       öffentliches Release - findet jeder über die Update-Suche
+#   v1.2.0-dev   Dev-Patch - als Vorabversion, nur im Entwicklermodus sichtbar
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Quellcode auschecken
+        uses: actions/checkout@v4
+
+      - name: .NET einrichten
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Version aus dem Tag lesen
+        id: version
+        shell: pwsh
+        run: |
+          # Das Installationspaket verlangt eine rein numerische Version, darum
+          # faellt ein Zusatz wie "-dev" hier weg: v1.2.0-dev wird zu 1.2.0.
+          $version = "${{ github.ref_name }}".TrimStart("v") -replace '-.*$', ''
+          "version=$version" >> $env:GITHUB_OUTPUT
+
+      - name: WiX-Werkzeug installieren
+        run: dotnet tool install --global wix --version 5.0.2
+
+      - name: App veröffentlichen
+        run: >
+          dotnet publish SchoolManager.App\SchoolManager.App.csproj
+          --configuration Release
+          --runtime win-x64
+          --self-contained true
+          -p:PublishSingleFile=true
+          -p:IncludeNativeLibrariesForSelfExtract=true
+          -p:EnableCompressionInSingleFile=true
+          -p:DebugType=none
+          -p:Version=${{ steps.version.outputs.version }}
+          --output publish
+
+      - name: Installationspaket bauen
+        run: >
+          wix build installer\SchoolManager.wxs
+          -d ExeFile="${{ github.workspace }}\publish\SchoolManager.exe"
+          -d IconFile="${{ github.workspace }}\SchoolManager.App\app.ico"
+          -d Version=${{ steps.version.outputs.version }}
+          -pdbtype none
+          -o publish\SchoolManagerSetup.msi
+
+      - name: Release veröffentlichen
+        uses: softprops/action-gh-release@v2
+        with:
+          name: School Manager ${{ github.ref_name }}
+          generate_release_notes: true
+          # Tags mit "-dev" sind Dev-Patches: als Vorabversion veroeffentlicht,
+          # damit die Update-Suche normaler Nutzer sie ueberspringt. Nur der
+          # Entwicklermodus sucht ausdruecklich danach.
+          prerelease: ${{ contains(github.ref_name, '-dev') }}
+          files: |
+            publish/SchoolManager.exe
+            publish/SchoolManagerSetup.msi

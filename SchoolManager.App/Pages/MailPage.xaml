@@ -1,0 +1,135 @@
+<UserControl x:Class="SchoolManager.App.Pages.MailPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Margin="0,0,0,18">
+            <TextBlock Text="E-Mail" Style="{StaticResource PageTitle}" />
+            <TextBlock x:Name="SenderText" Style="{StaticResource PageSubtitle}"
+                       Text="Noch kein SMTP-Server eingerichtet" />
+        </StackPanel>
+
+        <Border Grid.Row="1" Style="{StaticResource Card}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" MinHeight="110" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="An" Style="{StaticResource FieldLabel}" />
+                <Grid Grid.Row="0" Grid.Column="1" Margin="0,0,0,10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBox x:Name="ToBox" AutomationProperties.AutomationId="ToBox"
+                             ToolTip="Mehrere Adressen mit Komma trennen" />
+                    <ComboBox x:Name="TeacherBox" Grid.Column="1" Width="200" Margin="10,0,0,0"
+                              AutomationProperties.AutomationId="TeacherBox"
+                              SelectionChanged="TeacherBox_SelectionChanged"
+                              ToolTip="Lehrkraft als Empfänger einfügen" />
+                    <ToggleButton x:Name="CopyToggle" Grid.Column="2" Margin="10,0,0,0"
+                                  Content="Cc / Bcc" Cursor="Hand"
+                                  Checked="CopyToggle_Changed" Unchecked="CopyToggle_Changed">
+                        <ToggleButton.Style>
+                            <Style TargetType="ToggleButton">
+                                <Setter Property="FontFamily" Value="{StaticResource UiFont}" />
+                                <Setter Property="FontSize" Value="12.5" />
+                                <Setter Property="Foreground" Value="{StaticResource TextMuted}" />
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="ToggleButton">
+                                            <Border x:Name="Shell" Background="{StaticResource SurfaceAlt}"
+                                                    BorderBrush="{StaticResource Line}" BorderThickness="1"
+                                                    CornerRadius="7" Padding="12,7">
+                                                <ContentPresenter />
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsChecked" Value="True">
+                                                    <Setter TargetName="Shell" Property="Background"
+                                                            Value="{StaticResource Accent}" />
+                                                    <Setter TargetName="Shell" Property="BorderBrush"
+                                                            Value="{StaticResource AccentHover}" />
+                                                    <Setter Property="Foreground" Value="{StaticResource AccentText}" />
+                                                </Trigger>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="Shell" Property="BorderBrush"
+                                                            Value="{StaticResource LineHover}" />
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </ToggleButton.Style>
+                    </ToggleButton>
+                </Grid>
+
+                <TextBlock x:Name="CcLabel" Grid.Row="1" Grid.Column="0" Text="Cc"
+                           Style="{StaticResource FieldLabel}" Visibility="Collapsed" />
+                <TextBox x:Name="CcBox" Grid.Row="1" Grid.Column="1" Margin="0,0,0,10" Visibility="Collapsed" />
+
+                <TextBlock x:Name="BccLabel" Grid.Row="2" Grid.Column="0" Text="Bcc"
+                           Style="{StaticResource FieldLabel}" Visibility="Collapsed" />
+                <TextBox x:Name="BccBox" Grid.Row="2" Grid.Column="1" Margin="0,0,0,10" Visibility="Collapsed" />
+
+                <TextBlock Grid.Row="3" Grid.Column="0" Text="Betreff" Style="{StaticResource FieldLabel}" />
+                <TextBox x:Name="SubjectBox" Grid.Row="3" Grid.Column="1" Margin="0,0,0,10" />
+
+                <TextBlock Grid.Row="4" Grid.Column="0" Text="Nachricht"
+                           Style="{StaticResource FieldLabel}" VerticalAlignment="Top" Margin="0,8,14,0" />
+                <TextBox x:Name="BodyBox" Grid.Row="4" Grid.Column="1" Margin="0,0,0,12"
+                         AcceptsReturn="True" AcceptsTab="True" TextWrapping="Wrap"
+                         VerticalScrollBarVisibility="Auto" />
+
+                <CheckBox x:Name="HtmlCheck" Grid.Row="5" Grid.Column="1"
+                          Content="Als HTML senden" Margin="0,0,0,14" />
+
+                <TextBlock Grid.Row="6" Grid.Column="0" Text="Anhänge"
+                           Style="{StaticResource FieldLabel}" VerticalAlignment="Top" Margin="0,8,14,0" />
+                <Grid Grid.Row="6" Grid.Column="1">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <ListBox x:Name="AttachmentList" Height="84">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding FileName}" ToolTip="{Binding FullPath}"
+                                           TextTrimming="CharacterEllipsis" />
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                    <StackPanel Grid.Column="1" Margin="10,0,0,0">
+                        <Button Content="Hinzufügen…" Click="AddAttachment_Click" />
+                        <Button x:Name="RemoveAttachmentButton" Content="Entfernen" Margin="0,8,0,0"
+                                Click="RemoveAttachment_Click" IsEnabled="False" />
+                    </StackPanel>
+                </Grid>
+            </Grid>
+        </Border>
+
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
+            <TextBlock Text="Strg + Enter" VerticalAlignment="Center" Margin="0,0,14,0"
+                       FontFamily="{StaticResource UiFont}" FontSize="11.5"
+                       Foreground="{StaticResource TextFaint}" />
+            <Button x:Name="SendButton" Content="Senden" Style="{StaticResource AccentButton}"
+                    Click="Send_Click" />
+        </StackPanel>
+    </Grid>
+</UserControl>

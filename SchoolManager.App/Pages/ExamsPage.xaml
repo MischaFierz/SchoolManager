@@ -1,0 +1,180 @@
+<UserControl x:Class="SchoolManager.App.Pages.ExamsPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Margin="0,0,0,18">
+            <TextBlock Text="Prüfungen" Style="{StaticResource PageTitle}" />
+            <TextBlock x:Name="SummaryText" Style="{StaticResource PageSubtitle}" Text="Keine Prüfungen" />
+        </StackPanel>
+
+        <Border Grid.Row="1" Style="{StaticResource Card}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <!-- Werkzeugleiste -->
+                <Grid Grid.Row="0" Margin="0,0,0,16">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <Button x:Name="NewExamButton" Content="Neue Prüfung"
+                            Style="{StaticResource AccentButton}"
+                            AutomationProperties.AutomationId="NewExamButton"
+                            Click="NewExam_Click" />
+                    <Button x:Name="DeleteExamButton" Grid.Column="1" Content="Löschen" Margin="10,0,0,0"
+                            AutomationProperties.AutomationId="DeleteExamButton"
+                            Click="DeleteExam_Click" IsEnabled="False" />
+
+                    <Button x:Name="ExportOneButton" Grid.Column="3" Content="Prüfung exportieren…"
+                            AutomationProperties.AutomationId="ExportOneButton"
+                            Click="ExportOne_Click" IsEnabled="False"
+                            ToolTip="Die ausgewählte Prüfung als ICS-Datei" />
+                    <Button x:Name="ExportAllButton" Grid.Column="4" Content="Alle exportieren…" Margin="10,0,0,0"
+                            AutomationProperties.AutomationId="ExportAllButton"
+                            Click="ExportAll_Click"
+                            ToolTip="Alle Prüfungen als ICS-Datei" />
+                </Grid>
+
+                <Grid Grid.Row="1">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="300" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Liste -->
+                    <Grid Grid.Column="0" Margin="0,0,18,0">
+                        <ListBox x:Name="ExamList" SelectionChanged="ExamList_SelectionChanged">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel>
+                                        <TextBlock Text="{Binding DisplayTitle}" FontWeight="SemiBold"
+                                                   TextTrimming="CharacterEllipsis" />
+                                        <TextBlock Text="{Binding SubtitleText}" FontSize="11" Opacity="0.8"
+                                                   TextTrimming="CharacterEllipsis" Margin="0,2,0,0" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+
+                        <TextBlock x:Name="EmptyListText" Style="{StaticResource Placeholder}"
+                                   VerticalAlignment="Center"
+                                   Text="Noch keine Prüfungen.&#10;Oben mit „Neue Prüfung“ anfangen." />
+                    </Grid>
+
+                    <!-- Bearbeiten -->
+                    <Grid Grid.Column="1">
+                        <ScrollViewer x:Name="DetailScroller" VerticalScrollBarVisibility="Auto"
+                                      DataContext="{Binding SelectedItem, ElementName=ExamList}">
+                            <StackPanel>
+                                <TextBlock Text="Prüfung" Style="{StaticResource SectionTitle}" Margin="0" />
+                                <TextBlock Text="{Binding WhenText}" Style="{StaticResource Hint}"
+                                           Margin="0,4,0,16" />
+
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="110" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Fach"
+                                               Style="{StaticResource FieldLabel}" />
+                                    <TextBox Grid.Row="0" Grid.Column="1" Margin="0,0,0,10"
+                                             AutomationProperties.AutomationId="SubjectBox"
+                                             Text="{Binding Subject, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Thema"
+                                               Style="{StaticResource FieldLabel}" />
+                                    <TextBox Grid.Row="1" Grid.Column="1" Margin="0,0,0,10"
+                                             AutomationProperties.AutomationId="TitleBox"
+                                             Text="{Binding Title, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Datum"
+                                               Style="{StaticResource FieldLabel}" />
+                                    <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal"
+                                                Margin="0,0,0,10">
+                                        <TextBox Width="130" ToolTip="Format tt.mm.jjjj"
+                                                 LostFocus="DateBox_LostFocus"
+                                                 AutomationProperties.AutomationId="DateBox"
+                                                 Text="{Binding DateText, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" />
+                                        <TextBlock Text="Beginn" Style="{StaticResource FieldLabel}"
+                                                   Margin="16,0,10,0" />
+                                        <TextBox Width="90" ToolTip="Format hh:mm"
+                                                 LostFocus="TimeBox_LostFocus"
+                                                 IsEnabled="{Binding IsAllDay, Converter={StaticResource InverseBool}}"
+                                                 AutomationProperties.AutomationId="StartTimeBox"
+                                                 Text="{Binding StartTimeText, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" />
+                                    </StackPanel>
+
+                                    <TextBlock Grid.Row="3" Grid.Column="0" Text="Dauer"
+                                               Style="{StaticResource FieldLabel}" />
+                                    <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal"
+                                                Margin="0,0,0,10">
+                                        <TextBox Width="130" ToolTip="Zum Beispiel 45, 1:30 oder 1,5h"
+                                                 LostFocus="DurationBox_LostFocus"
+                                                 IsEnabled="{Binding IsAllDay, Converter={StaticResource InverseBool}}"
+                                                 AutomationProperties.AutomationId="DurationBox"
+                                                 Text="{Binding DurationText, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" />
+                                        <CheckBox Content="Ganztägig" Margin="16,0,0,0"
+                                                  AutomationProperties.AutomationId="AllDayBox"
+                                                  IsChecked="{Binding IsAllDay, Mode=TwoWay}" />
+                                    </StackPanel>
+
+                                    <TextBlock Grid.Row="4" Grid.Column="0" Text="Raum"
+                                               Style="{StaticResource FieldLabel}" />
+                                    <TextBox Grid.Row="4" Grid.Column="1" Margin="0,0,0,10" Width="200"
+                                             HorizontalAlignment="Left"
+                                             AutomationProperties.AutomationId="RoomBox"
+                                             Text="{Binding Room, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+                                    <TextBlock Grid.Row="5" Grid.Column="0" Text="Notiz"
+                                               Style="{StaticResource FieldLabel}" VerticalAlignment="Top"
+                                               Margin="0,8,14,0" />
+                                    <TextBox Grid.Row="5" Grid.Column="1" MinHeight="90"
+                                             AcceptsReturn="True" AcceptsTab="True" TextWrapping="Wrap"
+                                             VerticalScrollBarVisibility="Auto"
+                                             AutomationProperties.AutomationId="NotesBox"
+                                             Text="{Binding Notes, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                </Grid>
+
+                                <Border Height="1" Background="{StaticResource Line}" Margin="0,18,0,14" />
+
+                                <TextBlock Style="{StaticResource Hint}"
+                                           Text="Die Prüfung steht sofort im Kalender - dort lässt sie sich auch einzeln als ICS-Datei ausgeben." />
+
+                                <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
+                                    <Button Content="Im Kalender anzeigen"
+                                            AutomationProperties.AutomationId="ShowInCalendarButton"
+                                            Click="ShowInCalendar_Click" />
+                                </StackPanel>
+                            </StackPanel>
+                        </ScrollViewer>
+
+                        <TextBlock x:Name="NoSelectionText" Style="{StaticResource Placeholder}"
+                                   VerticalAlignment="Center"
+                                   Text="Links eine Prüfung auswählen&#10;oder oben eine neue anlegen." />
+                    </Grid>
+                </Grid>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>
