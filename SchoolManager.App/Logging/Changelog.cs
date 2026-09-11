@@ -31,7 +31,8 @@ public static class Changelog
     [
         new("1.1.2", "11.09.2026", false,
         [
-            "Bei den Prüfungen stand die Uhrzeit in derselben Zeile wie das Datum; seit das Datumsfeld den Kalender mitbringt, wurde die Zeile dafür zu lang. „Beginn“ hat jetzt eine eigene Zeile."
+            "Bei den Prüfungen stand die Uhrzeit in derselben Zeile wie das Datum; seit das Datumsfeld den Kalender mitbringt, wurde die Zeile dafür zu lang. „Beginn“ hat jetzt eine eigene Zeile.",
+            "Die Versionsnummer in den Einstellungen stand in Schwarz auf dunklem Grund und war kaum zu lesen."
         ]),
 
         new("1.1.1", "11.09.2026", false,

@@ -187,6 +187,8 @@
                         <TextBlock Text="Version" Style="{StaticResource FieldLabel}" />
                         <StackPanel Grid.Column="1" Orientation="Horizontal">
                             <TextBlock x:Name="VersionText" VerticalAlignment="Center"
+                                       FontFamily="{StaticResource UiFont}" FontSize="13"
+                                       Foreground="{StaticResource Text}"
                                        AutomationProperties.AutomationId="VersionText" />
                             <Button x:Name="CheckUpdateButton" Content="Nach Updates suchen" Margin="14,0,0,0"
                                     AutomationProperties.AutomationId="CheckUpdateButton"
