@@ -1,6 +1,7 @@
 using System.IO;
 using System.Text.Json;
 using SchoolManager.App.Data;
+using SchoolManager.App.Update;
 
 namespace SchoolManager.App;
 
@@ -33,6 +34,12 @@ public static class DevMode
     /// </summary>
     public static bool UseDevPatches => state.Enabled && state.DevPatches;
 
+    /// <summary>
+    /// Die beim Einschalten angelegte Sicherung der Daten; null, wenn keine
+    /// zustande kam. Mit ihr geht es beim Verlassen wieder zurück.
+    /// </summary>
+    public static string? BackupPath => state.BackupPath;
+
     /// <summary>Meldet jede Änderung, damit die Oberfläche nachziehen kann.</summary>
     public static event Action? Changed;
 
@@ -42,6 +49,12 @@ public static class DevMode
             return;
 
         state.Enabled = true;
+
+        // Bevor irgendein Dev-Patch die Daten anfassen kann, kommt der ganze
+        // Datenordner in eine Sicherung. Klappt das nicht, wird trotzdem
+        // eingeschaltet - die Oberfläche sagt dann, dass es keine gibt.
+        state.BackupPath = DevBackupService.TryCreate() ?? state.BackupPath;
+
         Save();
     }
 
@@ -99,5 +112,8 @@ public static class DevMode
     {
         public bool Enabled { get; set; }
         public bool DevPatches { get; set; }
+
+        /// <summary>Die Sicherung vom Einschalten, für den Weg zurück.</summary>
+        public string? BackupPath { get; set; }
     }
 }

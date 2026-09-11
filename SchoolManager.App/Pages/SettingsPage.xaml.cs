@@ -561,6 +561,10 @@ public partial class SettingsPage : UserControl
         loading = true;
         DevPatchesBox.IsChecked = DevMode.UseDevPatches;
 
+        DevBackupText.Text = DevBackupService.Exists(DevMode.BackupPath)
+            ? $"Sicherung vom {File.GetLastWriteTime(DevMode.BackupPath!):dd.MM.yyyy HH:mm} unter {DevMode.BackupPath}."
+            : "Es liegt keine Sicherung vor - beim Verlassen bleiben die Daten, wie sie sind.";
+
         // Die Konto-Auswahl kann durch den Modus länger oder kürzer werden.
         var selected = SelectedKind;
         AccountKindBox.ItemsSource = AccountChoice.Available(selected);
@@ -582,11 +586,64 @@ public partial class SettingsPage : UserControl
             StatusKind.Info);
     }
 
-    private void LeaveDev_Click(object sender, RoutedEventArgs e)
+    /// <summary>
+    /// Schaltet den Entwicklermodus ab und bietet dabei den ganzen Weg zurück
+    /// an: die letzte öffentliche Version einspielen und die Sicherung von vor
+    /// dem Einschalten wiederherstellen. Wer nur den Modus loswerden will,
+    /// behält Version und Daten.
+    /// </summary>
+    private async void LeaveDev_Click(object sender, RoutedEventArgs e)
     {
-        DevMode.Disable();
-        ShowDevSection();
-        status.SetStatus("Entwicklermodus abgeschaltet.", StatusKind.Info);
+        var backup = DevMode.BackupPath;
+
+        var restores = DevBackupService.Exists(backup)
+            ? $", und die Sicherung vom {File.GetLastWriteTime(backup!):dd.MM.yyyy HH:mm} wird wieder "
+              + "eingespielt - alles seither Erfasste geht dabei verloren"
+            : " (eine Sicherung liegt nicht vor, die Daten bleiben unverändert)";
+
+        var answer = MessageBox.Show(
+            Window.GetWindow(this),
+            "Soll dabei der Stand von vor dem Entwicklermodus wiederhergestellt werden?\n\n"
+            + $"Ja: Die letzte öffentliche Version wird installiert{restores}. School Manager wird "
+            + "dazu beendet und startet danach neu.\n\n"
+            + "Nein: Nur der Entwicklermodus wird abgeschaltet; Version und Daten bleiben, wie sie sind.",
+            "Entwicklermodus verlassen",
+            MessageBoxButton.YesNoCancel,
+            MessageBoxImage.Warning,
+            MessageBoxResult.Cancel);
+
+        if (answer == MessageBoxResult.Cancel)
+            return;
+
+        if (answer == MessageBoxResult.No)
+        {
+            DevMode.Disable();
+            ShowDevSection();
+            status.SetStatus("Entwicklermodus abgeschaltet.", StatusKind.Info);
+            return;
+        }
+
+        LeaveDevButton.IsEnabled = false;
+        Cursor = Cursors.Wait;
+        status.SetStatus("Die letzte öffentliche Version wird geholt…", StatusKind.Info);
+
+        try
+        {
+            var release = await UpdateService.LatestReleaseAsync()
+                          ?? throw new InvalidOperationException(
+                              "Es ist keine öffentliche Version mit Installationspaket vorhanden.");
+
+            var installerPath = await UpdateService.DownloadAsync(release);
+
+            DevMode.Disable();
+            DevBackupService.RestoreAndExit(installerPath, backup);
+        }
+        catch (Exception ex)
+        {
+            status.SetStatus($"Zurücksetzen fehlgeschlagen: {ex.Message}", StatusKind.Error);
+            LeaveDevButton.IsEnabled = true;
+            Cursor = Cursors.Arrow;
+        }
     }
 
     // ==== Zurücksetzen und Deinstallieren ====

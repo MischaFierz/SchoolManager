@@ -181,7 +181,11 @@ public partial class MainWindow : Window, IStatusSink
         ShowDevMode();
 
         NavSettings.IsChecked = true;
-        SetStatus("Entwicklermodus aktiv - siehe Einstellungen.", StatusKind.Success);
+        SetStatus(
+            DevMode.BackupPath is null
+                ? "Entwicklermodus aktiv - siehe Einstellungen. Eine Sicherung der Daten kam nicht zustande."
+                : "Entwicklermodus aktiv - die Daten sind gesichert; siehe Einstellungen.",
+            StatusKind.Success);
     }
 
     /// <summary>Hängt den Hinweis an die Versionsnummer, solange der Modus läuft.</summary>

@@ -291,16 +291,44 @@
                                                                     Value="{Binding Column}" />
                                                             <Setter Property="app:TimeGridPanel.ColumnCount"
                                                                     Value="{Binding ColumnCount}" />
+                                                            <!-- Beim Staffeln liegt jede Karte über der vorherigen,
+                                                                 von links nach rechts. -->
+                                                            <Setter Property="Panel.ZIndex" Value="{Binding Column}" />
+                                                            <Style.Triggers>
+                                                                <!-- Die Karte unter der Maus kommt nach vorne und ist
+                                                                     damit ganz zu lesen; danach liegt der Stapel
+                                                                     wieder wie zuvor. Der Wert ist höher als jede
+                                                                     vorkommende Spaltennummer. -->
+                                                                <Trigger Property="IsMouseOver" Value="True">
+                                                                    <Setter Property="Panel.ZIndex" Value="999" />
+                                                                </Trigger>
+                                                            </Style.Triggers>
                                                         </Style>
                                                     </ItemsControl.ItemContainerStyle>
                                                     <ItemsControl.ItemTemplate>
                                                         <DataTemplate>
-                                                            <Border Background="{StaticResource Surface}"
-                                                                    BorderBrush="{StaticResource LineHover}"
-                                                                    BorderThickness="1"
-                                                                    CornerRadius="6" Padding="7,4"
+                                                            <Border CornerRadius="6" Padding="7,4"
                                                                     ClipToBounds="True"
                                                                     ToolTip="{Binding TooltipText}">
+                                                                <Border.Style>
+                                                                    <Style TargetType="Border">
+                                                                        <Setter Property="Background"
+                                                                                Value="{StaticResource Surface}" />
+                                                                        <Setter Property="BorderBrush"
+                                                                                Value="{StaticResource LineHover}" />
+                                                                        <Setter Property="BorderThickness" Value="1" />
+                                                                        <Style.Triggers>
+                                                                            <!-- Hebt die vorgeholte Karte vom Stapel
+                                                                                 darunter ab. -->
+                                                                            <Trigger Property="IsMouseOver" Value="True">
+                                                                                <Setter Property="Background"
+                                                                                        Value="{StaticResource SurfaceHover}" />
+                                                                                <Setter Property="BorderBrush"
+                                                                                        Value="{StaticResource AccentHover}" />
+                                                                            </Trigger>
+                                                                        </Style.Triggers>
+                                                                    </Style>
+                                                                </Border.Style>
                                                                 <Border.ContextMenu>
                                                                     <ContextMenu>
                                                                         <MenuItem Header="Bearbeiten…"

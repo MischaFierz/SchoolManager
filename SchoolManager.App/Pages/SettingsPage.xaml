@@ -258,6 +258,11 @@
                         <TextBlock Style="{StaticResource Hint}" Margin="0,8,0,0"
                                    Text="Im Entwicklermodus erscheint zusätzlich die Konto-Art „Microsoft 365 / Exchange Online“. Sie ist noch nicht einsatzbereit: ohne eingebaute Anwendungs-ID führt die Anmeldung ins Leere." />
 
+                        <TextBlock Style="{StaticResource Hint}" Margin="0,8,0,0"
+                                   Text="Beim Einschalten wird eine Sicherung aller Daten angelegt. „Entwicklermodus verlassen“ bietet an, den Stand von vorher wiederherzustellen: die letzte öffentliche Version installieren und diese Sicherung einspielen." />
+                        <TextBlock x:Name="DevBackupText" Style="{StaticResource Hint}" Margin="0,8,0,0"
+                                   AutomationProperties.AutomationId="DevBackupText" />
+
                         <Button x:Name="LeaveDevButton" Content="Entwicklermodus verlassen" Margin="0,12,0,0"
                                 HorizontalAlignment="Left"
                                 AutomationProperties.AutomationId="LeaveDevButton"

@@ -45,6 +45,16 @@ public sealed class TimeGridPanel : Panel
         DependencyProperty.Register(nameof(MinimumWidth), typeof(double), typeof(TimeGridPanel),
             new FrameworkPropertyMetadata(86d, FrameworkPropertyMetadataOptions.AffectsMeasure));
 
+    /// <summary>
+    /// Um so viel ragt beim Staffeln jede Karte links unter der nächsten
+    /// hervor. Dieser Streifen ist alles, was von einer verdeckten Karte übrig
+    /// bleibt - er muss breit genug sein, dass man ihn sieht und mit der Maus
+    /// trifft.
+    /// </summary>
+    public static readonly DependencyProperty StackOffsetProperty =
+        DependencyProperty.Register(nameof(StackOffset), typeof(double), typeof(TimeGridPanel),
+            new FrameworkPropertyMetadata(18d, FrameworkPropertyMetadataOptions.AffectsArrange));
+
     public double DayStart
     {
         get => (double)GetValue(DayStartProperty);
@@ -79,6 +89,12 @@ public sealed class TimeGridPanel : Panel
     {
         get => (double)GetValue(MinimumWidthProperty);
         set => SetValue(MinimumWidthProperty, value);
+    }
+
+    public double StackOffset
+    {
+        get => (double)GetValue(StackOffsetProperty);
+        set => SetValue(StackOffsetProperty, value);
     }
 
     // ==== Angaben zur einzelnen Karte ====
@@ -157,9 +173,7 @@ public sealed class TimeGridPanel : Panel
     /// <summary>
     /// Platz einer Karte: die Uhrzeit bestimmt oben und die Höhe, die Spalte die
     /// Lage waagrecht. Solange jede gleichzeitige Karte breit genug bleibt,
-    /// stehen sie nebeneinander. Sonst werden sie gestaffelt: jede weitere Karte
-    /// beginnt etwas weiter rechts und liegt über der vorherigen, alle enden am
-    /// rechten Rand der Spalte.
+    /// stehen sie nebeneinander; sonst werden sie gestaffelt.
     /// </summary>
     private Rect SlotOf(UIElement child, double width)
     {
@@ -169,24 +183,40 @@ public sealed class TimeGridPanel : Panel
         var top = (GetStartMinutes(child) - DayStart) * MinuteHeight;
         var height = Math.Max(MinimumHeight, (GetEndMinutes(child) - GetStartMinutes(child)) * MinuteHeight);
 
-        double left;
-        double cardWidth;
-
-        if (columns == 1 || width / columns >= MinimumWidth)
-        {
-            var columnWidth = width / columns;
-
-            left = column * columnWidth;
-            cardWidth = columnWidth - (column < columns - 1 ? Gap : 0);
-        }
-        else
-        {
-            var step = Math.Max(0, (width - MinimumWidth) / (columns - 1));
-
-            left = column * step;
-            cardWidth = width - left;
-        }
+        var (left, cardWidth) = columns == 1 || width / columns >= MinimumWidth
+            ? SideBySide(width, columns, column)
+            : Stacked(width, columns, column);
 
         return new Rect(left, Math.Max(0, top), Math.Max(0, cardWidth), height);
+    }
+
+    /// <summary>Genug Platz: gleich breite Karten nebeneinander, dazwischen der Abstand.</summary>
+    private (double Left, double Width) SideBySide(double width, int columns, int column)
+    {
+        var columnWidth = width / columns;
+
+        return (column * columnWidth, columnWidth - (column < columns - 1 ? Gap : 0));
+    }
+
+    /// <summary>
+    /// Zu wenig Platz: die Karten liegen gestaffelt übereinander wie ein
+    /// aufgefächerter Stapel Papier. Jede ist gleich breit und um einen
+    /// Streifen nach rechts versetzt, die letzte schliesst rechts ab. Von jeder
+    /// verdeckten Karte bleibt links dieser Streifen sichtbar - darüber kommt
+    /// man mit der Maus an sie heran.
+    ///
+    /// Der Streifen ist mindestens <see cref="StackOffset"/> breit. Nur wenn
+    /// selbst das nicht mehr aufginge, wird er schmaler: Weiter als bis zum
+    /// gleichmässigen Nebeneinander darf der Versatz nicht wachsen, sonst
+    /// bliebe von den Karten selbst weniger übrig als vom Streifen.
+    /// </summary>
+    private (double Left, double Width) Stacked(double width, int columns, int column)
+    {
+        var stacks = columns - 1;
+        var step = Math.Clamp((width - MinimumWidth) / stacks, 0, width / columns);
+
+        step = Math.Max(step, Math.Min(StackOffset, width / columns));
+
+        return (column * step, width - stacks * step);
     }
 }

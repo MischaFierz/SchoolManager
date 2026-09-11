@@ -86,13 +86,35 @@ public static class UpdateService
             .FirstOrDefault();
     }
 
-    /// <summary>Macht aus einer Veröffentlichung ein Update - oder null, wenn sie nicht taugt.</summary>
-    private static UpdateInfo? ToUpdate(GitHubRelease release)
+    /// <summary>
+    /// Die neueste öffentliche Veröffentlichung - auch dann, wenn sie älter ist
+    /// als die laufende Version. Das ist der Weg zurück aus dem
+    /// Entwicklermodus: Von einem Dev-Patch aus geht es abwärts.
+    /// </summary>
+    public static async Task<UpdateInfo?> LatestReleaseAsync()
     {
-        if (!TryParseVersion(release.TagName, out var latest))
+        using var http = CreateClient();
+
+        using var response = await http.GetAsync(
+            $"https://api.github.com/repos/{RepoOwner}/{RepoName}/releases/latest");
+
+        if (!response.IsSuccessStatusCode)
             return null;
 
-        if (Normalize(latest) <= CurrentVersion)
+        var json = await response.Content.ReadAsStringAsync();
+        var release = JsonSerializer.Deserialize<GitHubRelease>(json);
+
+        return release is null ? null : ToInfo(release);
+    }
+
+    /// <summary>Macht aus einer Veröffentlichung ein Update - oder null, wenn sie nicht neuer ist.</summary>
+    private static UpdateInfo? ToUpdate(GitHubRelease release) =>
+        ToInfo(release) is { } info && Version.Parse(info.Version) > CurrentVersion ? info : null;
+
+    /// <summary>Liest Version und Installationspaket aus einer Veröffentlichung.</summary>
+    private static UpdateInfo? ToInfo(GitHubRelease release)
+    {
+        if (!TryParseVersion(release.TagName, out var version))
             return null;
 
         var asset = release.Assets.FirstOrDefault(a =>
@@ -101,7 +123,7 @@ public static class UpdateService
         if (asset is null)
             return null;
 
-        return new UpdateInfo(Normalize(latest).ToString(3), asset.BrowserDownloadUrl, release.HtmlUrl);
+        return new UpdateInfo(Normalize(version).ToString(3), asset.BrowserDownloadUrl, release.HtmlUrl);
     }
 
     /// <summary>Lädt das Installationspaket in einen temporären Ordner herunter und gibt den Pfad zurück.</summary>
@@ -161,7 +183,14 @@ public static class UpdateService
         if (string.IsNullOrWhiteSpace(tag))
             return false;
 
-        return Version.TryParse(tag.TrimStart('v', 'V'), out version!);
+        var number = tag.TrimStart('v', 'V');
+
+        // Ein Zusatz gehört nicht zur Zahl: v1.0.1-dev ist die Version 1.0.1.
+        // Ohne dieses Abschneiden liesse sich kein einziger Dev-Patch lesen.
+        if (number.IndexOf('-') is var marker && marker >= 0)
+            number = number[..marker];
+
+        return Version.TryParse(number, out version!);
     }
 
     /// <summary>Nur Major.Minor.Build zählen - so stört eine fehlende oder abweichende Revision nicht.</summary>
