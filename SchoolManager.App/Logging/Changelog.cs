@@ -32,7 +32,7 @@ public static class Changelog
         new("1.1.1", "11.09.2026", true,
         [
             "Die Einstellungen liessen sich nur ein Stück weit blättern: Sobald der Zeiger über einem Auswahlfeld stand, verschluckte dieses das Mausrad. Das Rad wird jetzt an die Seite weitergereicht - auch auf den Seiten Aufträge, Aufgaben, Hausaufgaben, Prüfungen und Lehrkräfte.",
-            "Neuer Bereich „Protokoll“ im Entwicklermodus: Der Reiter „Fehler“ sammelt alle Fehlermeldungen der Anwendung samt Abstürzen, der Reiter „Changelog“ zeigt, was diese Vorabversion seit der letzten öffentlichen Version enthält.",
+            "Neue Seite „Protokoll“ mit eigenem Punkt in der Navigation, sichtbar nur im Entwicklermodus: Der Reiter „Fehler“ sammelt alle Fehlermeldungen der Anwendung samt Abstürzen, der Reiter „Changelog“ zeigt, was diese Vorabversion seit der letzten öffentlichen Version enthält.",
             "Fehlermeldungen landen zusätzlich in der Datei fehler.log im Datenordner und überleben damit auch einen Absturz."
         ]),
 

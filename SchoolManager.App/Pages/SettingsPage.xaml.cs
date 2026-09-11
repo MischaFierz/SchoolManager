@@ -6,7 +6,6 @@ using System.Windows.Input;
 using System.Windows.Threading;
 using Microsoft.Win32;
 using SchoolManager.App.Data;
-using SchoolManager.App.Logging;
 using SchoolManager.App.Notifications;
 using SchoolManager.App.Update;
 using SchoolManager.Core;
@@ -49,10 +48,6 @@ public partial class SettingsPage : UserControl
         NotificationSettings.Changed += ShowNotificationSection;
         ShowDevSection();
         DevMode.Changed += ShowDevSection;
-
-        ShowLog();
-        ShowChangelog();
-        AppLog.Changed += ShowLog;
 
         ShowSettings(settingsService.Current);
     }
@@ -751,104 +746,6 @@ public partial class SettingsPage : UserControl
             LeaveDevButton.IsEnabled = true;
             Cursor = Cursors.Arrow;
         }
-    }
-
-    // ==== Protokoll ====
-
-    /// <summary>
-    /// Zeigt die aufgezeichneten Fehler. Wird bei jedem neuen Eintrag
-    /// aufgerufen - auch aus anderen Fäden, darum der Umweg über den
-    /// Fenster-Faden.
-    /// </summary>
-    private void ShowLog()
-    {
-        if (!Dispatcher.CheckAccess())
-        {
-            Dispatcher.InvokeAsync(ShowLog);
-            return;
-        }
-
-        ErrorList.ItemsSource = AppLog.Entries;
-        ErrorsEmptyText.Visibility = AppLog.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
-
-        LogStateText.Text = AppLog.Count switch
-        {
-            0 => $"Noch nichts aufgezeichnet. Geschrieben wird nach {AppLog.FilePath}.",
-            1 => $"1 Eintrag, auch in {AppLog.FilePath}.",
-            var count => $"{count} Einträge, auch in {AppLog.FilePath}."
-        };
-    }
-
-    /// <summary>Zeigt, was diese Vorabversion gegenüber der letzten öffentlichen bringt.</summary>
-    private void ShowChangelog()
-    {
-        var since = Changelog.SinceLastPublic;
-
-        ChangelogList.ItemsSource = since;
-        ChangelogEmptyText.Visibility = since.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
-
-        ChangelogHeaderText.Text = since.Count == 0
-            ? ""
-            : Changelog.LastPublic is { } last
-                ? $"Neu gegenüber der öffentlichen Version {last.Version} vom {last.Date}:"
-                : "Neu in dieser Vorabversion:";
-    }
-
-    private void LogTab_Checked(object sender, RoutedEventArgs e)
-    {
-        // Beim Aufbau der Seite steht der Reiter schon, die Felder noch nicht.
-        if (ErrorsPanel is null || ChangelogPanel is null)
-            return;
-
-        var errors = ErrorsTab.IsChecked == true;
-
-        ErrorsPanel.Visibility = errors ? Visibility.Visible : Visibility.Collapsed;
-        ChangelogPanel.Visibility = errors ? Visibility.Collapsed : Visibility.Visible;
-    }
-
-    private void CopyLog_Click(object sender, RoutedEventArgs e)
-    {
-        if (AppLog.Count == 0)
-        {
-            status.SetStatus("Es ist nichts aufgezeichnet, was sich kopieren liesse.", StatusKind.Info);
-            return;
-        }
-
-        try
-        {
-            Clipboard.SetText(AppLog.AsText());
-            status.SetStatus($"{AppLog.Count} Einträge in die Zwischenablage kopiert.", StatusKind.Success);
-        }
-        catch (Exception ex)
-        {
-            // Die Zwischenablage gehört dem ganzen System; sie ist manchmal belegt.
-            status.SetStatus($"Kopieren fehlgeschlagen: {ex.Message}", StatusKind.Error);
-        }
-    }
-
-    private void OpenLog_Click(object sender, RoutedEventArgs e)
-    {
-        if (!File.Exists(AppLog.FilePath))
-        {
-            status.SetStatus("Es gibt noch keine Protokolldatei.", StatusKind.Info);
-            return;
-        }
-
-        try
-        {
-            Process.Start(new ProcessStartInfo(AppLog.FilePath) { UseShellExecute = true });
-        }
-        catch (Exception)
-        {
-            // Für .log ist nicht überall ein Programm hinterlegt; dann eben der Ordner.
-            Process.Start(new ProcessStartInfo("explorer.exe", $"/select,\"{AppLog.FilePath}\""));
-        }
-    }
-
-    private void ClearLog_Click(object sender, RoutedEventArgs e)
-    {
-        AppLog.Clear();
-        status.SetStatus("Das Protokoll ist geleert.", StatusKind.Info);
     }
 
     // ==== Zurücksetzen und Deinstallieren ====

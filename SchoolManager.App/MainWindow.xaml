@@ -74,6 +74,11 @@
                 <!-- Fuss der Seitenleiste -->
                 <StackPanel Grid.Row="2" Margin="0,0,0,16">
                     <Border Height="1" Background="{StaticResource Line}" Margin="20,0,20,10" />
+                    <!-- Nur im Entwicklermodus sichtbar -->
+                    <RadioButton x:Name="NavLog" GroupName="Nav" Style="{StaticResource NavItem}"
+                                 Content="Protokoll" Checked="Nav_Checked" Visibility="Collapsed"
+                                 AutomationProperties.AutomationId="NavLog"
+                                 Tag="M3,2.5 H12 L15,5.5 V16 H3 Z M11.5,2.5 V5.5 H15 M6,9 H12 M6,12 H12 M6,15 H9.5" />
                     <RadioButton x:Name="NavSettings" GroupName="Nav" Style="{StaticResource NavItem}"
                                  Content="Einstellungen" Checked="Nav_Checked"
                                  Tag="M1,5 H17 M1,12 H17 M6,2 V8 M12,9 V15" />

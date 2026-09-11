@@ -57,6 +57,7 @@ public partial class MainWindow : Window, IStatusSink
     private readonly MailPage mailPage;
     private readonly TodoPage todoPage;
     private readonly NotesPage notesPage;
+    private readonly LogPage logPage;
     private readonly SettingsPage settingsPage;
 
     public MainWindow() : this(false)
@@ -87,6 +88,7 @@ public partial class MainWindow : Window, IStatusSink
         mailPage = new MailPage(settingsService, teacherStore, this);
         todoPage = new TodoPage(this);
         notesPage = new NotesPage(this);
+        logPage = new LogPage(this);
         settingsPage = new SettingsPage(settingsService, this);
 
         // Aus dem Auftrag heraus die Aufgabe öffnen.
@@ -254,6 +256,13 @@ public partial class MainWindow : Window, IStatusSink
         VersionText.Foreground = DevMode.IsEnabled
             ? (Brush)FindResource("KindAbgabe")
             : (Brush)FindResource("TextFaint");
+
+        NavLog.Visibility = DevMode.IsEnabled ? Visibility.Visible : Visibility.Collapsed;
+
+        // Wer den Entwicklermodus abschaltet, während das Protokoll offen ist,
+        // stünde sonst vor einer Seite, die es nicht mehr gibt.
+        if (!DevMode.IsEnabled && NavLog.IsChecked == true)
+            NavSettings.IsChecked = true;
     }
 
     /// <summary>
@@ -356,6 +365,11 @@ public partial class MainWindow : Window, IStatusSink
             case nameof(NavNotes):
                 PageHost.Content = notesPage;
                 notesPage.Activate();
+                break;
+
+            case nameof(NavLog):
+                PageHost.Content = logPage;
+                logPage.Activate();
                 break;
 
             default:
