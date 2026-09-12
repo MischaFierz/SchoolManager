@@ -64,7 +64,7 @@ public sealed class SmtpSettings
     /// ist sie leer, muss jeder seine eigene Azure-App-Registrierung eintragen.
     /// Siehe README, Abschnitt „Microsoft 365 einrichten“.
     /// </summary>
-    public const string BuiltInClientId = "";
+    public const string BuiltInClientId = "8f508d30-5a85-485e-a460-7b087f39537b";
 
     /// <summary>Ist eine Anwendungs-ID eingebaut, bleiben die Felder dafür verborgen.</summary>
     public static bool HasBuiltInClientId => BuiltInClientId.Length > 0;

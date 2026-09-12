@@ -128,11 +128,13 @@ und, unten abgesetzt, **Einstellungen**. `Strg`+`1` bis `Strg`+`9` schalten
 direkt um, `Strg`+`0` zu den Einstellungen. Unten quer läuft eine gemeinsame
 Statuszeile: grau für Hinweise, grün für Erfolg, rot für Fehler.
 
-Oben steht ein roter Streifen: **der E-Mail-Versand ist in dieser Version noch
-nicht verfügbar und wird mit einem späteren Update nachgereicht.** Die Seite
-E-Mail und die Postausgangs-Einstellungen lassen sich zwar öffnen, verlassen
-sollte man sich aber auf nichts davon. Daneben führen **Einstellungen öffnen**
-dorthin und **✕** blendet den Hinweis bis zum nächsten Start aus.
+Der E-Mail-Versand ist einsatzbereit; es braucht nur ein eingerichtetes Konto
+(siehe „Einstellungen"). Fehlt es, sagt das die Statuszeile beim Start.
+
+Solange keine Anwendungs-ID in School Manager steckt, steht oben stattdessen ein
+roter Streifen, dass der Versand noch nicht verfügbar ist — dann führt daneben
+**Einstellungen öffnen** dorthin und **✕** blendet den Hinweis bis zum nächsten
+Start aus. Ob er erscheint, entscheidet `SmtpSettings.HasBuiltInClientId`.
 
 ### Aufträge, Aufgaben, Leistungsdetails
 
