@@ -319,11 +319,12 @@ Benutzerprofil abgelegt und gilt auch nach einem Neustart.
 **Damit das ein einzelner Knopf sein kann**, muss in School Manager eine
 Anwendungs-ID stecken — ohne registrierte App gibt es bei Microsoft keine
 Anmeldung. Sie steht als `BuiltInClientId` in
-`SchoolManager.Core/SmtpSettings.cs`. Solange dort nichts eingetragen ist,
-zeigt die Seite die Felder **Anwendungs-ID** und **Verzeichnis-ID** an und
-jeder muss seine eigene Registrierung eintragen.
+`SchoolManager.Core/SmtpSettings.cs` und ist dort eingetragen; darum sind die
+Felder **Anwendungs-ID** und **Verzeichnis-ID** nicht zu sehen. Wird die
+Konstante geleert, erscheinen sie wieder, und jeder muss seine eigene
+Registrierung eintragen.
 
-Die Registrierung wird einmalig angelegt (Azure-Portal, kostenlos, kein
+Wer eine eigene anlegen will, tut das einmalig im Azure-Portal (kostenlos, kein
 Abonnement nötig):
 
 1. [portal.azure.com](https://portal.azure.com) → *App-Registrierungen* →
