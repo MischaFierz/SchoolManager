@@ -11,8 +11,10 @@ namespace SchoolManager.Core;
 ///
 /// Das ist für Microsoft 365 der verlässlichere Weg: Exchange Online hat die
 /// SMTP-Anmeldung seit 2020 standardmässig abgeschaltet, und viele Schulen
-/// lassen sie abgeschaltet. Graph braucht sie nicht - es genügt die Anmeldung
-/// im Browser und die Berechtigung Mail.Send.
+/// lassen sie abgeschaltet. Graph braucht sie nicht - es genügt die Anmeldung im
+/// Browser mit den Berechtigungen aus <see cref="SmtpSettings.Microsoft365Scopes"/>:
+/// Mail.Send fürs Verschicken, User.Read für <see cref="TestConnectionAsync"/> und
+/// <see cref="GetMailboxAsync"/>, die beide das eigene Konto abfragen.
 ///
 /// Die versendete Nachricht landet automatisch im Ordner "Gesendete Elemente"
 /// des Postfachs; darum kümmert sich Microsoft, nicht diese Klasse.
