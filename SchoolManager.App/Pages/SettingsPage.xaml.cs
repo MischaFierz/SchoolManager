@@ -670,6 +670,12 @@ public partial class SettingsPage : UserControl
     {
         DevPanel.Visibility = DevMode.IsEnabled ? Visibility.Visible : Visibility.Collapsed;
 
+        // Steckt eine Anwendungs-ID im Programm, ist Microsoft 365 keine Sache
+        // des Entwicklermodus mehr - der Hinweis darauf wäre dann schlicht falsch.
+        DevMailHintText.Visibility = SmtpSettings.HasBuiltInClientId
+            ? Visibility.Collapsed
+            : Visibility.Visible;
+
         loading = true;
         DevPatchesBox.IsChecked = DevMode.UseDevPatches;
 

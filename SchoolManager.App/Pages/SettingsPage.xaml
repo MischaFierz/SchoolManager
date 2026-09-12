@@ -301,7 +301,10 @@
                         <TextBlock Style="{StaticResource Hint}" Margin="0,8,0,0"
                                    Text="Die Update-Suche nimmt dann die Vorabversionen mit „-dev“ im Namen statt der öffentlichen Releases. Diese Stände sind ungetestet und können Daten beschädigen - vorher „Alle Daten exportieren…“." />
 
-                        <TextBlock Style="{StaticResource Hint}" Margin="0,8,0,0"
+                        <!-- Nur solange keine Anwendungs-ID eingebaut ist; sonst steht
+                             die Konto-Art ohnehin allen offen. -->
+                        <TextBlock x:Name="DevMailHintText" Style="{StaticResource Hint}" Margin="0,8,0,0"
+                                   AutomationProperties.AutomationId="DevMailHintText"
                                    Text="Im Entwicklermodus erscheint zusätzlich die Konto-Art „Microsoft 365 / Exchange Online“. Sie ist noch nicht einsatzbereit: ohne eingebaute Anwendungs-ID führt die Anmeldung ins Leere." />
 
                         <TextBlock Style="{StaticResource Hint}" Margin="0,8,0,0"
