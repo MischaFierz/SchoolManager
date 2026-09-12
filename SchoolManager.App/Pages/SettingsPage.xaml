@@ -107,6 +107,9 @@
                                     Style="{StaticResource AccentButton}"
                                     AutomationProperties.AutomationId="SignInButton"
                                     Click="SignIn_Click" />
+                            <Button x:Name="SignInWithCodeButton" Content="Mit Code anmelden" Margin="10,0,0,0"
+                                    AutomationProperties.AutomationId="SignInWithCodeButton"
+                                    Click="SignInWithCode_Click" />
                             <Button x:Name="SignOutButton" Content="Abmelden" Margin="10,0,0,0"
                                     AutomationProperties.AutomationId="SignOutButton"
                                     Click="SignOut_Click" />

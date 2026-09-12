@@ -60,6 +60,22 @@ public sealed class Microsoft365TokenSource(string clientId, string tenantId) : 
         return new SignIn(result.Account?.Username ?? "", result.AccessToken);
     }
 
+    /// <summary>
+    /// Meldet mit einem Gerätecode an: Man gibt den Code auf der Seite von
+    /// Microsoft ein, und Microsoft leitet danach nicht zur App zurück. Das
+    /// braucht keine Antwortadresse in der App-Registrierung und klappt deshalb
+    /// auch dort, wo die Anmeldung im Browser mit AADSTS900971 stehen bleibt.
+    /// </summary>
+    public async Task<SignIn> SignInWithDeviceCodeAsync(
+        Func<DeviceCodeResult, Task> showCode, CancellationToken cancellationToken = default)
+    {
+        var result = await Build()
+            .AcquireTokenWithDeviceCode(Scopes, showCode)
+            .ExecuteAsync(cancellationToken);
+
+        return new SignIn(result.Account?.Username ?? "", result.AccessToken);
+    }
+
     /// <summary>Wer angemeldet ist, samt frischem Token.</summary>
     public sealed record SignIn(string Mailbox, string Token);
 
@@ -106,7 +122,9 @@ public sealed class Microsoft365TokenSource(string clientId, string tenantId) : 
         application = PublicClientApplicationBuilder
             .Create(clientId.Trim())
             .WithAuthority(AzureCloudInstance.AzurePublic, authority)
-            .WithDefaultRedirectUri()
+            // Genau diese Adresse muss in der App-Registrierung unter "Mobile
+            // Geräte und Desktopanwendungen" stehen; der Port ist frei.
+            .WithRedirectUri("http://localhost")
             .Build();
 
         AttachCache(application.UserTokenCache);

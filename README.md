@@ -333,7 +333,10 @@ Abonnement nötig):
    einem beliebigen Organisationsverzeichnis und persönliche
    Microsoft-Konten** wählen
 3. *Authentifizierung* → **Plattform hinzufügen** → **Mobile Geräte und
-   Desktopanwendungen** → `http://localhost` ankreuzen
+   Desktopanwendungen** → `http://localhost` ankreuzen. Fehlt die Adresse,
+   bricht die Anmeldung im Browser mit `AADSTS900971: No reply address
+   provided` ab. **Mit Code anmelden** geht dann trotzdem, sofern unter
+   *Authentifizierung* „Öffentliche Clientflows zulassen“ eingeschaltet ist.
 4. *API-Berechtigungen* → **Berechtigung hinzufügen** → *Microsoft Graph* →
    **Delegierte Berechtigungen** → **Mail.Send** und **User.Read**
 5. Die **Anwendungs-ID (Client)** von der Übersichtsseite kopieren und als

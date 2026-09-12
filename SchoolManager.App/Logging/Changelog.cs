@@ -36,7 +36,8 @@ public static class Changelog
             "Scheitert das Senden, die Anmeldung oder der Verbindungstest, steht im Protokoll unter „Fehler“ jetzt die ganze Ursachenkette statt nur der äussersten Meldung. MailKit und die Microsoft-Anmeldung verpacken den eigentlichen Grund regelmässig in einer inneren Ausnahme, die in der Fussleiste gar nicht vorkam.",
             "Der E-Mail-Versand ist freigeschaltet: In School Manager steckt jetzt eine Anwendungs-ID, darum genügt bei Microsoft 365 ein Klick auf „Mit Microsoft anmelden“ - kein Server, kein Passwort, keine eigene Azure-Registrierung mehr. Der rote Streifen „noch nicht verfügbar“ ist damit weg, und die Konto-Art steht allen offen statt nur dem Entwicklermodus. Beides hängt an der eingebauten ID, nicht an einem festen Schalter.",
             "Das Konsolen-Programm lief mit der Konto-Art Microsoft 365 in die Meldung „bitte in den Einstellungen anmelden“ - ein Rat, der auf der Kommandozeile nirgends hinführt, weil die Anmeldung einen Browser braucht. Jetzt bricht es gleich beim Laden ab und sagt, was stattdessen einzutragen ist.",
-            "Aufgeräumt: Im Versand steckte noch eine SMTP-Anmeldung per Zugriffstoken, die seit dem Weg über Microsoft Graph nie mehr erreicht wurde."
+            "Aufgeräumt: Im Versand steckte noch eine SMTP-Anmeldung per Zugriffstoken, die seit dem Weg über Microsoft Graph nie mehr erreicht wurde.",
+            "Die Anmeldung im Browser blieb bei Microsoft mit „AADSTS900971: No reply address provided“ stehen: In der eingebauten App-Registrierung fehlte die Antwortadresse. Neu gibt es „Mit Code anmelden“ - School Manager zeigt einen Code, legt ihn in die Zwischenablage und öffnet die Seite von Microsoft zum Eingeben; das braucht keine Antwortadresse. Die Anmeldung im Browser verlangt jetzt ausdrücklich http://localhost, genau die Adresse, die in der Registrierung stehen muss."
         ]),
 
         new("1.1.3", "13.09.2026", false,

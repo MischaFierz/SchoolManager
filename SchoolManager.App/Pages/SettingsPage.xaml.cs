@@ -269,42 +269,130 @@ public partial class SettingsPage : UserControl
     /// Einstellungen werden gleich gespeichert - wer sich anmeldet, will nicht
     /// hinterher noch „Speichern“ drücken müssen.
     /// </summary>
+    /// <summary>Die laufende Anmeldung im Browser; die Anmeldung mit Code bricht sie ab.</summary>
+    private CancellationTokenSource? browserSignIn;
+
+    /// <summary>Die laufende Anmeldung mit Code; eine neue Anmeldung bricht sie ab.</summary>
+    private CancellationTokenSource? codeSignIn;
+
     private async void SignIn_Click(object sender, RoutedEventArgs e)
     {
-        var clientId = TokenSourceClientId();
-
-        if (clientId.Length == 0)
-        {
-            ClientIdBox.Focus();
-            status.SetStatus(
-                "Für die Anmeldung fehlt die Anwendungs-ID der Azure-App-Registrierung.",
-                StatusKind.Error);
+        if (SignInClientId() is not { } clientId)
             return;
-        }
 
-        using var busy = Busy("Anmeldung bei Microsoft läuft - bitte im Browser fortsetzen…");
+        codeSignIn?.Cancel();
+
+        using var busy = Busy(
+            "Anmeldung bei Microsoft läuft - bitte im Browser fortsetzen. Bleibt sie dort mit einem Fehler stehen, „Mit Code anmelden“ wählen.");
+        using var cancel = new CancellationTokenSource();
+        browserSignIn = cancel;
 
         try
         {
             var source = new Microsoft365TokenSource(clientId, TenantIdBox.Text.Trim());
-            var signIn = await source.SignInAsync(oauthMailbox);
-
-            oauthMailbox = signIn.Mailbox;
-
-            if (ReadSettings() is { } value)
-            {
-                settingsService.Update(value);
-                status.SetStatus($"Angemeldet als {oauthMailbox}. Der Versand läuft jetzt darüber.",
-                    StatusKind.Success);
-            }
+            CompleteSignIn(await source.SignInAsync(oauthMailbox, cancel.Token));
+        }
+        catch (Exception) when (cancel.IsCancellationRequested)
+        {
+            return;
         }
         catch (Exception ex)
         {
             status.SetStatus($"Anmeldung fehlgeschlagen: {ex.Message}", StatusKind.Error);
             AppLog.Detail(ex, "Microsoft-Anmeldung");
         }
+        finally
+        {
+            if (browserSignIn == cancel)
+                browserSignIn = null;
+        }
 
         await ShowSignInStateAsync();
+    }
+
+    /// <summary>
+    /// Anmeldung mit Gerätecode. Sie braucht keine Antwortadresse in der
+    /// App-Registrierung; der Code kommt in die Zwischenablage, und die Seite
+    /// zum Eingeben öffnet sich im Browser.
+    /// </summary>
+    private async void SignInWithCode_Click(object sender, RoutedEventArgs e)
+    {
+        if (SignInClientId() is not { } clientId)
+            return;
+
+        browserSignIn?.Cancel();
+        codeSignIn?.Cancel();
+
+        using var cancel = new CancellationTokenSource();
+        codeSignIn = cancel;
+        status.SetStatus("Anmeldung mit Code wird vorbereitet…", StatusKind.Info);
+
+        try
+        {
+            var source = new Microsoft365TokenSource(clientId, TenantIdBox.Text.Trim());
+            CompleteSignIn(await source.SignInWithDeviceCodeAsync(
+                code => Dispatcher.InvokeAsync(() => ShowDeviceCode(code)).Task, cancel.Token));
+        }
+        catch (Exception) when (cancel.IsCancellationRequested)
+        {
+            return;
+        }
+        catch (Exception ex)
+        {
+            status.SetStatus($"Anmeldung fehlgeschlagen: {ex.Message}", StatusKind.Error);
+            AppLog.Detail(ex, "Microsoft-Anmeldung mit Code");
+        }
+        finally
+        {
+            if (codeSignIn == cancel)
+                codeSignIn = null;
+        }
+
+        await ShowSignInStateAsync();
+    }
+
+    private void ShowDeviceCode(Microsoft.Identity.Client.DeviceCodeResult code)
+    {
+        try
+        {
+            Clipboard.SetText(code.UserCode);
+        }
+        catch (System.Runtime.InteropServices.ExternalException)
+        {
+            // Zwischenablage gerade von einem anderen Programm belegt; der Code steht auch im Fenster.
+        }
+
+        Process.Start(new ProcessStartInfo(code.VerificationUrl) { UseShellExecute = true });
+
+        SignInStateText.Text =
+            $"Im Browser den Code {code.UserCode} eingeben (liegt schon in der Zwischenablage) und dort anmelden. "
+            + $"Der Code gilt bis {code.ExpiresOn.ToLocalTime():HH:mm} Uhr.";
+        status.SetStatus($"Anmeldung mit Code {code.UserCode} - bitte im Browser fortsetzen…", StatusKind.Info);
+    }
+
+    private void CompleteSignIn(Microsoft365TokenSource.SignIn signIn)
+    {
+        oauthMailbox = signIn.Mailbox;
+
+        if (ReadSettings() is not { } value)
+            return;
+
+        settingsService.Update(value);
+        status.SetStatus($"Angemeldet als {oauthMailbox}. Der Versand läuft jetzt darüber.", StatusKind.Success);
+    }
+
+    /// <summary>Die Anwendungs-ID für die Anmeldung - oder null samt Hinweis, wenn sie fehlt.</summary>
+    private string? SignInClientId()
+    {
+        var clientId = TokenSourceClientId();
+
+        if (clientId.Length > 0)
+            return clientId;
+
+        ClientIdBox.Focus();
+        status.SetStatus("Für die Anmeldung fehlt die Anwendungs-ID der Azure-App-Registrierung.", StatusKind.Error);
+
+        return null;
     }
 
     private async void SignOut_Click(object sender, RoutedEventArgs e)
