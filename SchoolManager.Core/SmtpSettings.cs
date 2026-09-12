@@ -55,7 +55,7 @@ public sealed class SmtpSettings
     public const string Microsoft365ProfileScope = "https://graph.microsoft.com/User.Read";
 
     /// <summary>Die Berechtigungen, die die Anmeldung anfordert.</summary>
-    public static readonly string[] Microsoft365Scopes =
+    public static IReadOnlyList<string> Microsoft365Scopes { get; } =
         [Microsoft365SendScope, Microsoft365ProfileScope];
 
     /// <summary>
@@ -93,7 +93,8 @@ public sealed class SmtpSettings
 
     /// <summary>
     /// Verzeichnis-ID (Tenant) der Schule; nur für Microsoft 365. Leer bedeutet
-    /// "organizations", also jedes Geschäfts- oder Schulkonto.
+    /// "common", also jedes Konto, mit dem man sich bei Microsoft anmelden kann -
+    /// Schul- und Geschäftskonten ebenso wie private.
     /// </summary>
     public string TenantId { get; set; } = "";
 

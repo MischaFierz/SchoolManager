@@ -1,13 +1,12 @@
 using MailKit.Net.Smtp;
-using MailKit.Security;
 using MimeKit;
 
 namespace SchoolManager.Core;
 
 /// <summary>
-/// Versendet E-Mails über SMTP. Bei Microsoft 365 wird nicht mit Passwort,
-/// sondern mit einem Zugriffstoken angemeldet; das liefert
-/// <paramref name="tokenSource"/>.
+/// Versendet E-Mails. Für gewöhnliche Konten über SMTP mit Benutzername und
+/// Passwort; Microsoft 365 geht stattdessen über Microsoft Graph, wofür
+/// <paramref name="tokenSource"/> die Anmeldung liefert.
 /// </summary>
 public sealed class EmailService(SmtpSettings settings, IAccessTokenSource? tokenSource = null)
 {
@@ -63,20 +62,9 @@ public sealed class EmailService(SmtpSettings settings, IAccessTokenSource? toke
     {
         await client.ConnectAsync(settings.Host, settings.Port, settings.SocketOptions, cancellationToken);
 
-        if (settings.UsesOAuth)
-        {
-            if (tokenSource is null)
-                throw new InvalidOperationException(
-                    "Für Microsoft 365 fehlt die Anmeldung - bitte in den Einstellungen anmelden.");
-
-            var token = await tokenSource.GetAccessTokenAsync(settings.UserName, cancellationToken);
-
-            await client.AuthenticateAsync(
-                new SaslMechanismOAuth2(settings.UserName, token), cancellationToken);
-
-            return;
-        }
-
+        // Hier kommt nur an, wer nicht über Graph geht: Microsoft 365 ist oben
+        // schon abgezweigt. Eine SMTP-Anmeldung per Zugriffstoken braucht es
+        // darum nicht - Exchange Online liesse sie ohnehin meist nicht zu.
         if (!string.IsNullOrWhiteSpace(settings.UserName))
             await client.AuthenticateAsync(settings.UserName, settings.Password, cancellationToken);
     }

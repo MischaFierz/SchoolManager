@@ -494,8 +494,10 @@ dotnet run -- --help
 ```
 
 Bei Erfolg ist der Rückgabewert `0`, bei einem Fehler `1`. Die Konsolen-Variante
-nutzt Benutzername und Passwort; für Microsoft 365 mit OAuth2 ist die
-Desktop-App gedacht.
+nutzt Benutzername und Passwort; für Microsoft 365 ist die Desktop-App gedacht.
+Steht in `appsettings.json` trotzdem `"AccountKind": "Microsoft365"`, bricht das
+Programm gleich mit einer Erklärung ab: Diese Konto-Art braucht eine Anmeldung im
+Browser, und die kann nur die Anwendung selbst durchführen.
 
 ## Als Bibliothek nutzen
 
@@ -519,4 +521,9 @@ await new EmailService(settings).SendAsync(mail);
 ```
 
 `TestConnectionAsync()` prüft Server und Anmeldung, ohne eine Mail zu senden.
-Für Microsoft 365 nimmt `EmailService` zusätzlich eine `IAccessTokenSource`.
+
+Für Microsoft 365 nimmt `EmailService` zusätzlich eine `IAccessTokenSource` und
+geht dann nicht über SMTP, sondern über `GraphMailService`. Das Token muss beide
+Berechtigungen aus `SmtpSettings.Microsoft365Scopes` abdecken — `Mail.Send` fürs
+Verschicken und `User.Read`, weil `TestConnectionAsync()` das eigene Konto
+abfragt.

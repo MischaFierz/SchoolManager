@@ -20,6 +20,18 @@ try
         .Build();
 
     var settings = configuration.GetSection("Smtp").Get<SmtpSettings>() ?? new SmtpSettings();
+
+    // Microsoft 365 verlangt eine Anmeldung im Browser; das Token dafür liegt im
+    // Benutzerprofil und wird von der Anwendung angelegt, nicht von hier. Ohne
+    // diesen Hinweis lautete die Meldung "bitte in den Einstellungen anmelden" -
+    // ein Rat, der auf der Kommandozeile nirgends hinführt.
+    if (settings.UsesOAuth)
+        throw new InvalidOperationException(
+            "Die Konto-Art Microsoft 365 lässt sich hier nicht verwenden: Sie braucht eine "
+            + "Anmeldung im Browser, die nur School Manager selbst durchführen kann. "
+            + "Für den Versand aus Skripten ist in appsettings.json ein SMTP-Konto "
+            + "einzutragen (AccountKind \"Smtp\" mit Host, Port, Benutzername und Passwort).");
+
     settings.Validate();
 
     var mail = options.Mail;

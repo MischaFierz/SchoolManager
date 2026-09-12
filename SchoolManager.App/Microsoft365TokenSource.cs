@@ -14,7 +14,7 @@ namespace SchoolManager.App;
 /// </summary>
 public sealed class Microsoft365TokenSource(string clientId, string tenantId) : IAccessTokenSource
 {
-    private static readonly string[] Scopes = SmtpSettings.Microsoft365Scopes;
+    private static readonly IReadOnlyList<string> Scopes = SmtpSettings.Microsoft365Scopes;
 
     private static readonly string CacheFile = LocalStore.PathFor("m365-token.bin");
 
