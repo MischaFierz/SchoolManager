@@ -3,122 +3,20 @@
 Windows-Desktop-App für die Schule: Aufträge mit Aufgaben und Leistungsdetails
 samt Zeitrechner, Hausaufgaben, Prüfungen, ein Kalender, der alles zusammen
 zeigt und als ICS aus- und einlesen kann, Lehrkräfte mit Empfängerauswahl,
-E-Mail-Versand (auch über Exchange), To-Do-Liste und Notizen. Dazu ein
-Kommandozeilen-Programm für den Versand aus Skripten.
+E-Mail-Versand (auch über Exchange), To-Do-Liste und Notizen.
 
 **[⬇ Neueste Version herunterladen](https://github.com/MischaFierz/SchoolManager/releases/latest)**
 
 ## Installieren
 
-`SchoolManagerSetup.msi` aus dem Release oben herunterladen und doppelklicken —
-oder selbst bauen (siehe unten), dann liegt es unter
-`publish\SchoolManagerSetup.msi`. Das Paket installiert ohne
-Administratorrechte nach `%LOCALAPPDATA%\Programs\School Manager`, legt eine
-Verknüpfung im Startmenü und auf dem Desktop an und erscheint in „Apps &
-Features“ zum Deinstallieren. Die .NET-Laufzeit ist enthalten, es muss nichts
-weiter installiert werden.
+`SchoolManagerSetup.msi` aus dem Release oben herunterladen und doppelklicken.
+Das Paket installiert ohne Administratorrechte nach
+`%LOCALAPPDATA%\Programs\School Manager`, legt eine Verknüpfung im Startmenü und
+auf dem Desktop an und erscheint in „Apps & Features“ zum Deinstallieren. Die
+.NET-Laufzeit ist enthalten, es muss nichts weiter installiert werden.
 
 Wer die App nur kopieren möchte: `SchoolManager.exe` ist eine einzige Datei und
 läuft von jedem Ort, auch von einem Stick.
-
-Der Ordner `publish\` entsteht erst beim Bauen und liegt bewusst nicht im
-Repository: die beiden Dateien sind zusammen rund 125 MB und wären nach jedem
-Bauvorgang neu.
-
-## Selbst bauen
-
-```powershell
-.\publish.cmd           # nur die EXE  -> publish\SchoolManager.exe
-.\build-installer.cmd   # EXE + Setup  -> publish\SchoolManagerSetup.msi
-```
-
-Für das Setup wird einmalig das WiX-Werkzeug gebraucht:
-
-```powershell
-dotnet tool install --global wix --version 5.0.2
-```
-
-(Version 5 absichtlich: ab Version 6 verlangt WiX das Akzeptieren einer
-Gebühren-Lizenz.)
-
-Zum Entwickeln genügt `dotnet run --project SchoolManager.App`.
-Die Projektmappe heisst `SchoolManager.sln`.
-
-### Neue Version veröffentlichen
-
-Die Versionsnummer steht einzig in `SchoolManager.App/SchoolManager.App.csproj`
-(`<Version>`) — dort erhöhen, committen, dann als Tag pushen:
-
-```powershell
-git tag v1.1.0
-git push origin v1.1.0
-```
-
-Der Workflow `.github/workflows/release.yml` baut daraufhin automatisch
-`SchoolManager.exe` und `SchoolManagerSetup.msi` mit der Version aus dem Tag
-und veröffentlicht beides als GitHub-Release. Die eingebaute Update-Suche
-(Einstellungen → Programm) findet dieses Release automatisch, sobald es
-veröffentlicht ist.
-
-#### Zwei Kanäle: Release und Dev-Patch
-
-Am Tag hängt, wer den Stand zu sehen bekommt:
-
-| Tag | Was daraus wird | Wer bekommt es |
-|---|---|---|
-| `v1.2.0` | normales Release | alle |
-| `v1.2.0-dev` | Vorabversion (prerelease) | nur der Entwicklermodus |
-
-Der Workflow setzt das selbst: Enthält der Tag `-dev`, wird die
-Veröffentlichung als Vorabversion markiert. Die Update-Suche normaler Nutzer
-fragt `releases/latest` ab, und das überspringt Vorabversionen grundsätzlich —
-Dev-Patches werden ihnen also nie angeboten. Der numerische Teil der Version
-zählt in beiden Kanälen gemeinsam weiter, damit ein Dev-Patch immer neuer ist
-als das Release davor.
-
-Die Tags `v1.1.0-dev` bis `v1.7.0-dev` sind der Stand aus der Entwicklung vor
-dem ersten öffentlichen Release; sie liegen als Vorabversionen im Archiv.
-
-## Projekte
-
-| Projekt | Was es ist |
-|---|---|
-| `SchoolManager.App` | Die Desktop-App (WPF). Ergebnis: `SchoolManager.exe` |
-| `SchoolManager.Cli` | Konsolen-Programm für den E-Mail-Versand aus Skripten |
-| `SchoolManager.Core` | Gemeinsamer Kern: `SmtpSettings`, `OutgoingEmail`, `EmailService`, `EmailProviderPresets`, `GraphMailService` |
-| `installer/SchoolManager.wxs` | Beschreibung des Installationspakets (WiX) |
-| `tools/make-icon.ps1` | Erzeugt `SchoolManager.App/app.ico` neu (Doktorhut im Akzentgrau) |
-
-Innerhalb von `SchoolManager.App`:
-
-| Datei | Zweck |
-|---|---|
-| `MainWindow.xaml` | Rahmen: Seitennavigation links, aktive Seite rechts, Statusleiste unten |
-| `UpdateToast.xaml` | Kurzer Hinweis unten rechts, wenn beim Start ein Update gefunden wurde |
-| `Theme.xaml` | Farben und Vorlagen aller Steuerelemente (Graustufen, weisse Schrift) |
-| `Pages/OrdersPage` | Aufträge mit der Liste ihrer Aufgaben |
-| `Pages/TasksPage` | Alle Aufgaben; je Aufgabe die Liste der Leistungsdetails |
-| `Pages/HomeworkPage` | Hausaufgaben mit Verweis auf Auftrag/Aufgabe/Leistungsdetail |
-| `Pages/ExamsPage` | Prüfungen erfassen und ausgeben |
-| `Pages/CalendarPage` | Wochenansicht über alle Quellen, Import und Export |
-| `Pages/TeachersPage` | Lehrkräfte samt CSV-Export und -Import |
-| `Pages/MailPage` | E-Mail verfassen und senden |
-| `Pages/TodoPage`, `Pages/NotesPage` | To-Do-Liste und Notizen |
-| `Pages/SettingsPage` | Konto-Art, Server, Anmeldung, Absender, Programm-Update, Datenexport |
-| `Data/WorkOrder`, `WorkTask`, `WorkEntry` | Die drei Ebenen mit Fertig-Markierung, Soll-/Ist-Zeit und Enddatum |
-| `Data/WorkStore`, `HomeworkStore`, `EventStore`, `TeacherStore`, `LessonPlanStore` | Die gemeinsam genutzten Datenspeicher |
-| `Data/TimetableEntry` | Eine selbst erfasste Lektion, wöchentlich oder einmalig |
-| `Dialogs/LessonDialog` | Fenster zum Anlegen und Bearbeiten einer Lektion |
-| `Data/CalendarFeed` | Führt alle Quellen zusammen und findet die gerade laufende Lektion |
-| `Data/IcsParser`, `IcsWriter`, `TimetableStore` | ICS lesen und schreiben, Quellen verwalten |
-| `Data/TimeText` | Der Zeitrechner: liest `90`, `1:30`, `1,5h` und rechnet Summen |
-| `DoneGrouping` | Teilt die Listen der Aufträge und Aufgaben in „Offen“ und „Abgeschlossen“ |
-| `DevMode` | Der Entwicklermodus: Dev-Patches und die Konto-Art Microsoft 365 |
-| `Microsoft365TokenSource` | Anmeldung bei Microsoft 365 (OAuth2) für den SMTP-Versand |
-| `Update/UpdateService` | Prüft GitHub Releases auf eine neuere Version und lädt das Setup herunter |
-| `Update/UninstallService` | Daten zurücksetzen und School Manager wieder vom Rechner entfernen |
-| `Data/DataExportService` | Konfiguration bzw. alle Daten als JSON/ZIP exportieren |
-| `Data/DataImportService` | Konfiguration bzw. alle Daten aus JSON/ZIP wieder einlesen |
 
 ## Die App
 
@@ -130,11 +28,6 @@ Statuszeile: grau für Hinweise, grün für Erfolg, rot für Fehler.
 
 Der E-Mail-Versand ist einsatzbereit; es braucht nur ein eingerichtetes Konto
 (siehe „Einstellungen"). Fehlt es, sagt das die Statuszeile beim Start.
-
-Solange keine Anwendungs-ID in School Manager steckt, steht oben stattdessen ein
-roter Streifen, dass der Versand noch nicht verfügbar ist — dann führt daneben
-**Einstellungen öffnen** dorthin und **✕** blendet den Hinweis bis zum nächsten
-Start aus. Ob er erscheint, entscheidet `SmtpSettings.HasBuiltInClientId`.
 
 ### Aufträge, Aufgaben, Leistungsdetails
 
@@ -289,7 +182,7 @@ Zuerst die **Konto-Art** wählen; danach zeigt die Seite nur die passenden Felde
 |---|---|
 | **SMTP-Server** | Host, Port, Verschlüsselung, Benutzername, Passwort |
 | **Exchange-Server im Haus** | Host der Schule (z. B. `mail.schule.ch`), Port 587 mit STARTTLS, Benutzername als `DOMÄNE\benutzer` oder E-Mail-Adresse, Passwort |
-| **Microsoft 365 / Exchange Online** | E-Mail-Adresse des Postfachs, Anwendungs-ID, optional Verzeichnis-ID — Server und Port sind vorgegeben |
+| **Microsoft 365 / Exchange Online** | Nichts — nur einmal bei Microsoft anmelden |
 
 Bei **SMTP-Server** und **Exchange-Server im Haus** genügt bei bekannten
 Anbietern (Gmail, Outlook.com, Yahoo, iCloud, GMX, web.de, Bluewin, Sunrise,
@@ -311,56 +204,15 @@ steht das Postfach fest; Server, Port und Passwort entfallen. Versendet wird
 SMTP-Anmeldung seit 2020 standardmässig abgeschaltet, und viele Schulen lassen
 sie abgeschaltet. Die Nachricht landet wie gewohnt in „Gesendete Elemente“.
 Es geht sowohl mit einem Schul- oder Geschäftskonto als auch mit einem privaten
-Microsoft-Konto.
+Microsoft-Konto. Gesendet wird immer vom Postfach, mit dem man sich angemeldet
+hat.
+
+Bleibt die Anmeldung im Browser mit einer Fehlermeldung stehen, geht es mit
+**Mit Code anmelden**: School Manager zeigt einen Code, legt ihn in die
+Zwischenablage und öffnet die Seite von Microsoft, auf der er einzugeben ist.
 
 Die Anmeldung wird mit der Windows-Datenschutz-API (DPAPI) verschlüsselt im
 Benutzerprofil abgelegt und gilt auch nach einem Neustart.
-
-**Damit das ein einzelner Knopf sein kann**, muss in School Manager eine
-Anwendungs-ID stecken — ohne registrierte App gibt es bei Microsoft keine
-Anmeldung. Sie steht als `BuiltInClientId` in
-`SchoolManager.Core/SmtpSettings.cs` und ist dort eingetragen; darum sind die
-Felder **Anwendungs-ID** und **Verzeichnis-ID** nicht zu sehen. Wird die
-Konstante geleert, erscheinen sie wieder, und jeder muss seine eigene
-Registrierung eintragen.
-
-Wer eine eigene anlegen will, tut das einmalig im Azure-Portal (kostenlos, kein
-Abonnement nötig):
-
-1. [portal.azure.com](https://portal.azure.com) → *App-Registrierungen* →
-   **Neue Registrierung**
-2. Name z. B. `School Manager`; unter *Unterstützte Kontotypen* **Konten in
-   einem beliebigen Organisationsverzeichnis und persönliche
-   Microsoft-Konten** wählen
-3. *Authentifizierung* → **Plattform hinzufügen** → **Mobile Geräte und
-   Desktopanwendungen** → `http://localhost` ankreuzen. Fehlt die Adresse,
-   bricht die Anmeldung im Browser mit `AADSTS900971: No reply address
-   provided` ab. **Mit Code anmelden** geht dann trotzdem, sofern unter
-   *Authentifizierung* „Öffentliche Clientflows zulassen“ eingeschaltet ist.
-4. *API-Berechtigungen* → **Berechtigung hinzufügen** → *Microsoft Graph* →
-   **Delegierte Berechtigungen** → **Mail.Send** und **User.Read**
-5. Die **Anwendungs-ID (Client)** von der Übersichtsseite kopieren und als
-   `BuiltInClientId` eintragen
-
-`Mail.Send` ist fürs Verschicken da, `User.Read` nur fürs Nachsehen: „Verbindung
-testen“ und die Anzeige, als wer man angemeldet ist, fragen bei Graph `/me` ab,
-und das lässt Microsoft ohne `User.Read` nicht zu. Fehlt sie, schlägt der
-Verbindungstest mit „keine Berechtigung“ fehl, obwohl das Senden selbst ginge.
-
-Mit der Azure-Befehlszeile geht dasselbe in einem Schritt (`az login
---allow-no-subscriptions` vorausgesetzt):
-
-```bash
-az ad app create --display-name "School Manager" \
-  --sign-in-audience AzureADandPersonalMicrosoftAccount \
-  --public-client-redirect-uris http://localhost \
-  --required-resource-accesses '[{"resourceAppId":"00000003-0000-0000-c000-000000000000","resourceAccess":[{"id":"e383f46e-2787-4529-855e-0e479a3ffac0","type":"Scope"},{"id":"e1fe6dd8-ba31-4d61-89e7-88639da4683d","type":"Scope"}]}]' \
-  --query appId -o tsv
-```
-
-Ein privates Microsoft-Konto braucht dafür einmal ein Verzeichnis: Wer noch nie
-im Azure-Portal war, hat keines, und die Befehlszeile findet dann nichts zum
-Anmelden. Einmal [portal.azure.com](https://portal.azure.com) öffnen legt es an.
 
 Bei einem Schulkonto kann es sein, dass die Anmeldung mit „Zustimmung des
 Administrators erforderlich“ abbricht — dann muss die Schul-IT die Berechtigung
@@ -372,17 +224,17 @@ Gmail und Outlook.com brauchen bei Zwei-Faktor-Anmeldung ein App-Passwort.
 #### Programm aktualisieren
 
 Bei jedem Start prüft School Manager im Hintergrund still auf eine neuere
-Version; findet sich eine, erscheint unten rechts kurz ein Hinweis darauf (er
-verschwindet nach 5 Sekunden von selbst oder auf Klick auf das ✕). Ein Klick
-auf den Hinweis selbst springt direkt zu den Einstellungen.
+Version; findet sich eine, erscheint oben im Fenster ein Hinweis darauf, der
+direkt zu den Einstellungen führt.
 
 Unter **Programm** steht die installierte Version. **Nach Updates suchen** fragt
 die GitHub-Releases-Seite des Projekts ab; ist eine neuere Version vorhanden,
-erscheint **Jetzt aktualisieren** — das lädt `SchoolManagerSetup.msi` herunter,
-beendet School Manager und startet das Setup, das die bestehende Installation
-per Major-Upgrade ersetzt. Nach Abschluss der Installation startet School
-Manager automatisch neu. Ohne Internetverbindung oder ohne veröffentlichtes
-Release meldet die Suche, dass bereits die aktuellste Version läuft.
+erscheint **Jetzt aktualisieren** — das lädt `SchoolManagerSetup.msi` mit
+Fortschrittsanzeige herunter, beendet School Manager und installiert die neue
+Version über die bestehende. Danach startet School Manager automatisch neu;
+scheitert die Installation, startet die bisherige Version mit einer Meldung,
+warum. Ist GitHub nicht erreichbar, sagt die Suche das, statt eine aktuelle
+Version zu melden.
 
 #### Daten exportieren und importieren
 
@@ -398,31 +250,6 @@ Stundenplan, To-Do, Notizen und Einstellungen — in eine ZIP-Datei, als
 vollständige Sicherung. **Alle Daten importieren…** überschreibt damit den
 Datenordner und startet School Manager anschliessend neu, damit alle Seiten
 den eingelesenen Stand zeigen.
-
-#### Entwicklermodus
-
-Manches ist noch nicht für alle gedacht. Es liegt deshalb hinter einem
-Entwicklermodus, der sich freischalten lässt, indem man unten links in der
-Seitenleiste **siebenmal auf die Versionsnummer klickt**. Danach steht dort
-„Version 1.0.0 · Dev“, und in den Einstellungen erscheint der Abschnitt
-**Entwickler**.
-
-Er bringt zweierlei:
-
-* **Dev-Patches statt Releases beziehen** — die Update-Suche nimmt dann die
-  Vorabversionen mit `-dev` im Namen. Diese Stände sind ungetestet; vorher
-  lohnt sich „Alle Daten exportieren…“.
-* Die Konto-Art **Microsoft 365 / Exchange Online** wird sichtbar, solange keine
-  Anwendungs-ID eingebaut ist - ohne sie führt die Anmeldung ins Leere (siehe
-  „Microsoft 365 einrichten“). Steckt eine ID im Programm, steht die Konto-Art
-  ohnehin allen offen und der Entwicklermodus ändert daran nichts mehr.
-
-**Entwicklermodus verlassen** schaltet beides wieder ab. Der Zustand steht in
-`%APPDATA%\SchoolManager\entwickler.json`.
-
-Das ist eine Sichtbarkeits-, keine Sicherheitsfrage: Was in der Anwendung
-steckt, lässt sich ohnehin auslesen. Es geht darum, Unfertiges niemandem
-versehentlich vor die Nase zu setzen.
 
 #### Zurücksetzen und deinstallieren
 
@@ -440,11 +267,6 @@ vorher nach und lassen sich danach nicht rückgängig machen. Vorher lohnt sich
   Läuft School Manager als einfach kopierte EXE, gibt es kein Setup — dann wird
   diese Datei selbst gelöscht. Welcher der beiden Fälle gilt, steht unter den
   Schaltflächen.
-
-Beides erledigt ein kleines Aufräum-Skript im Temp-Ordner statt der App selbst:
-ein laufendes Programm kann sich weder löschen noch verhindern, dass die Seiten
-beim Schliessen ihre Eingaben nochmals speichern. Das Skript wartet, bis School
-Manager beendet ist, räumt auf und löscht sich zuletzt selbst.
 
 ### Wo die Daten liegen
 
@@ -464,72 +286,3 @@ die App noch EmailSender hiess, werden beim ersten Start übernommen):
 | `faecher.json` | Zuordnung Fach → Lehrkraft |
 | `ausgeblendet.json` | Aus Dateien ausgeblendete Lektionen |
 | `todos.json`, `notes.json` | To-Do-Liste und Notizen |
-
-## Das Konsolen-Programm
-
-`SchoolManager.Cli` verschickt E-Mails aus Skripten; die Konfiguration steht in
-`SchoolManager.Cli/appsettings.json`:
-
-```json
-{
-  "Smtp": {
-    "Host": "smtp.gmail.com",
-    "Port": 587,
-    "Security": "StartTls",
-    "UserName": "dein.name@gmail.com",
-    "Password": "",
-    "FromAddress": "dein.name@gmail.com",
-    "FromDisplayName": "Dein Name"
-  }
-}
-```
-
-Das Passwort gehört nicht in diese Datei, sondern in User Secrets oder eine
-Umgebungsvariable — doppelter Unterstrich statt Doppelpunkt:
-
-```powershell
-cd SchoolManager.Cli
-dotnet user-secrets set "Smtp:Password" "dein-passwort"
-# oder
-$env:Smtp__Password = "dein-passwort"
-```
-
-```powershell
-dotnet run -- --to max@example.com --subject "Hallo" --body "Kurzer Test"
-dotnet run -- --help
-```
-
-Bei Erfolg ist der Rückgabewert `0`, bei einem Fehler `1`. Die Konsolen-Variante
-nutzt Benutzername und Passwort; für Microsoft 365 ist die Desktop-App gedacht.
-Steht in `appsettings.json` trotzdem `"AccountKind": "Microsoft365"`, bricht das
-Programm gleich mit einer Erklärung ab: Diese Konto-Art braucht eine Anmeldung im
-Browser, und die kann nur die Anwendung selbst durchführen.
-
-## Als Bibliothek nutzen
-
-```csharp
-using SchoolManager.Core;
-
-var settings = new SmtpSettings
-{
-    Host = "smtp.example.com",
-    Port = 587,
-    Security = SmtpSecurity.StartTls,
-    UserName = "user@example.com",
-    Password = "...",
-    FromAddress = "user@example.com"
-};
-
-var mail = new OutgoingEmail { Subject = "Hallo", Body = "Nachricht" };
-mail.To.Add("empfaenger@example.com");
-
-await new EmailService(settings).SendAsync(mail);
-```
-
-`TestConnectionAsync()` prüft Server und Anmeldung, ohne eine Mail zu senden.
-
-Für Microsoft 365 nimmt `EmailService` zusätzlich eine `IAccessTokenSource` und
-geht dann nicht über SMTP, sondern über `GraphMailService`. Das Token muss beide
-Berechtigungen aus `SmtpSettings.Microsoft365Scopes` abdecken — `Mail.Send` fürs
-Verschicken und `User.Read`, weil `TestConnectionAsync()` das eigene Konto
-abfragt.

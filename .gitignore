@@ -6,8 +6,12 @@
 
 # Die fertige EXE und das Installationspaket, je rund 60 MB und bei
 # jedem Bauvorgang neu. Veroeffentlicht werden sie als GitHub-Release,
-# siehe README, Abschnitt "Neue Version veroeffentlichen".
+# siehe RELEASES.md (nur lokal).
 publish/
+
+# Notizen nur fuer die Entwicklung: bleiben lokal und kommen nicht ins Repository.
+RELEASES.md
+ENTWICKLER.md
 
 # Visual Studio und Rider: eigene Einstellungen und Zwischenstaende
 .vs/

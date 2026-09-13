@@ -62,7 +62,7 @@ public sealed class SmtpSettings
     /// Anwendungs-ID, die in School Manager eingebaut ist. Ist sie gesetzt,
     /// genügt in den Einstellungen ein Klick auf „Mit Microsoft anmelden“;
     /// ist sie leer, muss jeder seine eigene Azure-App-Registrierung eintragen.
-    /// Siehe README, Abschnitt „Microsoft 365 einrichten“.
+    /// Siehe ENTWICKLER.md (nur lokal), Abschnitt „Microsoft 365: Anwendungs-ID und App-Registrierung“.
     /// </summary>
     public const string BuiltInClientId = "8f508d30-5a85-485e-a460-7b087f39537b";
 
