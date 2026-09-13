@@ -29,7 +29,7 @@ public static class Changelog
     /// <summary>Die Fassungen, die neueste zuoberst.</summary>
     public static IReadOnlyList<Entry> All { get; } =
     [
-        new("1.1.5", "13.09.2026", true,
+        new("1.1.5", "13.09.2026", false,
         [
             "Dev-Patches kommen ab jetzt aus einem privaten Repository und sind öffentlich weder zu sehen noch herunterzuladen. Der Entwicklermodus lädt sie mit einem eingebauten Nur-Lese-Zugang; eine Fassung ohne diesen Zugang sieht schlicht keine Dev-Patches."
         ]),
