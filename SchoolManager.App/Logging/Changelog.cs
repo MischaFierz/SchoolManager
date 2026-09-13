@@ -29,7 +29,7 @@ public static class Changelog
     /// <summary>Die Fassungen, die neueste zuoberst.</summary>
     public static IReadOnlyList<Entry> All { get; } =
     [
-        new("1.1.3", "11.09.2026", true,
+        new("1.1.4", "13.09.2026", true,
         [
             "„Verbindung testen“ hätte bei Microsoft 365 nie funktionieren können: Geprüft wird über Microsoft Graph mit einem Blick auf das eigene Konto, angefordert wurde bei der Anmeldung aber nur die Berechtigung zum Senden (Mail.Send). Graph antwortete darauf mit „keine Berechtigung“. Die Anmeldung fragt jetzt zusätzlich User.Read - nötig nur zum Nachsehen, als wer man angemeldet ist, nicht zum Senden.",
             "Beim Prüfen eines Microsoft-365-Kontos stand in der Fussleiste „Verbindung zu smtp.office365.com:587 wird geprüft“, obwohl dort weder Server noch Port eine Rolle spielen. Jetzt steht dort, dass die Anmeldung geprüft wird, und bei Erfolg, über welches Postfach gesendet wird.",
@@ -37,6 +37,15 @@ public static class Changelog
             "Der E-Mail-Versand ist freigeschaltet: In School Manager steckt jetzt eine Anwendungs-ID, darum genügt bei Microsoft 365 ein Klick auf „Mit Microsoft anmelden“ - kein Server, kein Passwort, keine eigene Azure-Registrierung mehr. Der rote Streifen „noch nicht verfügbar“ ist damit weg, und die Konto-Art steht allen offen statt nur dem Entwicklermodus. Beides hängt an der eingebauten ID, nicht an einem festen Schalter.",
             "Das Konsolen-Programm lief mit der Konto-Art Microsoft 365 in die Meldung „bitte in den Einstellungen anmelden“ - ein Rat, der auf der Kommandozeile nirgends hinführt, weil die Anmeldung einen Browser braucht. Jetzt bricht es gleich beim Laden ab und sagt, was stattdessen einzutragen ist.",
             "Aufgeräumt: Im Versand steckte noch eine SMTP-Anmeldung per Zugriffstoken, die seit dem Weg über Microsoft Graph nie mehr erreicht wurde."
+        ]),
+
+        new("1.1.3", "13.09.2026", false,
+        [
+            "Ein Update konnte ins Leere laufen: Das Installationspaket startete, während School Manager noch lief und die eigene Programmdatei belegte. Jetzt wartet das Update, bis die App wirklich beendet ist, installiert mit einem Fortschrittsbalken und startet School Manager danach wieder - auch wenn die Installation scheitert, dann in der bisherigen Version und mit einer Meldung, warum.",
+            "Beim Herunterladen eines Updates steht jetzt der Fortschritt in Prozent da. Ein unvollständig angekommenes Paket wird erkannt und nicht installiert; bleibt der Download stehen, bricht er nach 30 Sekunden mit einer Meldung ab.",
+            "Während ein Update heruntergeladen wird, lässt sich der Entwicklermodus nicht verlassen und umgekehrt - das eine brach das andere sonst mittendrin ab.",
+            "Konnte GitHub nicht abgefragt werden, hiess es trotzdem „Sie verwenden bereits die aktuellste Version“. Jetzt steht dort, dass die Suche fehlgeschlagen ist, und warum.",
+            "Ein Installationspaket mit derselben Versionsnummer - etwa das öffentliche Release über dem gleichnamigen Dev-Patch - ersetzt die vorhandene Installation, statt sich als zweiter Eintrag daneben zu legen."
         ]),
 
         new("1.1.2", "11.09.2026", false,
