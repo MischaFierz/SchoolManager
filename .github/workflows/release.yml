@@ -35,6 +35,8 @@ jobs:
           # faellt ein Zusatz wie "-dev" hier weg: v1.2.0-dev wird zu 1.2.0.
           $version = "${{ github.ref_name }}".TrimStart("v") -replace '-.*$', ''
           "version=$version" >> $env:GITHUB_OUTPUT
+          # Mit Zusatz fuer die Produktversion: daran erkennt die App einen Dev-Patch.
+          "full=$("${{ github.ref_name }}".TrimStart("v"))" >> $env:GITHUB_OUTPUT
 
       - name: WiX-Werkzeug installieren
         run: dotnet tool install --global wix --version 5.0.2
@@ -50,6 +52,7 @@ jobs:
           -p:EnableCompressionInSingleFile=true
           -p:DebugType=none
           -p:Version=${{ steps.version.outputs.version }}
+          -p:InformationalVersion=${{ steps.version.outputs.full }}
           --output publish
 
       - name: Installationspaket bauen

@@ -31,6 +31,17 @@ public static class UpdateService
     public static Version CurrentVersion =>
         Normalize(Assembly.GetExecutingAssembly().GetName().Version ?? new Version(0, 0, 0));
 
+    /// <summary>
+    /// Läuft gerade ein Dev-Patch? Der Release-Bau schreibt den Tag ohne "v",
+    /// etwa 1.1.4-dev, in die Produktversion; selbst gebaute Fassungen haben dort kein "-dev".
+    /// </summary>
+    public static bool IsDevBuild =>
+        Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
+            .InformationalVersion.Contains(DevTagMarker, StringComparison.OrdinalIgnoreCase) == true;
+
+    /// <summary>Die Nummer für die Anzeige, bei einem Dev-Patch mit angehängtem "-dev".</summary>
+    public static string DisplayVersion => CurrentVersion.ToString(3) + (IsDevBuild ? DevTagMarker : "");
+
     /// <summary>Kennzeichen im Tag, an dem ein Dev-Patch zu erkennen ist.</summary>
     private const string DevTagMarker = "-dev";
 

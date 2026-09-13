@@ -123,14 +123,9 @@ public sealed class GraphMailService(IAccessTokenSource tokenSource)
             ["bccRecipients"] = bcc
         };
 
-        // Ein abweichender Absender geht nur, wenn das Postfach die Berechtigung
-        // "Senden als" hat; ohne Angabe nimmt Graph das angemeldete Postfach.
-        if (!string.IsNullOrWhiteSpace(settings.FromAddress) &&
-            !settings.FromAddress.Equals(settings.UserName, StringComparison.OrdinalIgnoreCase))
-        {
-            message["from"] = Recipient(settings.FromAddress, settings.FromDisplayName);
-        }
-
+        // Kein "from": Graph sendet dann vom angemeldeten Postfach. Eine andere
+        // Adresse - etwa ein Absender aus früheren SMTP-Einstellungen - lehnt
+        // Microsoft ohne "Senden als"-Recht mit ErrorSendAsDenied ab.
         return message;
     }
 

@@ -50,6 +50,10 @@ public static class DevMode
 
         state.Enabled = true;
 
+        // Wer den Entwicklermodus einschaltet, will die Dev-Patches sehen; ohne
+        // den Haken fände die Update-Suche nur das öffentliche Release.
+        state.DevPatches = true;
+
         // Bevor irgendein Dev-Patch die Daten anfassen kann, kommt der ganze
         // Datenordner in eine Sicherung. Klappt das nicht, wird trotzdem
         // eingeschaltet - die Oberfläche sagt dann, dass es keine gibt.

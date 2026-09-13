@@ -254,11 +254,8 @@ public partial class MainWindow : Window, IStatusSink
     /// <summary>Hängt den Hinweis an die Versionsnummer, solange der Modus läuft.</summary>
     private void ShowDevMode()
     {
-        var version = Assembly.GetExecutingAssembly().GetName().Version?.ToString(3);
-
-        VersionText.Text = DevMode.IsEnabled
-            ? $"Version {version} · Dev"
-            : $"Version {version}";
+        // Die Farbe zeigt den Entwicklermodus, das "-dev" nur einen laufenden Dev-Patch.
+        VersionText.Text = $"Version {UpdateService.DisplayVersion}";
 
         VersionText.Foreground = DevMode.IsEnabled
             ? (Brush)FindResource("KindAbgabe")

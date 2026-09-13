@@ -775,8 +775,18 @@ public partial class SettingsPage : UserControl
             ? Visibility.Collapsed
             : Visibility.Visible;
 
+        // Wechselt der Kanal - Haken, Einschalten oder Abschalten des Modus -,
+        // gleich im neuen Kanal suchen. Nicht, solange ein Download läuft: Dann
+        // ist die Suche gesperrt, und ein neues Ergebnis bräche ihn ab.
+        var devPatches = DevMode.UseDevPatches;
+
+        if (shownDevPatches is { } before && before != devPatches && CheckUpdateButton.IsEnabled)
+            CheckUpdate_Click(this, new RoutedEventArgs());
+
+        shownDevPatches = devPatches;
+
         loading = true;
-        DevPatchesBox.IsChecked = DevMode.UseDevPatches;
+        DevPatchesBox.IsChecked = devPatches;
 
         DevBackupText.Text = DevBackupService.Exists(DevMode.BackupPath)
             ? $"Sicherung vom {File.GetLastWriteTime(DevMode.BackupPath!):dd.MM.yyyy HH:mm} unter {DevMode.BackupPath}."
@@ -789,6 +799,9 @@ public partial class SettingsPage : UserControl
         loading = false;
     }
 
+    /// <summary>Der zuletzt angezeigte Kanal; null, bevor die Seite das erste Mal gefüllt wurde.</summary>
+    private bool? shownDevPatches;
+
     private void DevPatches_Changed(object sender, RoutedEventArgs e)
     {
         if (loading)
@@ -798,8 +811,8 @@ public partial class SettingsPage : UserControl
 
         status.SetStatus(
             DevMode.UseDevPatches
-                ? "Die Update-Suche nimmt ab jetzt Dev-Patches."
-                : "Die Update-Suche nimmt wieder die öffentlichen Releases.",
+                ? "Die Update-Suche nimmt ab jetzt Dev-Patches - es wird gleich neu gesucht."
+                : "Die Update-Suche nimmt wieder die öffentlichen Releases - es wird gleich neu gesucht.",
             StatusKind.Info);
     }
 
