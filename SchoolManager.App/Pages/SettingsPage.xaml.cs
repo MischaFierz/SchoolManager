@@ -96,15 +96,25 @@ public partial class SettingsPage : UserControl
         try
         {
             var releases = await UpdateService.PublicReleasesAsync();
-            var running = UpdateService.IsDevBuild ? "" : UpdateService.CurrentVersion.ToString(3);
+            var devReleases = await UpdateService.DevReleasesAsync();
 
-            ReleaseBox.ItemsSource = releases.Select(info => new ReleaseChoice(info, info.Version == running)).ToList();
-            ReleaseBox.SelectedIndex = releases.Count > 0 ? 0 : -1;
-            SwitchReleaseButton.IsEnabled = releases.Count > 0;
+            // Neueste zuerst; bei gleicher Nummer das öffentliche Release vor dem Dev-Patch.
+            var all = releases.Concat(devReleases)
+                .OrderByDescending(info => Version.Parse(info.Version))
+                .ThenBy(info => info.IsDev)
+                .ToList();
 
-            ReleaseStateText.Text = releases.Count == 0
-                ? "Auf GitHub ist keine öffentliche Version mit Installationspaket vorhanden."
-                : $"{releases.Count} öffentliche Versionen. Beim Wechsel wird die installierte Version entfernt und die gewählte installiert; die Daten bleiben unverändert.";
+            ReleaseBox.ItemsSource = all
+                .Select(info => new ReleaseChoice(info, info.Label == UpdateService.DisplayVersion))
+                .ToList();
+            ReleaseBox.SelectedIndex = all.Count > 0 ? 0 : -1;
+            SwitchReleaseButton.IsEnabled = all.Count > 0;
+
+            ReleaseStateText.Text = all.Count == 0
+                ? "Auf GitHub ist keine Version mit Installationspaket zu finden."
+                : $"{releases.Count} öffentliche und {devReleases.Count} Dev-Versionen"
+                  + (UpdateService.HasDevAccess ? "" : " - Dev-Versionen sieht nur eine Fassung, die GitHub gebaut hat")
+                  + ". Beim Wechsel wird die installierte Version entfernt und die gewählte installiert; die Daten bleiben unverändert.";
         }
         catch (Exception ex)
         {
@@ -169,7 +179,7 @@ public partial class SettingsPage : UserControl
     /// <summary>Ein Eintrag der Versionsliste; die laufende Version ist markiert.</summary>
     private sealed record ReleaseChoice(UpdateInfo Info, bool Running)
     {
-        public override string ToString() => Running ? $"{Info.Version} (läuft gerade)" : Info.Version;
+        public override string ToString() => Running ? $"{Info.Label} (läuft gerade)" : Info.Label;
     }
 
     /// <summary>Springt zum Bereich Programm - etwa vom Hinweis auf ein Update aus.</summary>

@@ -425,7 +425,7 @@
                             </StackPanel>
                             <TextBlock x:Name="ReleaseStateText" Style="{StaticResource Hint}" Margin="0,8,0,0"
                                        AutomationProperties.AutomationId="ReleaseStateText"
-                                       Text="Zeigt alle öffentlichen Versionen von GitHub. Beim Wechsel wird die installierte Version entfernt und die gewählte installiert; die Daten bleiben unverändert." />
+                                       Text="Zeigt alle öffentlichen Versionen und die Dev-Versionen aus dem privaten Repository. Beim Wechsel wird die installierte Version entfernt und die gewählte installiert; die Daten bleiben unverändert." />
 
                             <!-- Nur solange keine Anwendungs-ID eingebaut ist; sonst steht
                                  die Konto-Art ohnehin allen offen. -->

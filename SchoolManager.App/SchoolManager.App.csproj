@@ -32,6 +32,13 @@
     <Using Remove="System.Drawing" />
   </ItemGroup>
 
+  <!-- Nur-Lese-Zugang zu den Dev-Patches im privaten Repository. Kommt beim
+       Bauen auf GitHub aus einem Secret (-p:DevReleasesToken=...); selbst
+       gebaute Fassungen haben keinen und sehen darum keine Dev-Patches. -->
+  <ItemGroup Condition="'$(DevReleasesToken)' != ''">
+    <AssemblyMetadata Include="DevReleasesToken" Value="$(DevReleasesToken)" />
+  </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\SchoolManager.Core\SchoolManager.Core.csproj" />
   </ItemGroup>
