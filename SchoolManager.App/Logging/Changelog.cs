@@ -29,6 +29,15 @@ public static class Changelog
     /// <summary>Die Fassungen, die neueste zuoberst.</summary>
     public static IReadOnlyList<Entry> All { get; } =
     [
+        new("1.1.3", "13.09.2026", false,
+        [
+            "Ein Update konnte ins Leere laufen: Das Installationspaket startete, während School Manager noch lief und die eigene Programmdatei belegte. Jetzt wartet das Update, bis die App wirklich beendet ist, installiert mit einem Fortschrittsbalken und startet School Manager danach wieder - auch wenn die Installation scheitert, dann in der bisherigen Version und mit einer Meldung, warum.",
+            "Beim Herunterladen eines Updates steht jetzt der Fortschritt in Prozent da. Ein unvollständig angekommenes Paket wird erkannt und nicht installiert; bleibt der Download stehen, bricht er nach 30 Sekunden mit einer Meldung ab.",
+            "Während ein Update heruntergeladen wird, lässt sich der Entwicklermodus nicht verlassen und umgekehrt - das eine brach das andere sonst mittendrin ab.",
+            "Konnte GitHub nicht abgefragt werden, hiess es trotzdem „Sie verwenden bereits die aktuellste Version“. Jetzt steht dort, dass die Suche fehlgeschlagen ist, und warum.",
+            "Ein Installationspaket mit derselben Versionsnummer - etwa das öffentliche Release über dem gleichnamigen Dev-Patch - ersetzt die vorhandene Installation, statt sich als zweiter Eintrag daneben zu legen."
+        ]),
+
         new("1.1.2", "11.09.2026", false,
         [
             "Bei den Prüfungen stand die Uhrzeit in derselben Zeile wie das Datum; seit das Datumsfeld den Kalender mitbringt, wurde die Zeile dafür zu lang. „Beginn“ hat jetzt eine eigene Zeile.",
