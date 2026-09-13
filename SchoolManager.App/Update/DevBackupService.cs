@@ -160,7 +160,7 @@ public static class DevBackupService
     /// installiert ins Benutzerprofil; die laufende Datei taugt nicht als Ziel,
     /// sie wird gerade ersetzt.
     /// </summary>
-    private static string RestartPath(UninstallService.Installation? installation)
+    internal static string RestartPath(UninstallService.Installation? installation)
     {
         if (installation is { Location.Length: > 0 } found)
             return Path.Combine(found.Location, "SchoolManager.exe");
