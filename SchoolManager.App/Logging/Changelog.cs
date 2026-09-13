@@ -29,6 +29,11 @@ public static class Changelog
     /// <summary>Die Fassungen, die neueste zuoberst.</summary>
     public static IReadOnlyList<Entry> All { get; } =
     [
+        new("1.1.5", "13.09.2026", true,
+        [
+            "Dev-Patches kommen ab jetzt aus einem privaten Repository und sind öffentlich weder zu sehen noch herunterzuladen. Der Entwicklermodus lädt sie mit einem eingebauten Nur-Lese-Zugang; eine Fassung ohne diesen Zugang sieht schlicht keine Dev-Patches."
+        ]),
+
         new("1.1.4", "13.09.2026", false,
         [
             "„Verbindung testen“ hätte bei Microsoft 365 nie funktionieren können: Geprüft wird über Microsoft Graph mit einem Blick auf das eigene Konto, angefordert wurde bei der Anmeldung aber nur die Berechtigung zum Senden (Mail.Send). Graph antwortete darauf mit „keine Berechtigung“. Die Anmeldung fragt jetzt zusätzlich User.Read - nötig nur zum Nachsehen, als wer man angemeldet ist, nicht zum Senden.",

@@ -10,18 +10,25 @@ using System.Windows;
 
 namespace SchoolManager.App.Update;
 
-/// <summary>Eine auf GitHub verfügbare, neuere Version.</summary>
+/// <summary>Eine auf GitHub verfügbare Version.</summary>
 /// <param name="Size">Grösse des Installationspakets in Bytes, wie GitHub sie angibt.</param>
-public sealed record UpdateInfo(string Version, string DownloadUrl, string ReleaseUrl, long Size);
+/// <param name="IsDev">Ein Dev-Patch aus dem privaten Repository; sein Download braucht den eingebauten Zugang.</param>
+public sealed record UpdateInfo(string Version, string DownloadUrl, string ReleaseUrl, long Size, bool IsDev = false)
+{
+    /// <summary>Die Nummer für die Anzeige, bei einem Dev-Patch mit angehängtem "-dev".</summary>
+    public string Label => IsDev ? Version + "-dev" : Version;
+}
 
 /// <summary>
-/// Prüft auf GitHub Releases (Repository MischaFierz/SchoolManager) nach einer neueren
-/// Version und lädt bei Bedarf das Installationspaket herunter.
+/// Prüft auf GitHub nach einer neueren Version und lädt bei Bedarf das
+/// Installationspaket herunter. Öffentliche Releases liegen im Repository
+/// MischaFierz/SchoolManager, Dev-Patches im privaten MischaFierz/SchoolManager-dev.
 /// </summary>
 public static class UpdateService
 {
     private const string RepoOwner = "MischaFierz";
     private const string RepoName = "SchoolManager";
+    private const string DevRepoName = "SchoolManager-dev";
     private const string InstallerAssetName = "SchoolManagerSetup.msi";
 
     /// <summary>So lange darf ein Download ohne ein einziges Byte bleiben, bevor er als stehen geblieben gilt.</summary>
@@ -46,6 +53,17 @@ public static class UpdateService
     private const string DevTagMarker = "-dev";
 
     /// <summary>
+    /// Nur-Lese-Zugang zum privaten Repository der Dev-Patches. Der Release-Bau
+    /// setzt ihn aus einem Secret ein; selbst gebaute Fassungen haben keinen.
+    /// </summary>
+    private static string DevReleasesToken =>
+        Assembly.GetExecutingAssembly().GetCustomAttributes<AssemblyMetadataAttribute>()
+            .FirstOrDefault(attribute => attribute.Key == "DevReleasesToken")?.Value ?? "";
+
+    /// <summary>Kann diese Fassung Dev-Patches sehen und herunterladen?</summary>
+    public static bool HasDevAccess => DevReleasesToken.Length > 0;
+
+    /// <summary>
     /// Fragt die neueste Veröffentlichung ab; liefert null, wenn keine neuere
     /// Version vorliegt. Im Entwicklermodus mit eingeschaltetem Patch-Kanal
     /// werden stattdessen die Dev-Patches durchsucht.
@@ -55,33 +73,15 @@ public static class UpdateService
 
     private static async Task<UpdateInfo?> CheckForReleaseAsync()
     {
-        // "releases/latest" überspringt Vorabversionen von sich aus - Dev-Patches
-        // kommen normalen Nutzern damit gar nicht erst unter die Augen.
-        var release = await GetFromGitHubAsync<GitHubRelease>("releases/latest");
+        // "releases/latest" überspringt Vorabversionen von sich aus.
+        var release = await GetFromGitHubAsync<GitHubRelease>(RepoName, "releases/latest");
 
         return release is null ? null : ToUpdate(release);
     }
 
-    /// <summary>
-    /// Sucht den neuesten Dev-Patch. Das sind Vorabversionen, deren Tag
-    /// „-dev“ enthält - etwa v1.0.1-dev. Ältere Vorabversionen ohne diese
-    /// Kennzeichnung bleiben aussen vor; sie sind nur noch Archiv.
-    /// </summary>
-    private static async Task<UpdateInfo?> CheckForDevPatchAsync()
-    {
-        var releases = await GetFromGitHubAsync<List<GitHubRelease>>("releases?per_page=50");
-
-        if (releases is null)
-            return null;
-
-        return releases
-            .Where(release => !release.Draft)
-            .Where(release => release.TagName.Contains(DevTagMarker, StringComparison.OrdinalIgnoreCase))
-            .Select(ToUpdate)
-            .Where(update => update is not null)
-            .OrderByDescending(update => Version.Parse(update!.Version))
-            .FirstOrDefault();
-    }
+    /// <summary>Der neueste Dev-Patch, der neuer ist als die laufende Version.</summary>
+    private static async Task<UpdateInfo?> CheckForDevPatchAsync() =>
+        (await DevReleasesAsync()).FirstOrDefault(info => Version.Parse(info.Version) > CurrentVersion);
 
     /// <summary>
     /// Die neueste öffentliche Veröffentlichung - auch dann, wenn sie älter ist
@@ -90,9 +90,47 @@ public static class UpdateService
     /// </summary>
     public static async Task<UpdateInfo?> LatestReleaseAsync()
     {
-        var release = await GetFromGitHubAsync<GitHubRelease>("releases/latest");
+        var release = await GetFromGitHubAsync<GitHubRelease>(RepoName, "releases/latest");
 
         return release is null ? null : ToInfo(release);
+    }
+
+    /// <summary>
+    /// Alle öffentlichen Versionen mit Installationspaket, die neueste zuerst -
+    /// für den schnellen Wechsel im Entwicklermodus, auch abwärts.
+    /// </summary>
+    public static async Task<IReadOnlyList<UpdateInfo>> PublicReleasesAsync()
+    {
+        var releases = await GetFromGitHubAsync<List<GitHubRelease>>(RepoName, "releases?per_page=50") ?? [];
+
+        return releases
+            .Where(release => !release.Draft && !release.Prerelease)
+            .Select(release => ToInfo(release))
+            .OfType<UpdateInfo>()
+            .OrderByDescending(info => Version.Parse(info.Version))
+            .ToList();
+    }
+
+    /// <summary>
+    /// Alle Dev-Patches aus dem privaten Repository, der neueste zuerst. Ohne
+    /// eingebauten Zugang gibt es keine - das ist kein Fehler, sondern der Fall
+    /// jeder selbst gebauten Fassung.
+    /// </summary>
+    public static async Task<IReadOnlyList<UpdateInfo>> DevReleasesAsync()
+    {
+        if (!HasDevAccess)
+            return [];
+
+        var releases = await GetFromGitHubAsync<List<GitHubRelease>>(
+            DevRepoName, "releases?per_page=50", DevReleasesToken) ?? [];
+
+        return releases
+            .Where(release => !release.Draft)
+            .Where(release => release.TagName.Contains(DevTagMarker, StringComparison.OrdinalIgnoreCase))
+            .Select(release => ToInfo(release, isDev: true))
+            .OfType<UpdateInfo>()
+            .OrderByDescending(info => Version.Parse(info.Version))
+            .ToList();
     }
 
     /// <summary>
@@ -101,15 +139,23 @@ public static class UpdateService
     /// den Einstellungen „Sie verwenden bereits die aktuellste Version“, obwohl
     /// gar nicht nachgesehen werden konnte.
     /// </summary>
-    private static async Task<T?> GetFromGitHubAsync<T>(string path) where T : class
+    private static async Task<T?> GetFromGitHubAsync<T>(string repository, string path, string? token = null) where T : class
     {
         using var http = CreateClient();
+        using var request = new HttpRequestMessage(HttpMethod.Get,
+            $"https://api.github.com/repos/{RepoOwner}/{repository}/{path}");
 
-        using var response = await http.GetAsync(
-            $"https://api.github.com/repos/{RepoOwner}/{RepoName}/{path}");
+        if (token is not null)
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        using var response = await http.SendAsync(request);
 
         if (response.StatusCode == HttpStatusCode.NotFound)
             return null;
+
+        if (token is not null && response.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden)
+            throw new HttpRequestException(
+                "Der eingebaute Zugang zu den Dev-Versionen gilt nicht mehr - eine neuere Fassung bringt einen gültigen mit.");
 
         // Ohne Anmeldung beantwortet GitHub nur 60 Anfragen je Stunde und
         // Internetadresse - in einem Schulnetz teilen sich viele Rechner eine.
@@ -129,7 +175,7 @@ public static class UpdateService
         ToInfo(release) is { } info && Version.Parse(info.Version) > CurrentVersion ? info : null;
 
     /// <summary>Liest Version und Installationspaket aus einer Veröffentlichung.</summary>
-    private static UpdateInfo? ToInfo(GitHubRelease release)
+    private static UpdateInfo? ToInfo(GitHubRelease release, bool isDev = false)
     {
         if (!TryParseVersion(release.TagName, out var version))
             return null;
@@ -140,7 +186,11 @@ public static class UpdateService
         if (asset is null)
             return null;
 
-        return new UpdateInfo(Normalize(version).ToString(3), asset.BrowserDownloadUrl, release.HtmlUrl, asset.Size);
+        // Aus einem privaten Repository lädt nur die API-Adresse mit Zugang;
+        // die Browser-Adresse verlangte eine Anmeldung bei GitHub.
+        var downloadUrl = isDev ? asset.Url : asset.BrowserDownloadUrl;
+
+        return new UpdateInfo(Normalize(version).ToString(3), downloadUrl, release.HtmlUrl, asset.Size, isDev);
     }
 
     /// <summary>
@@ -152,13 +202,28 @@ public static class UpdateService
     {
         using var http = CreateClient();
         using var stalled = new CancellationTokenSource();
+        using var request = new HttpRequestMessage(HttpMethod.Get, info.DownloadUrl);
 
-        var path = Path.Combine(Path.GetTempPath(), $"SchoolManagerSetup-{info.Version}.msi");
+        if (info.IsDev)
+        {
+            // GitHub leitet auf eine signierte Adresse um; den Zugang schickt
+            // HttpClient dorthin von sich aus nicht mit - so soll es auch sein.
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", DevReleasesToken);
+            request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/octet-stream"));
+        }
+
+        var path = Path.Combine(Path.GetTempPath(), $"SchoolManagerSetup-{info.Label}.msi");
         var buffer = new byte[81920];
         long received = 0;
         var lastPercent = -1;
 
-        await using (var stream = await http.GetStreamAsync(info.DownloadUrl))
+        using var response = await http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+
+        if (!response.IsSuccessStatusCode)
+            throw new IOException(
+                $"GitHub gab das Installationspaket nicht heraus ({(int)response.StatusCode} {response.ReasonPhrase}).");
+
+        await using (var stream = await response.Content.ReadAsStreamAsync())
         await using (var file = File.Create(path))
         {
             while (true)
@@ -319,6 +384,10 @@ public static class UpdateService
         [JsonPropertyName("draft")]
         public bool Draft { get; set; }
 
+        /// <summary>Vorabversionen - Dev-Patches und Archiv; öffentlich ist, was keine ist.</summary>
+        [JsonPropertyName("prerelease")]
+        public bool Prerelease { get; set; }
+
         [JsonPropertyName("html_url")]
         public string HtmlUrl { get; set; } = "";
 
@@ -330,6 +399,10 @@ public static class UpdateService
     {
         [JsonPropertyName("name")]
         public string Name { get; set; } = "";
+
+        /// <summary>Die API-Adresse des Pakets; aus einem privaten Repository der einzige Weg mit Zugang.</summary>
+        [JsonPropertyName("url")]
+        public string Url { get; set; } = "";
 
         [JsonPropertyName("browser_download_url")]
         public string BrowserDownloadUrl { get; set; } = "";

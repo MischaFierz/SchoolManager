@@ -53,6 +53,7 @@ jobs:
           -p:DebugType=none
           -p:Version=${{ steps.version.outputs.version }}
           -p:InformationalVersion=${{ steps.version.outputs.full }}
+          -p:DevReleasesToken=${{ secrets.DEV_RELEASES_READ_TOKEN }}
           --output publish
 
       - name: Installationspaket bauen

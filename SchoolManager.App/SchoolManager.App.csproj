@@ -19,7 +19,7 @@
 
     <Product>School Manager</Product>
     <AssemblyTitle>School Manager</AssemblyTitle>
-    <Version>1.1.4</Version>
+    <Version>1.1.5</Version>
     <Company>$(Product)</Company>
   </PropertyGroup>
 
@@ -30,6 +30,13 @@
          sie draussen: Wer sie braucht, schreibt sie hin (siehe TrayNotifier). -->
     <Using Remove="System.Windows.Forms" />
     <Using Remove="System.Drawing" />
+  </ItemGroup>
+
+  <!-- Nur-Lese-Zugang zu den Dev-Patches im privaten Repository. Kommt beim
+       Bauen auf GitHub aus einem Secret (-p:DevReleasesToken=...); selbst
+       gebaute Fassungen haben keinen und sehen darum keine Dev-Patches. -->
+  <ItemGroup Condition="'$(DevReleasesToken)' != ''">
+    <AssemblyMetadata Include="DevReleasesToken" Value="$(DevReleasesToken)" />
   </ItemGroup>
 
   <ItemGroup>
