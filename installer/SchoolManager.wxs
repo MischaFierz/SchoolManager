@@ -17,7 +17,11 @@
              Compressed="yes"
              InstallerVersion="500">
 
-        <MajorUpgrade DowngradeErrorMessage="Es ist bereits eine neuere Version von School Manager installiert." />
+        <!-- AllowSameVersionUpgrades: Ein Dev-Patch und das spätere Release tragen
+             dieselbe Nummer (v1.2.0-dev wird zu 1.2.0). Ohne das legte sich das
+             Release als zweite Installation neben den Dev-Patch, statt ihn zu ersetzen. -->
+        <MajorUpgrade AllowSameVersionUpgrades="yes"
+                      DowngradeErrorMessage="Es ist bereits eine neuere Version von School Manager installiert." />
         <MediaTemplate EmbedCab="yes" />
 
         <Icon Id="AppIcon" SourceFile="$(var.IconFile)" />

@@ -245,7 +245,13 @@ Nachzulesen in `SchoolManager.App/Update/UpdateService.cs`:
   Version `1.2.0`.
 
 Beim Aktualisieren lädt die Anwendung das Installationspaket in den
-Temp-Ordner, startet `msiexec`, beendet sich und startet danach neu.
+Temp-Ordner - mit Fortschritt; ein unvollständiges Paket wird verworfen - und
+beendet sich. Ein kleines Skript wartet, bis sie wirklich zu ist, installiert
+mit `msiexec /qb` und startet School Manager danach wieder; nach einem
+Fehlschlag mit einer Meldung in der bisherigen Version. Die Spuren:
+
+- `%TEMP%\schoolmanager-update.log` - wann, welches Paket, mit welchem Ergebnis
+- `%TEMP%\schoolmanager-update-msi.log` - das ausführliche Protokoll des Setups
 
 ---
 

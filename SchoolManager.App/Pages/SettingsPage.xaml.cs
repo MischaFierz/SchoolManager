@@ -417,21 +417,32 @@ public partial class SettingsPage : UserControl
         if (!confirmed)
             return;
 
+        // Solange heruntergeladen wird, darf nichts anderes die App beenden oder
+        // ein zweites Paket holen - der Download bräche sonst mittendrin ab.
         InstallUpdateButton.IsEnabled = false;
+        CheckUpdateButton.IsEnabled = false;
+        LeaveDevButton.IsEnabled = false;
         UpdateStatusText.Text = "Update wird heruntergeladen…";
         Cursor = Cursors.Wait;
 
         try
         {
-            var installerPath = await UpdateService.DownloadAsync(update);
+            var progress = new Progress<int>(percent =>
+                UpdateStatusText.Text = $"Update wird heruntergeladen… {percent} %");
 
+            var installerPath = await UpdateService.DownloadAsync(update, progress);
+
+            UpdateStatusText.Text = "Update wird installiert - School Manager startet danach von selbst neu.";
             PrepareForExit();
             UpdateService.RunInstallerAndExit(installerPath);
         }
         catch (Exception ex)
         {
             status.SetStatus($"Update konnte nicht heruntergeladen werden: {ex.Message}", StatusKind.Error);
+            UpdateStatusText.Text = $"Download fehlgeschlagen: {ex.Message}";
             InstallUpdateButton.IsEnabled = true;
+            CheckUpdateButton.IsEnabled = true;
+            LeaveDevButton.IsEnabled = true;
             Cursor = Cursors.Arrow;
         }
     }
@@ -723,7 +734,11 @@ public partial class SettingsPage : UserControl
             return;
         }
 
+        // Auch hier gilt: kein Update daneben, sonst bräche einer der beiden
+        // Downloads beim Beenden mittendrin ab.
         LeaveDevButton.IsEnabled = false;
+        CheckUpdateButton.IsEnabled = false;
+        InstallUpdateButton.IsEnabled = false;
         Cursor = Cursors.Wait;
         status.SetStatus("Die letzte öffentliche Version wird geholt…", StatusKind.Info);
 
@@ -744,6 +759,8 @@ public partial class SettingsPage : UserControl
         {
             status.SetStatus($"Zurücksetzen fehlgeschlagen: {ex.Message}", StatusKind.Error);
             LeaveDevButton.IsEnabled = true;
+            CheckUpdateButton.IsEnabled = true;
+            InstallUpdateButton.IsEnabled = true;
             Cursor = Cursors.Arrow;
         }
     }
