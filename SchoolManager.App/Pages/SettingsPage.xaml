@@ -19,6 +19,8 @@
                           c:WheelScroll.Forward="True">
                 <StackPanel>
                     <!-- Konto-Art -->
+                    <!-- Nur im Entwicklermodus sichtbar; sonst gibt es nur Microsoft 365 -->
+                    <StackPanel x:Name="AccountKindRow">
                     <TextBlock Text="Konto" Style="{StaticResource SectionTitle}" />
                     <Grid>
                         <Grid.ColumnDefinitions>
@@ -31,6 +33,7 @@
                                   AutomationProperties.AutomationId="AccountKindBox"
                                   SelectionChanged="AccountKindBox_SelectionChanged" />
                     </Grid>
+                    </StackPanel>
                     <TextBlock x:Name="AccountHintText" Style="{StaticResource Hint}" Margin="130,8,0,0" />
 
                     <Border Height="1" Background="{StaticResource Line}" Margin="0,18,0,18" />

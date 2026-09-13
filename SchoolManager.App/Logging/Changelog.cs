@@ -29,7 +29,7 @@ public static class Changelog
     /// <summary>Die Fassungen, die neueste zuoberst.</summary>
     public static IReadOnlyList<Entry> All { get; } =
     [
-        new("1.1.4", "13.09.2026", true,
+        new("1.1.4", "13.09.2026", false,
         [
             "„Verbindung testen“ hätte bei Microsoft 365 nie funktionieren können: Geprüft wird über Microsoft Graph mit einem Blick auf das eigene Konto, angefordert wurde bei der Anmeldung aber nur die Berechtigung zum Senden (Mail.Send). Graph antwortete darauf mit „keine Berechtigung“. Die Anmeldung fragt jetzt zusätzlich User.Read - nötig nur zum Nachsehen, als wer man angemeldet ist, nicht zum Senden.",
             "Beim Prüfen eines Microsoft-365-Kontos stand in der Fussleiste „Verbindung zu smtp.office365.com:587 wird geprüft“, obwohl dort weder Server noch Port eine Rolle spielen. Jetzt steht dort, dass die Anmeldung geprüft wird, und bei Erfolg, über welches Postfach gesendet wird.",
@@ -40,7 +40,8 @@ public static class Changelog
             "Die Anmeldung im Browser blieb bei Microsoft mit „AADSTS900971: No reply address provided“ stehen: In der eingebauten App-Registrierung fehlte die Antwortadresse. Neu gibt es „Mit Code anmelden“ - School Manager zeigt einen Code, legt ihn in die Zwischenablage und öffnet die Seite von Microsoft zum Eingeben; das braucht keine Antwortadresse. Die Anmeldung im Browser verlangt jetzt ausdrücklich http://localhost, genau die Adresse, die in der Registrierung stehen muss.",
             "Senden über Microsoft 365 scheiterte mit „does not have the right to send mail on behalf of the specified sending account“, sobald in den Einstellungen noch ein anderer Absender stand, etwa aus früheren SMTP-Einstellungen. Gesendet wird jetzt immer vom angemeldeten Postfach.",
             "Beim Einschalten des Entwicklermodus ist „Dev-Patches statt Releases beziehen“ gleich angekreuzt - vorher fand die Update-Suche danach nur das öffentliche Release. Jeder Wechsel des Kanals, auch das Abschalten, sucht sofort neu im passenden Kanal.",
-            "Die Versionsnummer unten links bleibt im Entwicklermodus eingefärbt, zeigt „-dev“ aber nur noch, wenn wirklich ein Dev-Patch läuft."
+            "Die Versionsnummer unten links bleibt im Entwicklermodus eingefärbt, zeigt „-dev“ aber nur noch, wenn wirklich ein Dev-Patch läuft.",
+            "Der E-Mail-Versand läuft nur noch über die Anmeldung bei Microsoft: Konto-Auswahl, SMTP- und Exchange-Server sowie „Mit Code anmelden“ gibt es nur noch im Entwicklermodus. War bisher ein anderes Konto eingestellt, stellt School Manager auf Microsoft 365 um."
         ]),
 
         new("1.1.3", "13.09.2026", false,

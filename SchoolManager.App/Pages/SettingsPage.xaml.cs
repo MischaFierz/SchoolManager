@@ -125,6 +125,21 @@ public partial class SettingsPage : UserControl
 
         SignInButton.IsEnabled = oauth;
         SignOutButton.IsEnabled = oauth;
+
+        // Ausserhalb des Entwicklermodus gibt es nur die Anmeldung bei Microsoft:
+        // keine Konto-Auswahl, keine Anmeldung mit Code.
+        var dev = DevMode.IsEnabled;
+        AccountKindRow.Visibility = dev ? Visibility.Visible : Visibility.Collapsed;
+        AccountHintText.Visibility = dev ? Visibility.Visible : Visibility.Collapsed;
+        SignInWithCodeButton.Visibility = dev ? Visibility.Visible : Visibility.Collapsed;
+
+        if (dev || oauth || loading)
+            return;
+
+        AccountKindBox.SelectedItem = AccountChoice.All.First(c => c.Value == MailAccountKind.Microsoft365);
+
+        if (ReadSettings() is { } value)
+            settingsService.Update(value);
     }
 
     private void AccountKindBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -797,6 +812,11 @@ public partial class SettingsPage : UserControl
         AccountKindBox.ItemsSource = AccountChoice.Available(selected);
         AccountKindBox.SelectedItem = AccountChoice.All.FirstOrDefault(c => c.Value == selected);
         loading = false;
+
+        // Beim ersten Füllen im Konstruktor stehen die Felder noch nicht; das
+        // erledigt dort ShowSettings. Später blendet ein Wechsel des Modus um.
+        if (IsLoaded)
+            ShowAccountKind();
     }
 
     /// <summary>Der zuletzt angezeigte Kanal; null, bevor die Seite das erste Mal gefüllt wurde.</summary>
