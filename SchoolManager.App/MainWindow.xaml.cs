@@ -244,6 +244,7 @@ public partial class MainWindow : Window, IStatusSink
         ShowDevMode();
 
         NavSettings.IsChecked = true;
+        settingsPage.ShowDeveloperSection();
         SetStatus(
             DevMode.BackupPath is null
                 ? "Entwicklermodus aktiv - siehe Einstellungen. Eine Sicherung der Daten kam nicht zustande."
@@ -309,6 +310,7 @@ public partial class MainWindow : Window, IStatusSink
     {
         UpdateBanner.Visibility = Visibility.Collapsed;
         NavSettings.IsChecked = true;
+        settingsPage.ShowProgramSection();
     }
 
     private void UpdateBannerClose_Click(object sender, RoutedEventArgs e) =>

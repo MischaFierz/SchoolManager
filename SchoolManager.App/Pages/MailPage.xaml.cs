@@ -38,9 +38,11 @@ public partial class MailPage : UserControl
 
         settingsService.Changed += ShowSender;
         teachers.Changed += ShowTeachers;
+        MailTemplate.Changed += ShowTemplateOption;
 
         ShowSender();
         ShowTeachers();
+        ShowTemplateOption();
     }
 
     /// <summary>Wird von der Seitennavigation aufgerufen, wenn die Seite erscheint.</summary>
@@ -120,6 +122,48 @@ public partial class MailPage : UserControl
             : "Noch kein SMTP-Server eingerichtet";
     }
 
+    // ==== E-Mail-Vorlage ====
+
+    /// <summary>Der Haken für die Vorlage erscheint nur, wenn sie in den Einstellungen eingeschaltet ist.</summary>
+    private void ShowTemplateOption()
+    {
+        var visibility = MailTemplate.Enabled ? Visibility.Visible : Visibility.Collapsed;
+
+        TemplateCheck.Visibility = visibility;
+        PreviewButton.Visibility = visibility;
+        TemplateCheck.IsChecked = MailTemplate.Enabled;
+    }
+
+    /// <summary>Die Nachricht, wie sie hinausgeht - mit Begrüssung und Abschluss, wenn gewünscht.</summary>
+    private string ComposeBody() =>
+        MailTemplate.Enabled && TemplateCheck.IsChecked == true
+            ? MailTemplate.Apply(BodyBox.Text, SubjectBox.Text, RecipientName(), HtmlCheck.IsChecked == true)
+            : BodyBox.Text;
+
+    /// <summary>
+    /// Der Name für {Empfänger}: nur bei genau einem Empfänger unter "An" - bei
+    /// mehreren passte keine persönliche Anrede. Er kommt aus "Name &lt;adresse&gt;"
+    /// oder aus der Liste der Lehrkräfte; sonst bleibt er leer.
+    /// </summary>
+    private string RecipientName()
+    {
+        var to = SplitAddresses(ToBox.Text).ToList();
+
+        if (to.Count != 1 || !MimeKit.MailboxAddress.TryParse(to[0], out var address))
+            return "";
+
+        if (!string.IsNullOrWhiteSpace(address.Name))
+            return address.Name;
+
+        return teachers.Items
+            .FirstOrDefault(teacher => string.Equals(teacher.Email.Trim(), address.Address, StringComparison.OrdinalIgnoreCase))
+            ?.Name ?? "";
+    }
+
+    private void Preview_Click(object sender, RoutedEventArgs e) =>
+        MessageBox.Show(Window.GetWindow(this), ComposeBody(), "Vorschau der Nachricht",
+            MessageBoxButton.OK, MessageBoxImage.None);
+
     private void CopyToggle_Changed(object sender, RoutedEventArgs e)
     {
         var visibility = CopyToggle.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
@@ -188,7 +232,7 @@ public partial class MailPage : UserControl
         var mail = new OutgoingEmail
         {
             Subject = SubjectBox.Text,
-            Body = BodyBox.Text,
+            Body = ComposeBody(),
             IsHtml = HtmlCheck.IsChecked == true
         };
 

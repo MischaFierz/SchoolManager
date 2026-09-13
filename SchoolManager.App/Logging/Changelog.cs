@@ -29,6 +29,13 @@ public static class Changelog
     /// <summary>Die Fassungen, die neueste zuoberst.</summary>
     public static IReadOnlyList<Entry> All { get; } =
     [
+        new("1.2.0", "13.09.2026", false,
+        [
+            "Im Entwicklermodus lässt sich unter Entwickler → Version wechseln aus allen öffentlichen Versionen eine wählen und direkt installieren - auch eine ältere. Die Daten bleiben dabei unverändert.",
+            "Die Einstellungen sind in Bereiche aufgeteilt: Links stehen Konto & Anmeldung, E-Mail-Vorlage, Erinnerungen, Programm & Updates, Daten und Zurücksetzen - im Entwicklermodus zusätzlich Entwickler -, rechts nur der gewählte Bereich. „Verbindung testen“ und „Speichern“ erscheinen nur beim Konto, der Hinweis auf ein Update führt direkt zu Programm & Updates.",
+            "Neu: E-Mail-Vorlage. Begrüssung und Abschluss werden einmal festgelegt und rahmen jede E-Mail beim Senden automatisch ein. Darin gehen die Variablen {Empfänger}, {Vorname}, {Nachname}, {Betreff} und {Datum} sowie eigene Variablen, je Zeile als Name = Wert. Die Einstellungen zeigen eine Vorschau; auf der Seite E-Mail lässt sich eine Nachricht mit einem Haken auch ohne Vorlage senden und vorher als Vorschau ansehen."
+        ]),
+
         new("1.1.4", "13.09.2026", false,
         [
             "„Verbindung testen“ hätte bei Microsoft 365 nie funktionieren können: Geprüft wird über Microsoft Graph mit einem Blick auf das eigene Konto, angefordert wurde bei der Anmeldung aber nur die Berechtigung zum Senden (Mail.Send). Graph antwortete darauf mit „keine Berechtigung“. Die Anmeldung fragt jetzt zusätzlich User.Read - nötig nur zum Nachsehen, als wer man angemeldet ist, nicht zum Senden.",

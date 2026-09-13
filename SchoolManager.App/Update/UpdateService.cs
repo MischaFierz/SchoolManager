@@ -96,6 +96,22 @@ public static class UpdateService
     }
 
     /// <summary>
+    /// Alle öffentlichen Versionen mit Installationspaket, die neueste zuerst -
+    /// für den schnellen Wechsel im Entwicklermodus, auch abwärts.
+    /// </summary>
+    public static async Task<IReadOnlyList<UpdateInfo>> PublicReleasesAsync()
+    {
+        var releases = await GetFromGitHubAsync<List<GitHubRelease>>("releases?per_page=50") ?? [];
+
+        return releases
+            .Where(release => !release.Draft && !release.Prerelease)
+            .Select(ToInfo)
+            .OfType<UpdateInfo>()
+            .OrderByDescending(info => Version.Parse(info.Version))
+            .ToList();
+    }
+
+    /// <summary>
     /// Fragt die GitHub-API ab. Null heisst: Dort gibt es nichts (404). Jeder
     /// andere Fehlschlag wird gemeldet - als „kein Update“ verschluckt, stünde in
     /// den Einstellungen „Sie verwenden bereits die aktuellste Version“, obwohl
@@ -318,6 +334,10 @@ public static class UpdateService
         /// <summary>Entwürfe sind noch nicht veröffentlicht und gelten nicht.</summary>
         [JsonPropertyName("draft")]
         public bool Draft { get; set; }
+
+        /// <summary>Vorabversionen - Dev-Patches und Archiv; öffentlich ist, was keine ist.</summary>
+        [JsonPropertyName("prerelease")]
+        public bool Prerelease { get; set; }
 
         [JsonPropertyName("html_url")]
         public string HtmlUrl { get; set; } = "";
