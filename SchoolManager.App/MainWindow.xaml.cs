@@ -198,12 +198,44 @@ public partial class MainWindow : Window, IStatusSink
         await CheckForUpdateOnStartupAsync();
     }
 
+    /// <summary>Die zuletzt geholten Meldungen, noch nicht nach Seite gefiltert.</summary>
+    private IReadOnlyList<ServerMessage> serverMessages = [];
+
+    /// <summary>
+    /// Unter diesen Schlüsseln kennt das Admin-Panel die Seiten (AppPages auf
+    /// dem Server). Eine Meldung für eine Seite erscheint nur dort.
+    /// </summary>
+    private static readonly Dictionary<string, string> PageKeys = new()
+    {
+        [nameof(NavOrders)] = "orders",
+        [nameof(NavTasks)] = "tasks",
+        [nameof(NavHomework)] = "homework",
+        [nameof(NavExams)] = "exams",
+        [nameof(NavCalendar)] = "calendar",
+        [nameof(NavTeachers)] = "teachers",
+        [nameof(NavMail)] = "mail",
+        [nameof(NavTodo)] = "todo",
+        [nameof(NavNotes)] = "notes",
+        [nameof(NavLog)] = "log",
+        [nameof(NavSettings)] = "settings"
+    };
+
+    /// <summary>Die Seite, die gerade offen ist.</summary>
+    private string currentPageKey = "";
+
     private async Task ShowServerMessagesAsync()
     {
-        var messages = await ServerMessages.VisibleAsync();
+        serverMessages = await ServerMessages.VisibleAsync();
+        ShowServerMessagesForPage();
+    }
 
-        ServerMessageList.ItemsSource = messages;
-        ServerMessageList.Visibility = messages.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+    /// <summary>Zeigt von den geholten Meldungen die, die auf die offene Seite gehören.</summary>
+    private void ShowServerMessagesForPage()
+    {
+        var shown = serverMessages.Where(message => message.BelongsTo(currentPageKey)).ToList();
+
+        ServerMessageList.ItemsSource = shown;
+        ServerMessageList.Visibility = shown.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
     }
 
     private void ServerMessageClose_Click(object sender, RoutedEventArgs e)
@@ -213,12 +245,8 @@ public partial class MainWindow : Window, IStatusSink
 
         ServerMessages.Dismiss(message);
 
-        if (ServerMessageList.ItemsSource is IEnumerable<ServerMessage> shown)
-        {
-            var remaining = shown.Where(m => m.Key != message.Key).ToList();
-            ServerMessageList.ItemsSource = remaining;
-            ServerMessageList.Visibility = remaining.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
-        }
+        serverMessages = serverMessages.Where(m => m.Key != message.Key).ToList();
+        ShowServerMessagesForPage();
     }
 
     /// <summary>
@@ -388,6 +416,10 @@ public partial class MainWindow : Window, IStatusSink
 
         // Offene Änderungen beim Verlassen einer Seite sichern.
         FlushPages();
+
+        // Meldungen, die nur für eine bestimmte Seite gedacht sind, wechseln mit.
+        currentPageKey = PageKeys.GetValueOrDefault(nav.Name, "");
+        ShowServerMessagesForPage();
 
         switch (nav.Name)
         {

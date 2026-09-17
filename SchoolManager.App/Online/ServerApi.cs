@@ -24,9 +24,13 @@ public sealed record DevAccount(
 
 /// <summary>Eine Meldung aus dem Admin-Panel für den Streifen oben im Fenster.</summary>
 /// <param name="Revision">Ändert sich mit jeder Bearbeitung - eine weggeklickte, danach geänderte Meldung erscheint wieder.</param>
-public sealed record ServerMessage(int Id, string Text, string Kind, long Revision)
+/// <param name="Page">Die Seite der App, auf der sie erscheint, etwa "calendar"; leer heisst: auf jeder Seite.</param>
+public sealed record ServerMessage(int Id, string Text, string Kind, long Revision, string? Page = null)
 {
     public bool IsError => Kind == "Error";
+
+    /// <summary>Gehört die Meldung auf diese Seite?</summary>
+    public bool BelongsTo(string pageKey) => string.IsNullOrEmpty(Page) || Page == pageKey;
 
     /// <summary>Unter diesem Schlüssel merkt sich die App, dass sie weggeklickt wurde.</summary>
     public string Key => $"{Id}:{Revision}";

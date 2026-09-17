@@ -33,7 +33,11 @@ public sealed class ServerDb(DbContextOptions<ServerDb> options) : DbContext(opt
 
         model.Entity<Session>().HasIndex(s => s.TokenHash).IsUnique();
 
-        model.Entity<Message>().Property(m => m.Text).HasMaxLength(1000);
+        model.Entity<Message>(message =>
+        {
+            message.Property(m => m.Text).HasMaxLength(1000);
+            message.Property(m => m.AppPage).HasMaxLength(32);
+        });
 
         model.Entity<ReleaseNote>(note =>
         {

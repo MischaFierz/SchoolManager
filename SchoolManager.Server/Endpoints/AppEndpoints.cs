@@ -49,6 +49,8 @@ public static class AppEndpoints
                 id = m.Id,
                 text = m.Text,
                 kind = m.Kind,
+                // Leer: auf jeder Seite. Sonst zeigt die App sie nur auf dieser.
+                page = m.AppPage,
                 // Ändert sich der Text, erscheint eine weggeklickte Meldung wieder.
                 revision = m.UpdatedAt.UtcTicks
             }));

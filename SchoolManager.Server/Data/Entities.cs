@@ -127,6 +127,9 @@ public sealed class Message
 
     public MessagePlacement Placement { get; set; } = MessagePlacement.App;
 
+    /// <summary>Die Seite der App, auf der sie erscheint; leer heisst: auf jeder Seite.</summary>
+    public string AppPage { get; set; } = "";
+
     public bool IsActive { get; set; } = true;
 
     /// <summary>Danach erscheint die Meldung nicht mehr; leer heisst: bis sie abgeschaltet wird.</summary>

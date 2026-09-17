@@ -11,7 +11,7 @@ namespace SchoolManager.Server.Endpoints;
 public static partial class AdminEndpoints
 {
     public sealed record MessageInput(
-        string? Text, MessageKind Kind, MessageAudience Audience, bool IsActive, DateTimeOffset? ExpiresAt, string[]? Placements);
+        string? Text, MessageKind Kind, MessageAudience Audience, bool IsActive, DateTimeOffset? ExpiresAt, string[]? Placements, string? AppPage);
 
     public sealed record SettingsInput(string? DevBranch);
 
@@ -61,7 +61,8 @@ public static partial class AdminEndpoints
             name = level.ToString(),
             permissions = Permissions.ToNames(Permissions.ForLevel(level))
         }),
-        minimumPasswordLength = PasswordHasher.MinimumLength
+        minimumPasswordLength = PasswordHasher.MinimumLength,
+        appPages = AppPages.All.Select(page => new { key = page.Key, label = page.Label })
     });
 
     private static async Task<IResult> ListMessagesAsync(ServerDb db) =>
@@ -74,6 +75,7 @@ public static partial class AdminEndpoints
                 kind = m.Kind,
                 audience = m.Audience,
                 placements = PlacementNames(m.Placement),
+                appPage = m.AppPage,
                 isActive = m.IsActive,
                 expiresAt = m.ExpiresAt,
                 createdAt = m.CreatedAt,
@@ -140,6 +142,9 @@ public static partial class AdminEndpoints
         if (!Enum.IsDefined(input.Kind) || !Enum.IsDefined(input.Audience))
             return AuthEndpoints.Error(StatusCodes.Status400BadRequest, "Art oder Empfänger der Meldung sind ungültig.");
 
+        if (!AppPages.IsKnown(input.AppPage))
+            return AuthEndpoints.Error(StatusCodes.Status400BadRequest, "Diese Seite der App gibt es nicht.");
+
         if (ParsePlacements(input.Placements) == MessagePlacement.None)
             return AuthEndpoints.Error(StatusCodes.Status400BadRequest, "Die Meldung braucht mindestens einen Ort, an dem sie erscheint.");
 
@@ -176,6 +181,9 @@ public static partial class AdminEndpoints
         message.Kind = input.Kind;
         message.Audience = input.Audience;
         message.Placement = ParsePlacements(input.Placements);
+
+        // Eine Seite der App zählt nur, wenn die Meldung überhaupt in der App erscheint.
+        message.AppPage = message.Placement.HasFlag(MessagePlacement.App) ? input.AppPage ?? AppPages.Everywhere : AppPages.Everywhere;
         message.IsActive = input.IsActive;
         message.ExpiresAt = input.ExpiresAt;
         message.UpdatedAt = now;

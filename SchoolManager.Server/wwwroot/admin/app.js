@@ -397,16 +397,39 @@ function pageHead(title, subtitle, ...actions) {
 const kindLabels = { Error: "Fehler (rot)", Info: "Hinweis (grau)" };
 const audienceLabels = { Everyone: "Alle", Developers: "Nur angemeldete Entwickler" };
 
-const placementLabels = {
-    App: ["In der App", "Oben im Fenster von School Manager"],
-    StartPage: ["Auf der Startseite", "Oben auf der Webseite mit Funktionen und Download"],
-    SignInPage: ["Auf der Anmeldeseite", "Oben auf der Seite, auf der man sich hier anmeldet"]
-};
+/** Die Seiten der Website; "all" heisst überall. */
+const websitePages = [
+    { key: "all", label: "Überall auf der Website", placements: ["StartPage", "SignInPage"] },
+    { key: "start", label: "Startseite", placements: ["StartPage"] },
+    { key: "signin", label: "Anmeldeseite", placements: ["SignInPage"] }
+];
+
+function appPageLabel(key) {
+    return state.meta?.appPages.find((page) => page.key === (key ?? ""))?.label ?? key;
+}
+
+/** Welche Website-Auswahl zu gespeicherten Orten passt; null, wenn die Meldung nicht auf der Website steht. */
+function websitePageOf(placements) {
+    const start = placements.includes("StartPage");
+    const signin = placements.includes("SignInPage");
+    if (start && signin) return "all";
+    if (start) return "start";
+    if (signin) return "signin";
+    return null;
+}
 
 /** Wo eine Meldung erscheint, in Worten - Meldungen von früher stehen in der App. */
 function describePlacements(message) {
     const placements = message.placements ?? ["App"];
-    return placements.map((p) => (p === "App" ? `App (${audienceLabels[message.audience]})` : placementLabels[p][0].replace(/^Auf der /, ""))).join(" · ");
+    const parts = [];
+
+    if (placements.includes("App"))
+        parts.push(`App: ${message.appPage ? appPageLabel(message.appPage) : "überall"} (${audienceLabels[message.audience]})`);
+
+    const website = websitePageOf(placements);
+    if (website) parts.push(`Website: ${website === "all" ? "überall" : websitePages.find((p) => p.key === website).label}`);
+
+    return parts.join(" · ");
 }
 
 async function renderMessages() {
@@ -472,12 +495,19 @@ function editMessage(message) {
     const expires = el("input", { type: "datetime-local", value: toLocalInput(message?.expiresAt) });
 
     const chosen = message?.placements ?? ["App"];
-    const placementBoxes = Object.entries(placementLabels).map(([name, [label, hint]]) => ({
-        name,
-        box: el("input", { type: "checkbox", checked: chosen.includes(name) }),
-        label,
-        hint
-    }));
+
+    // App: Häkchen, dazu welche Seite - die erste Wahl ist überall.
+    const inApp = el("input", { type: "checkbox", checked: chosen.includes("App") });
+    const appPage = el("select", { "aria-label": "Seite der App" },
+        state.meta.appPages.map((page) => el("option", { value: page.key, text: page.label })));
+    appPage.value = message?.appPage ?? "";
+
+    // Website: Häkchen, dazu welche Seite - ebenfalls zuerst überall.
+    const chosenWebsite = websitePageOf(chosen);
+    const onWebsite = el("input", { type: "checkbox", checked: chosenWebsite !== null });
+    const websitePage = el("select", { "aria-label": "Seite der Website" },
+        websitePages.map((page) => el("option", { value: page.key, text: page.label })));
+    websitePage.value = chosenWebsite ?? "all";
 
     const audienceLabel = el("label", {}, "Wer sieht sie in der App", audience);
 
@@ -489,25 +519,33 @@ function editMessage(message) {
         preview.textContent = text.value || "Vorschau";
         preview.className = `banner ${kind.value === "Error" ? "error" : ""}`;
 
-        // Auf den Webseiten sieht jeder die Meldung; die Wahl gilt nur für die App.
-        audienceLabel.hidden = !placementBoxes.find((p) => p.name === "App").box.checked;
+        // Ohne Häkchen gibt es nichts auszuwählen.
+        appPage.disabled = !inApp.checked;
+        websitePage.disabled = !onWebsite.checked;
+
+        // Auf der Website sieht jeder die Meldung; die Wahl gilt nur für die App.
+        audienceLabel.hidden = !inApp.checked;
     };
 
     text.addEventListener("input", update);
     kind.addEventListener("change", update);
-    for (const p of placementBoxes) p.box.addEventListener("change", update);
+    inApp.addEventListener("change", update);
+    onWebsite.addEventListener("change", update);
     update();
 
     openDialog(message ? "Meldung bearbeiten" : "Neue Meldung", [
         el("label", {}, "Text", text, counter),
         el("fieldset", {}, el("legend", { text: "Wo erscheint sie" }),
-            el("div", { class: "stack" }, placementBoxes.map((p) =>
-                el("label", { class: "check" }, p.box, el("span", {}, p.label, el("small", { text: p.hint })))))),
+            el("div", { class: "placement" },
+                el("label", { class: "check" }, inApp, el("span", {}, "App", el("small", { text: "Oben im Fenster von School Manager" }))),
+                appPage),
+            el("div", { class: "placement" },
+                el("label", { class: "check" }, onWebsite, el("span", {}, "Website", el("small", { text: "Oben auf den Seiten dieses Servers – für jeden sichtbar" }))),
+                websitePage)),
         el("div", { class: "two" }, el("label", {}, "Art", kind), audienceLabel),
         el("div", { class: "two" },
             el("label", {}, "Läuft ab (leer = bis zum Ausschalten)", expires),
             el("label", { class: "check" }, active, el("span", {}, "Aktiv", el("small", { text: "Nur aktive Meldungen erscheinen." })))),
-        el("p", { class: "faint small-text", text: "Auf der Startseite und der Anmeldeseite sieht jeder die Meldung, auch ohne Anmeldung." }),
         el("div", { class: "stack" }, el("span", { class: "muted small-text", text: "So sieht der Streifen aus:" }), preview)
     ], [
         { label: "Abbrechen" },
@@ -520,7 +558,11 @@ function editMessage(message) {
                     audience: audience.value,
                     isActive: active.checked,
                     expiresAt: expires.value ? new Date(expires.value).toISOString() : null,
-                    placements: placementBoxes.filter((p) => p.box.checked).map((p) => p.name)
+                    placements: [
+                        ...(inApp.checked ? ["App"] : []),
+                        ...(onWebsite.checked ? websitePages.find((p) => p.key === websitePage.value).placements : [])
+                    ],
+                    appPage: inApp.checked ? appPage.value : ""
                 };
 
                 if (message) await api("PUT", `/api/admin/messages/${message.id}`, body);
