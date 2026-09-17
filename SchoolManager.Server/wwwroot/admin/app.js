@@ -235,8 +235,15 @@ function showSecret(title, text, secret) {
 
 // ==== Anmelden ====
 
+const viewTitles = {
+    "login-view": "Anmelden · School Manager",
+    "password-view": "Neues Passwort · School Manager",
+    "app-view": "Admin-Panel · School Manager"
+};
+
 function showOnly(id) {
-    for (const view of ["login-view", "password-view", "app-view"]) $(view).hidden = view !== id;
+    for (const view of Object.keys(viewTitles)) $(view).hidden = view !== id;
+    document.title = viewTitles[id];
 }
 
 function signedOut(message) {
@@ -390,6 +397,18 @@ function pageHead(title, subtitle, ...actions) {
 const kindLabels = { Error: "Fehler (rot)", Info: "Hinweis (grau)" };
 const audienceLabels = { Everyone: "Alle", Developers: "Nur angemeldete Entwickler" };
 
+const placementLabels = {
+    App: ["In der App", "Oben im Fenster von School Manager"],
+    StartPage: ["Auf der Startseite", "Oben auf der Webseite mit Funktionen und Download"],
+    SignInPage: ["Auf der Anmeldeseite", "Oben auf der Seite, auf der man sich hier anmeldet"]
+};
+
+/** Wo eine Meldung erscheint, in Worten - Meldungen von früher stehen in der App. */
+function describePlacements(message) {
+    const placements = message.placements ?? ["App"];
+    return placements.map((p) => (p === "App" ? `App (${audienceLabels[message.audience]})` : placementLabels[p][0].replace(/^Auf der /, ""))).join(" · ");
+}
+
 async function renderMessages() {
     const messages = await api("GET", "/api/admin/messages");
 
@@ -404,7 +423,7 @@ async function renderMessages() {
                 el("div", { class: "item-head" },
                     el("div", { class: "meta" },
                         shown ? badge("wird angezeigt", "success") : badge(expired ? "abgelaufen" : "ausgeschaltet"),
-                        el("span", { text: audienceLabels[message.audience] }),
+                        el("span", { text: describePlacements(message) }),
                         message.expiresAt ? el("span", { text: `bis ${formatDate(message.expiresAt)}` }) : null,
                         el("span", { text: `geändert ${formatDate(message.updatedAt)} von ${message.updatedBy}` })),
                     el("div", { class: "actions" },
@@ -433,7 +452,7 @@ async function renderMessages() {
         }));
 
     return [
-        pageHead("Meldungen", "Streifen oben im Fenster von School Manager. Die App holt sie beim Start und alle 10 Minuten.",
+        pageHead("Meldungen", "Streifen oben in School Manager, auf der Startseite oder auf der Anmeldeseite. Die App holt sie beim Start und alle 10 Minuten.",
             el("button", { type: "button", class: "primary", text: "Neue Meldung", onclick: () => editMessage(null) })),
         list
     ];
@@ -452,6 +471,16 @@ function editMessage(message) {
     const active = el("input", { type: "checkbox", checked: message?.isActive ?? true });
     const expires = el("input", { type: "datetime-local", value: toLocalInput(message?.expiresAt) });
 
+    const chosen = message?.placements ?? ["App"];
+    const placementBoxes = Object.entries(placementLabels).map(([name, [label, hint]]) => ({
+        name,
+        box: el("input", { type: "checkbox", checked: chosen.includes(name) }),
+        label,
+        hint
+    }));
+
+    const audienceLabel = el("label", {}, "Wer sieht sie in der App", audience);
+
     const counter = el("div", { class: "counter" });
     const preview = el("div", { class: "banner" });
 
@@ -459,19 +488,27 @@ function editMessage(message) {
         counter.textContent = `${text.value.length} / 1000`;
         preview.textContent = text.value || "Vorschau";
         preview.className = `banner ${kind.value === "Error" ? "error" : ""}`;
+
+        // Auf den Webseiten sieht jeder die Meldung; die Wahl gilt nur für die App.
+        audienceLabel.hidden = !placementBoxes.find((p) => p.name === "App").box.checked;
     };
 
     text.addEventListener("input", update);
     kind.addEventListener("change", update);
+    for (const p of placementBoxes) p.box.addEventListener("change", update);
     update();
 
     openDialog(message ? "Meldung bearbeiten" : "Neue Meldung", [
         el("label", {}, "Text", text, counter),
-        el("div", { class: "two" }, el("label", {}, "Art", kind), el("label", {}, "Wer sieht sie", audience)),
+        el("fieldset", {}, el("legend", { text: "Wo erscheint sie" }),
+            el("div", { class: "stack" }, placementBoxes.map((p) =>
+                el("label", { class: "check" }, p.box, el("span", {}, p.label, el("small", { text: p.hint })))))),
+        el("div", { class: "two" }, el("label", {}, "Art", kind), audienceLabel),
         el("div", { class: "two" },
             el("label", {}, "Läuft ab (leer = bis zum Ausschalten)", expires),
-            el("label", { class: "check" }, active, el("span", {}, "Aktiv", el("small", { text: "Nur aktive Meldungen erscheinen in der App." })))),
-        el("div", { class: "stack" }, el("span", { class: "muted small-text", text: "So sieht es in School Manager aus:" }), preview)
+            el("label", { class: "check" }, active, el("span", {}, "Aktiv", el("small", { text: "Nur aktive Meldungen erscheinen." })))),
+        el("p", { class: "faint small-text", text: "Auf der Startseite und der Anmeldeseite sieht jeder die Meldung, auch ohne Anmeldung." }),
+        el("div", { class: "stack" }, el("span", { class: "muted small-text", text: "So sieht der Streifen aus:" }), preview)
     ], [
         { label: "Abbrechen" },
         {
@@ -482,7 +519,8 @@ function editMessage(message) {
                     kind: kind.value,
                     audience: audience.value,
                     isActive: active.checked,
-                    expiresAt: expires.value ? new Date(expires.value).toISOString() : null
+                    expiresAt: expires.value ? new Date(expires.value).toISOString() : null,
+                    placements: placementBoxes.filter((p) => p.box.checked).map((p) => p.name)
                 };
 
                 if (message) await api("PUT", `/api/admin/messages/${message.id}`, body);

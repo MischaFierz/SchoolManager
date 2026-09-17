@@ -98,6 +98,22 @@ public enum MessageAudience
     Developers = 1
 }
 
+/// <summary>Wo eine Meldung erscheint; mehrere Orte zugleich sind möglich.</summary>
+[Flags]
+public enum MessagePlacement
+{
+    None = 0,
+
+    /// <summary>Oben im Fenster von School Manager.</summary>
+    App = 1 << 0,
+
+    /// <summary>Oben auf der Startseite des Servers.</summary>
+    StartPage = 1 << 1,
+
+    /// <summary>Oben auf der Anmeldeseite.</summary>
+    SignInPage = 1 << 2
+}
+
 public sealed class Message
 {
     public int Id { get; set; }
@@ -106,7 +122,10 @@ public sealed class Message
 
     public MessageKind Kind { get; set; }
 
+    /// <summary>Wer sie in der App sieht. Auf den Webseiten sieht sie jeder.</summary>
     public MessageAudience Audience { get; set; }
+
+    public MessagePlacement Placement { get; set; } = MessagePlacement.App;
 
     public bool IsActive { get; set; } = true;
 

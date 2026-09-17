@@ -11,7 +11,7 @@ namespace SchoolManager.Server.Endpoints;
 public static partial class AdminEndpoints
 {
     public sealed record MessageInput(
-        string? Text, MessageKind Kind, MessageAudience Audience, bool IsActive, DateTimeOffset? ExpiresAt);
+        string? Text, MessageKind Kind, MessageAudience Audience, bool IsActive, DateTimeOffset? ExpiresAt, string[]? Placements);
 
     public sealed record SettingsInput(string? DevBranch);
 
@@ -73,6 +73,7 @@ public static partial class AdminEndpoints
                 text = m.Text,
                 kind = m.Kind,
                 audience = m.Audience,
+                placements = PlacementNames(m.Placement),
                 isActive = m.IsActive,
                 expiresAt = m.ExpiresAt,
                 createdAt = m.CreatedAt,
@@ -139,14 +140,42 @@ public static partial class AdminEndpoints
         if (!Enum.IsDefined(input.Kind) || !Enum.IsDefined(input.Audience))
             return AuthEndpoints.Error(StatusCodes.Status400BadRequest, "Art oder Empfänger der Meldung sind ungültig.");
 
+        if (ParsePlacements(input.Placements) == MessagePlacement.None)
+            return AuthEndpoints.Error(StatusCodes.Status400BadRequest, "Die Meldung braucht mindestens einen Ort, an dem sie erscheint.");
+
         return null;
     }
+
+    /// <summary>Ohne Angabe gilt die App - so wie bei jeder Meldung, bevor es Orte gab.</summary>
+    private static MessagePlacement ParsePlacements(string[]? names)
+    {
+        if (names is null)
+            return MessagePlacement.App;
+
+        var result = MessagePlacement.None;
+
+        foreach (var name in names)
+        {
+            if (Enum.TryParse<MessagePlacement>(name, ignoreCase: false, out var value)
+                && value is MessagePlacement.App or MessagePlacement.StartPage or MessagePlacement.SignInPage)
+                result |= value;
+        }
+
+        return result;
+    }
+
+    private static string[] PlacementNames(MessagePlacement placement) =>
+        new[] { MessagePlacement.App, MessagePlacement.StartPage, MessagePlacement.SignInPage }
+            .Where(p => placement.HasFlag(p))
+            .Select(p => p.ToString())
+            .ToArray();
 
     private static void Apply(Message message, MessageInput input, string actor, DateTimeOffset now)
     {
         message.Text = input.Text!.Trim();
         message.Kind = input.Kind;
         message.Audience = input.Audience;
+        message.Placement = ParsePlacements(input.Placements);
         message.IsActive = input.IsActive;
         message.ExpiresAt = input.ExpiresAt;
         message.UpdatedAt = now;

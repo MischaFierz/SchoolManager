@@ -3,7 +3,7 @@
 Der Server hinter dem Entwicklermodus und das Admin-Panel im Browser.
 
 - **Anmeldung für den Entwicklermodus:** Nur Konten, die hier eingetragen sind, kommen hinein.
-- **Meldungen:** Streifen oben im Fenster von School Manager, rot für Fehler oder grau für Hinweise.
+- **Meldungen:** Streifen oben im Fenster von School Manager, auf der Startseite oder auf der Anmeldeseite, rot für Fehler oder grau für Hinweise.
 - **Update-Infos:** ein kurzer Text zu jeder Version.
 - **Freigaben:** welche Dev-Version welches Konto oder welche Gruppe bekommt.
 - **Releases:** Dev-Versionen und öffentliche Releases auslösen und danach aufräumen.

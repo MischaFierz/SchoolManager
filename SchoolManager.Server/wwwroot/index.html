@@ -8,6 +8,7 @@
     <link rel="icon" href="/favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="/site.css">
     <script src="/site.js" defer></script>
+    <script src="/banners.js" defer></script>
 </head>
 <body>
     <header class="topbar">
@@ -24,6 +25,11 @@
             <a class="button ghost small" href="/admin/">Anmelden</a>
         </div>
     </header>
+
+    <!-- Meldungen aus dem Admin-Panel für die Startseite -->
+    <div class="wrap">
+        <div class="page-banners" data-page-messages="start" hidden></div>
+    </div>
 
     <main>
         <!-- ==== Einstieg ==== -->
@@ -237,7 +243,7 @@
             <span class="muted">School Manager</span>
             <nav aria-label="Weiteres">
                 <a href="https://github.com/MischaFierz/SchoolManager">GitHub</a>
-                <a href="/admin/">Admin-Panel</a>
+                <a href="/admin/">Anmelden</a>
             </nav>
         </div>
     </footer>

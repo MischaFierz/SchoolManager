@@ -104,6 +104,29 @@ a:focus-visible, summary:focus-visible { outline: 2px solid var(--homework); out
 .topnav a { color: var(--muted); text-decoration: none; font-size: 15px; }
 .topnav a:hover { color: var(--text); }
 
+/* ==== Meldungen aus dem Admin-Panel - wie der Streifen in der App ==== */
+
+.page-banners { display: grid; gap: 10px; padding-top: 18px; }
+
+.page-banner {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    border: 1px solid var(--accent-hover);
+    background: rgba(99, 102, 108, .2);
+    color: var(--text);
+    border-radius: 8px;
+    padding: 9px 12px;
+    font-size: 14px;
+}
+
+.page-banner::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--accent-hover); margin-top: 7px; flex: none; }
+.page-banner.error { border-color: var(--exam); background: rgba(217, 140, 140, .2); color: var(--exam); }
+.page-banner.error::before { background: var(--exam); }
+.page-banner-text { flex: 1; white-space: pre-wrap; overflow-wrap: anywhere; }
+.page-banner-close { background: none; border: 0; color: inherit; font: inherit; cursor: pointer; padding: 0 4px; opacity: .8; }
+.page-banner-close:hover { opacity: 1; }
+
 /* ==== Einstieg ==== */
 
 .hero { padding: 72px 0 80px; border-bottom: 1px solid var(--line); background: radial-gradient(900px 420px at 80% 10%, rgba(143, 170, 203, .08), transparent 70%); }

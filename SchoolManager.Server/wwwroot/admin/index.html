@@ -4,21 +4,26 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="robots" content="noindex, nofollow">
-    <title>School Manager Admin</title>
+    <title>Anmelden · School Manager</title>
     <link rel="canonical" href="/admin/">
     <link rel="icon" href="/favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="styles.css">
+    <script src="/banners.js" defer></script>
     <script src="app.js" defer></script>
 </head>
 <body>
     <!-- Anmeldung -->
-    <main id="login-view" class="center-view" hidden>
+    <main id="login-view" class="signin-view" hidden>
+        <!-- Meldungen aus dem Panel für die Anmeldeseite -->
+        <div class="page-banners" data-page-messages="signin" hidden></div>
+
+        <div class="center-view">
         <form id="login-form" class="card narrow" autocomplete="on">
             <div class="brand">
                 <span class="brand-mark" aria-hidden="true"></span>
                 <div>
                     <h1>School Manager</h1>
-                    <p class="muted">Admin-Panel</p>
+                    <p class="muted">Anmelden</p>
                 </div>
             </div>
             <label>Benutzername
@@ -32,6 +37,7 @@
             <p class="faint small-text">Passwort vergessen? Ein Administrator kann es unter „Benutzer“ neu setzen.</p>
             <a class="back-link" href="/">← Zur Startseite</a>
         </form>
+        </div>
     </main>
 
     <!-- Neues Passwort erzwingen -->

@@ -132,7 +132,13 @@ app.Use(async (context, next) =>
 });
 
 app.UseDefaultFiles();
-app.UseStaticFiles();
+
+// Vor jeder Nutzung beim Server nachfragen - sonst hielte der Browser nach
+// einem Update noch das alte Skript fest, und Panel und Server passten nicht zusammen.
+app.UseStaticFiles(new StaticFileOptions
+{
+    OnPrepareResponse = context => context.Context.Response.Headers.CacheControl = "no-cache"
+});
 app.UseRateLimiter();
 app.Use(CurrentUser.ResolveAsync);
 

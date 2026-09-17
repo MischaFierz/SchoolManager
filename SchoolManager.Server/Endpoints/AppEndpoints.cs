@@ -21,6 +21,9 @@ public static class AppEndpoints
         // Für den Download-Bereich der Startseite.
         app.MapGet("/api/public/latest", LatestPublicAsync);
 
+        // Streifen oben auf der Startseite und der Anmeldeseite.
+        app.MapGet("/api/public/messages", PageMessagesAsync);
+
         app.MapGet("/api/app/releases", ReleasesAsync).RequirePermission(Permission.DevMode);
         app.MapGet("/api/app/download/{tag}", DownloadAsync).RequirePermission(Permission.DevMode);
     }
@@ -33,6 +36,7 @@ public static class AppEndpoints
 
         var messages = await db.Messages
             .Where(m => m.IsActive)
+            .Where(m => (m.Placement & MessagePlacement.App) != 0)
             .Where(m => m.Audience == MessageAudience.Everyone || developer)
             .ToListAsync();
 
@@ -48,6 +52,37 @@ public static class AppEndpoints
                 // Ändert sich der Text, erscheint eine weggeklickte Meldung wieder.
                 revision = m.UpdatedAt.UtcTicks
             }));
+    }
+
+    /// <summary>
+    /// Die Meldungen für eine Webseite. Sie sind öffentlich: Hier erscheint nur,
+    /// was ausdrücklich für diese Seite gedacht ist - nie eine Meldung, die in
+    /// der App nur Entwickler sehen sollen.
+    /// </summary>
+    /// <param name="page">start oder signin.</param>
+    private static async Task<IResult> PageMessagesAsync(string? page, ServerDb db, TimeProvider clock)
+    {
+        var placement = page switch
+        {
+            "start" => MessagePlacement.StartPage,
+            "signin" => MessagePlacement.SignInPage,
+            _ => MessagePlacement.None
+        };
+
+        if (placement == MessagePlacement.None)
+            return AuthEndpoints.Error(StatusCodes.Status400BadRequest, "Unbekannte Seite - start oder signin.");
+
+        var now = clock.GetUtcNow();
+
+        var messages = await db.Messages
+            .Where(m => m.IsActive && (m.Placement & placement) != 0)
+            .ToListAsync();
+
+        return Results.Ok(messages
+            .Where(m => m.ExpiresAt is null || m.ExpiresAt > now)
+            .OrderBy(m => m.Kind)
+            .ThenByDescending(m => m.UpdatedAt)
+            .Select(m => new { id = m.Id, text = m.Text, kind = m.Kind, revision = m.UpdatedAt.UtcTicks }));
     }
 
     /// <param name="current">Die laufende Version, etwa 1.2.0.</param>

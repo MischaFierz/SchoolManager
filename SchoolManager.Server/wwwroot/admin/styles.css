@@ -158,6 +158,34 @@ button.wide { width: 100%; }
 
 .narrow { width: 100%; max-width: 380px; display: grid; gap: 14px; }
 
+/* Anmeldeseite: oben die Meldungen aus dem Panel, darunter mittig die Anmeldung */
+.signin-view { min-height: 100%; display: flex; flex-direction: column; }
+.signin-view .center-view { flex: 1; min-height: 0; }
+
+.page-banners { display: grid; gap: 10px; padding: 18px 26px 0; max-width: 1080px; width: 100%; margin: 0 auto; }
+
+.page-banner {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    border: 1px solid var(--accent-hover);
+    background: rgba(99, 102, 108, .2);
+    border-radius: 8px;
+    padding: 9px 12px;
+    font-size: 13px;
+}
+
+.page-banner::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--accent-hover); margin-top: 6px; flex: none; }
+.page-banner.error { border-color: var(--error); background: rgba(217, 140, 140, .2); color: var(--error); }
+.page-banner.error::before { background: var(--error); }
+.page-banner-text { flex: 1; white-space: pre-wrap; overflow-wrap: anywhere; }
+.page-banner-close { background: none; border: 0; color: inherit; padding: 0 4px; opacity: .8; }
+.page-banner-close:hover { background: none; border: 0; opacity: 1; }
+
+@media (max-width: 760px) {
+    .page-banners { padding: 14px 16px 0; }
+}
+
 .brand { display: flex; align-items: center; gap: 12px; }
 .brand h1 { font-size: 17px; }
 
