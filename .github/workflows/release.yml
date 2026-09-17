@@ -70,11 +70,26 @@ jobs:
           -pdbtype none
           -o publish\SchoolManagerSetup.msi
 
+      # Die Release-Notiz schreibt der Mensch, nicht GitHub aus den Commits:
+      # release-notes/v1.2.0.md, falls vorhanden - sonst bleibt sie leer.
+      - name: Release-Notiz suchen
+        id: notes
+        shell: pwsh
+        run: |
+          $file = "release-notes/${{ github.ref_name }}.md"
+          if (-not (Test-Path $file)) {
+            $file = "release-notes/leer.md"
+            New-Item -ItemType Directory -Force release-notes | Out-Null
+            Set-Content -Path $file -Value "" -Encoding utf8
+          }
+          "path=$file" >> $env:GITHUB_OUTPUT
+
       - name: Release veröffentlichen
         uses: softprops/action-gh-release@v2
         with:
           name: School Manager ${{ github.ref_name }}
-          generate_release_notes: true
+          generate_release_notes: false
+          body_path: ${{ steps.notes.outputs.path }}
           prerelease: ${{ contains(github.ref_name, '-dev') }}
           files: |
             publish/SchoolManager.exe

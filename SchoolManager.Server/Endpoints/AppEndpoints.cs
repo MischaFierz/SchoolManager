@@ -96,7 +96,8 @@ public static class AppEndpoints
             return AuthEndpoints.Error(StatusCodes.Status400BadRequest, "Die laufende Version fehlt oder ist unlesbar.");
 
         var user = CurrentUser.Of(context);
-        var allowed = await catalog.AllowedAsync(user, dev == true);
+        // Dev-Versionen nur für eine App, die sie auch erwarten darf - mit Wunsch und ab 1.2.0.
+        var allowed = await catalog.AllowedAsync(user, dev == true && ClientVersion.MayUseDevVersions(context, running));
 
         // Bei gleicher Nummer steht das öffentliche Release vorne - es ist das fertige.
         var newest = allowed.FirstOrDefault(r => r.Version > running);
@@ -135,7 +136,7 @@ public static class AppEndpoints
 
     private static async Task<IResult> ReleasesAsync(HttpContext context, ReleaseCatalog catalog)
     {
-        var allowed = await catalog.AllowedAsync(CurrentUser.Of(context), includeDev: true);
+        var allowed = await catalog.AllowedAsync(CurrentUser.Of(context), includeDev: ClientVersion.MayUseDevVersions(context));
         var notes = await catalog.NotesAsync();
 
         return Results.Ok(allowed.Select(r => Describe(r, notes)));
@@ -149,7 +150,7 @@ public static class AppEndpoints
     private static async Task<IResult> DownloadAsync(
         string tag, HttpContext context, ReleaseCatalog catalog, GitHubService github)
     {
-        var allowed = await catalog.AllowedAsync(CurrentUser.Of(context), includeDev: true);
+        var allowed = await catalog.AllowedAsync(CurrentUser.Of(context), includeDev: ClientVersion.MayUseDevVersions(context));
         var release = allowed.FirstOrDefault(r => r.Tag == tag);
 
         if (release?.Installer is not { } installer)
