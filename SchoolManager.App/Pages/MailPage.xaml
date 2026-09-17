@@ -97,8 +97,17 @@
                          AcceptsReturn="True" AcceptsTab="True" TextWrapping="Wrap"
                          VerticalScrollBarVisibility="Auto" />
 
-                <CheckBox x:Name="HtmlCheck" Grid.Row="5" Grid.Column="1"
-                          Content="Als HTML senden" Margin="0,0,0,14" />
+                <StackPanel Grid.Row="5" Grid.Column="1" Orientation="Horizontal" Margin="0,0,0,14">
+                    <CheckBox x:Name="HtmlCheck" Content="Als HTML senden" VerticalAlignment="Center" />
+                    <CheckBox x:Name="TemplateCheck" Content="Begrüssung und Abschluss aus der Vorlage"
+                              Margin="18,0,0,0" VerticalAlignment="Center"
+                              AutomationProperties.AutomationId="TemplateCheck"
+                              ToolTip="Festgelegt in Einstellungen → E-Mail-Vorlage" />
+                    <Button x:Name="PreviewButton" Content="Vorschau" Margin="14,0,0,0"
+                            AutomationProperties.AutomationId="PreviewButton"
+                            ToolTip="Zeigt die Nachricht so, wie sie hinausgeht"
+                            Click="Preview_Click" />
+                </StackPanel>
 
                 <TextBlock Grid.Row="6" Grid.Column="0" Text="Anhänge"
                            Style="{StaticResource FieldLabel}" VerticalAlignment="Top" Margin="0,8,14,0" />

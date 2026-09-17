@@ -13,6 +13,14 @@ publish/
 RELEASES.md
 ENTWICKLER.md
 
+# Daten des School-Manager-Servers: Benutzer, Passwort-Abdrücke, Anmeldungen.
+# Gehören auf den Server und nie in ein Repository.
+SchoolManager.Server/App_Data/
+*.db
+*.db-shm
+*.db-wal
+appsettings.Production.json
+
 # Visual Studio und Rider: eigene Einstellungen und Zwischenstaende
 .vs/
 *.user

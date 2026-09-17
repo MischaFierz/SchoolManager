@@ -11,328 +11,464 @@
 
         <StackPanel Grid.Row="0" Margin="0,0,0,18">
             <TextBlock Text="Einstellungen" Style="{StaticResource PageTitle}" />
-            <TextBlock Text="Postausgang für den E-Mail-Versand" Style="{StaticResource PageSubtitle}" />
+            <TextBlock Text="Links den Bereich wählen - rechts steht nur, was dazugehört" Style="{StaticResource PageSubtitle}" />
         </StackPanel>
 
-        <Border Grid.Row="1" Style="{StaticResource Card}">
-            <ScrollViewer x:Name="SettingsScroller" VerticalScrollBarVisibility="Auto"
-                          c:WheelScroll.Forward="True">
-                <StackPanel>
-                    <!-- Konto-Art -->
-                    <!-- Nur im Entwicklermodus sichtbar; sonst gibt es nur Microsoft 365 -->
-                    <StackPanel x:Name="AccountKindRow">
-                    <TextBlock Text="Konto" Style="{StaticResource SectionTitle}" />
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="130" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="220" />
+                <ColumnDefinition Width="16" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
 
-                        <TextBlock Text="Art" Style="{StaticResource FieldLabel}" />
-                        <ComboBox x:Name="AccountKindBox" Grid.Column="1"
-                                  AutomationProperties.AutomationId="AccountKindBox"
-                                  SelectionChanged="AccountKindBox_SelectionChanged" />
-                    </Grid>
-                    </StackPanel>
-                    <TextBlock x:Name="AccountHintText" Style="{StaticResource Hint}" Margin="130,8,0,0" />
-
-                    <Border Height="1" Background="{StaticResource Line}" Margin="0,18,0,18" />
-
-                    <!-- Server; bei Microsoft 365 gibt es keinen, dann verborgen -->
-                    <StackPanel x:Name="ServerPanel">
-                    <TextBlock Text="Server" Style="{StaticResource SectionTitle}" />
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="130" />
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="110" />
-                        </Grid.ColumnDefinitions>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                        </Grid.RowDefinitions>
-
-                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Host" Style="{StaticResource FieldLabel}" />
-                        <TextBox x:Name="HostBox" Grid.Row="0" Grid.Column="1" Margin="0,0,0,10"
-                                 AutomationProperties.AutomationId="HostBox" />
-                        <TextBlock Grid.Row="0" Grid.Column="2" Text="Port"
-                                   Style="{StaticResource FieldLabel}" Margin="16,0,14,0" />
-                        <TextBox x:Name="PortBox" Grid.Row="0" Grid.Column="3" Margin="0,0,0,10"
-                                 AutomationProperties.AutomationId="PortBox" />
-
-                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Verschlüsselung"
-                                   Style="{StaticResource FieldLabel}" />
-                        <ComboBox x:Name="SecurityBox" Grid.Row="1" Grid.Column="1" Margin="0,0,0,10"
-                                  AutomationProperties.AutomationId="SecurityBox" />
-                    </Grid>
-                    <TextBlock Style="{StaticResource Hint}" Margin="130,0,0,0"
-                               Text="Wird bei bekannten Anbietern (z. B. Gmail, GMX, Bluewin, Outlook) automatisch anhand der E-Mail-Adresse unten ausgefüllt - auch wenn hier schon etwas anderes steht." />
-
-                    <Border Height="1" Background="{StaticResource Line}" Margin="0,18,0,18" />
-                    </StackPanel>
-
-                    <!-- Anmeldung mit Passwort -->
-                    <StackPanel x:Name="PasswordPanel">
-                        <TextBlock Text="Anmeldung" Style="{StaticResource SectionTitle}" />
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="130" />
-                                <ColumnDefinition Width="*" />
-                            </Grid.ColumnDefinitions>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="Auto" />
-                            </Grid.RowDefinitions>
-
-                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Benutzername"
-                                       Style="{StaticResource FieldLabel}" />
-                            <TextBox x:Name="UserNameBox" Grid.Row="0" Grid.Column="1" Margin="0,0,0,10"
-                                     AutomationProperties.AutomationId="UserNameBox"
-                                     LostFocus="UserNameBox_LostFocus" />
-
-                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Passwort"
-                                       Style="{StaticResource FieldLabel}" />
-                            <PasswordBox x:Name="PasswordInput" Grid.Row="1" Grid.Column="1" Margin="0,0,0,10"
-                                         AutomationProperties.AutomationId="PasswordInput" />
-                        </Grid>
-                        <TextBlock x:Name="PasswordHintText" Style="{StaticResource Hint}" Margin="130,4,0,0" />
-                    </StackPanel>
-
-                    <!-- Anmeldung über Microsoft 365: ein Knopf, sonst nichts.
-                         Server, Postfach und Absender ergeben sich aus der
-                         Anmeldung; die Felder darunter sind ausgeblendet. -->
-                    <StackPanel x:Name="OAuthPanel" Visibility="Collapsed">
-                        <TextBlock Text="Anmeldung bei Microsoft" Style="{StaticResource SectionTitle}" />
-
-                        <StackPanel Orientation="Horizontal">
-                            <Button x:Name="SignInButton" Content="Mit Microsoft anmelden"
-                                    Style="{StaticResource AccentButton}"
-                                    AutomationProperties.AutomationId="SignInButton"
-                                    Click="SignIn_Click" />
-                            <Button x:Name="SignInWithCodeButton" Content="Mit Code anmelden" Margin="10,0,0,0"
-                                    AutomationProperties.AutomationId="SignInWithCodeButton"
-                                    Click="SignInWithCode_Click" />
-                            <Button x:Name="SignOutButton" Content="Abmelden" Margin="10,0,0,0"
-                                    AutomationProperties.AutomationId="SignOutButton"
-                                    Click="SignOut_Click" />
-                        </StackPanel>
-
-                        <TextBlock x:Name="SignInStateText" Style="{StaticResource Hint}" Margin="0,10,0,0"
-                                   AutomationProperties.AutomationId="SignInStateText" />
-
-                        <TextBlock Style="{StaticResource Hint}" Margin="0,8,0,0"
-                                   Text="Die Anmeldung läuft im Browser; danach wird über Microsoft Graph gesendet, und die Nachricht landet wie gewohnt in „Gesendete Elemente“. Es braucht weder Server noch Passwort. Die Anmeldung wird mit der Windows-Datenschutz-API (DPAPI) verschlüsselt im Benutzerprofil abgelegt und gilt auch nach einem Neustart." />
-
-                        <!-- Nur nötig, solange keine Anwendungs-ID eingebaut ist -->
-                        <Grid x:Name="AzureFields" Margin="0,14,0,0">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="130" />
-                                <ColumnDefinition Width="*" />
-                            </Grid.ColumnDefinitions>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="Auto" />
-                            </Grid.RowDefinitions>
-
-                            <TextBlock Grid.Row="0" Grid.ColumnSpan="2" Style="{StaticResource Hint}"
-                                       Margin="0,0,0,10"
-                                       Text="In dieser Fassung ist keine Anwendungs-ID eingebaut. Bis das der Fall ist, braucht es eine eigene Azure-App-Registrierung: Plattform „Mobile Geräte und Desktopanwendungen“, Umleitungs-Adresse http://localhost, delegierte Berechtigung Mail.Send." />
-
-                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Anwendungs-ID"
-                                       Style="{StaticResource FieldLabel}" />
-                            <TextBox x:Name="ClientIdBox" Grid.Row="1" Grid.Column="1" Margin="0,0,0,10"
-                                     AutomationProperties.AutomationId="ClientIdBox"
-                                     ToolTip="Client-ID der Azure-App-Registrierung" />
-
-                            <TextBlock Grid.Row="2" Grid.Column="0" Text="Verzeichnis-ID"
-                                       Style="{StaticResource FieldLabel}" />
-                            <TextBox x:Name="TenantIdBox" Grid.Row="2" Grid.Column="1"
-                                     AutomationProperties.AutomationId="TenantIdBox"
-                                     ToolTip="Tenant-ID; leer lassen für jedes Konto" />
-                        </Grid>
-                    </StackPanel>
-
-                    <Border Height="1" Background="{StaticResource Line}" Margin="0,18,0,18" />
-
-                    <!-- Absender -->
-                    <TextBlock Text="Absender" Style="{StaticResource SectionTitle}" />
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="130" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                        </Grid.RowDefinitions>
-
-                        <TextBlock Grid.Row="0" Grid.Column="0" Text="E-Mail-Adresse"
-                                   Style="{StaticResource FieldLabel}" />
-                        <TextBox x:Name="FromBox" Grid.Row="0" Grid.Column="1" Margin="0,0,0,10"
-                                 AutomationProperties.AutomationId="FromBox"
-                                 ToolTip="Leer lassen, um den Benutzernamen zu verwenden" />
-
-                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Anzeigename"
-                                   Style="{StaticResource FieldLabel}" />
-                        <TextBox x:Name="DisplayNameBox" Grid.Row="1" Grid.Column="1" Margin="0,0,0,10"
-                                 AutomationProperties.AutomationId="DisplayNameBox" />
-                    </Grid>
-
-                    <Border Height="1" Background="{StaticResource Line}" Margin="0,18,0,18" />
-
-                    <!-- Programm -->
-                    <TextBlock Text="Programm" Style="{StaticResource SectionTitle}" />
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="130" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-
-                        <TextBlock Text="Version" Style="{StaticResource FieldLabel}" />
-                        <StackPanel Grid.Column="1" Orientation="Horizontal">
-                            <TextBlock x:Name="VersionText" VerticalAlignment="Center"
-                                       FontFamily="{StaticResource UiFont}" FontSize="13"
-                                       Foreground="{StaticResource Text}"
-                                       AutomationProperties.AutomationId="VersionText" />
-                            <Button x:Name="CheckUpdateButton" Content="Nach Updates suchen" Margin="14,0,0,0"
-                                    AutomationProperties.AutomationId="CheckUpdateButton"
-                                    Click="CheckUpdate_Click" />
-                            <Button x:Name="InstallUpdateButton" Content="Jetzt aktualisieren" Margin="10,0,0,0"
-                                    Style="{StaticResource AccentButton}" Visibility="Collapsed"
-                                    AutomationProperties.AutomationId="InstallUpdateButton"
-                                    Click="InstallUpdate_Click" />
-                        </StackPanel>
-                    </Grid>
-                    <TextBlock x:Name="UpdateStatusText" Style="{StaticResource Hint}" Margin="130,8,0,0"
-                               AutomationProperties.AutomationId="UpdateStatusText" />
-
-                    <Border Height="1" Background="{StaticResource Line}" Margin="0,18,0,18" />
-
-                    <!-- Benachrichtigungen -->
-                    <TextBlock Text="Benachrichtigungen" Style="{StaticResource SectionTitle}" />
-
-                    <CheckBox x:Name="NotificationsBox" Content="An offene Sachen erinnern"
-                              AutomationProperties.AutomationId="NotificationsBox"
-                              Checked="Notifications_Changed" Unchecked="Notifications_Changed" />
-                    <TextBlock Style="{StaticResource Hint}" Margin="0,8,0,0"
-                               Text="Meldet überfällige und bald fällige Aufträge, Aufgaben, Hausaufgaben, Prüfungen, Termine und To-Dos als Sprechblase beim Symbol neben der Uhr - auch dann, wenn kein Fenster offen ist." />
-
-                    <CheckBox x:Name="AutoStartBox" Content="Beim Anmelden im Hintergrund mitstarten"
-                              Margin="0,12,0,0"
-                              AutomationProperties.AutomationId="AutoStartBox"
-                              Checked="AutoStart_Changed" Unchecked="AutoStart_Changed" />
-                    <TextBlock Style="{StaticResource Hint}" Margin="0,8,0,0"
-                               Text="Ohne diesen Start kommen Erinnerungen erst, sobald School Manager einmal geöffnet wurde. Schliesst man das Fenster, läuft er im Infobereich weiter; dort lässt er sich über „Beenden“ auch ganz schliessen." />
-
-                    <Grid Margin="0,12,0,0">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="130" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-
-                        <TextBlock Text="Vorlauf" Style="{StaticResource FieldLabel}" />
-                        <StackPanel Grid.Column="1" Orientation="Horizontal">
-                            <TextBox x:Name="LeadDaysBox" Width="60"
-                                     AutomationProperties.AutomationId="LeadDaysBox"
-                                     ToolTip="Wie viele Tage im Voraus erinnert wird"
-                                     LostFocus="LeadDays_Changed" />
-                            <TextBlock Text="Tage im Voraus" VerticalAlignment="Center" Margin="10,0,0,0"
-                                       FontFamily="{StaticResource UiFont}" FontSize="11.5"
-                                       Foreground="{StaticResource TextFaint}" />
-                            <Button x:Name="TestNotificationButton" Content="Jetzt prüfen" Margin="16,0,0,0"
-                                    AutomationProperties.AutomationId="TestNotificationButton"
-                                    ToolTip="Sieht sofort nach, was offen ist, und zeigt die Sprechblase"
-                                    Click="TestNotification_Click" />
-                        </StackPanel>
-                    </Grid>
-                    <TextBlock x:Name="NotificationStateText" Style="{StaticResource Hint}" Margin="130,8,0,0"
-                               AutomationProperties.AutomationId="NotificationStateText" />
-
-                    <Border Height="1" Background="{StaticResource Line}" Margin="0,18,0,18" />
-
-                    <!-- Daten -->
-                    <TextBlock Text="Daten" Style="{StaticResource SectionTitle}" />
-                    <StackPanel Orientation="Horizontal">
-                        <Button x:Name="ExportConfigButton" Content="Konfiguration exportieren…"
-                                AutomationProperties.AutomationId="ExportConfigButton"
-                                Click="ExportConfig_Click" />
-                        <Button x:Name="ImportConfigButton" Content="Konfiguration importieren…" Margin="10,0,0,0"
-                                AutomationProperties.AutomationId="ImportConfigButton"
-                                Click="ImportConfig_Click" />
-                    </StackPanel>
-                    <TextBlock Style="{StaticResource Hint}" Margin="0,8,0,0"
-                               Text="Sichert bzw. übernimmt Konto-Art, Server und Absender ohne Passwort als JSON-Datei. Nach dem Einlesen muss das Passwort neu eingegeben werden." />
-
-                    <StackPanel Orientation="Horizontal" Margin="0,16,0,0">
-                        <Button x:Name="ExportAllButton" Content="Alle Daten exportieren…"
-                                AutomationProperties.AutomationId="ExportAllButton"
-                                Click="ExportAll_Click" />
-                        <Button x:Name="ImportAllButton" Content="Alle Daten importieren…" Margin="10,0,0,0"
-                                AutomationProperties.AutomationId="ImportAllButton"
-                                Click="ImportAll_Click" />
-                    </StackPanel>
-                    <TextBlock Style="{StaticResource Hint}" Margin="0,8,0,0"
-                               Text="Sichert bzw. ersetzt alles aus dem Benutzerprofil - Aufträge, Hausaufgaben, Prüfungen, Lehrkräfte, Stundenplan, To-Do, Notizen und Einstellungen - als ZIP-Datei. Beim Einlesen werden bestehende Daten überschrieben und School Manager wird neu gestartet." />
-
-                    <Border Height="1" Background="{StaticResource Line}" Margin="0,18,0,18" />
-
-                    <!-- Zurücksetzen und Entfernen -->
-                    <TextBlock Text="Zurücksetzen und Entfernen" Style="{StaticResource SectionTitle}" />
-                    <StackPanel Orientation="Horizontal">
-                        <Button x:Name="ResetDataButton" Content="Daten zurücksetzen…"
-                                Style="{StaticResource DangerButton}"
-                                AutomationProperties.AutomationId="ResetDataButton"
-                                Click="ResetData_Click" />
-                        <Button x:Name="UninstallButton" Content="School Manager deinstallieren…" Margin="10,0,0,0"
-                                Style="{StaticResource DangerButton}"
-                                AutomationProperties.AutomationId="UninstallButton"
-                                Click="Uninstall_Click" />
-                    </StackPanel>
-                    <TextBlock Style="{StaticResource Hint}" Margin="0,8,0,0"
-                               Text="„Daten zurücksetzen“ löscht alle eigenen Daten - Aufträge, Aufgaben, Hausaufgaben, Prüfungen, Lehrkräfte, Stundenplan, To-Do, Notizen und die Einstellungen samt Anmeldung; das Programm bleibt installiert und startet danach leer. „Deinstallieren“ entfernt zusätzlich die Installation mit allen Verknüpfungen - danach ist nichts von School Manager mehr auf dem Rechner. Beides lässt sich nicht rückgängig machen; vorher lohnt sich „Alle Daten exportieren…“." />
-                    <TextBlock x:Name="UninstallStateText" Style="{StaticResource Hint}" Margin="0,8,0,0"
-                               AutomationProperties.AutomationId="UninstallStateText" />
-
-                    <!-- Entwickler; nur sichtbar, wenn der Modus freigeschaltet ist -->
-                    <StackPanel x:Name="DevPanel" Visibility="Collapsed">
-                        <Border Height="1" Background="{StaticResource Line}" Margin="0,18,0,18" />
-
-                        <TextBlock Text="Entwickler" Style="{StaticResource SectionTitle}" />
-
-                        <CheckBox x:Name="DevPatchesBox" Content="Dev-Patches statt Releases beziehen"
-                                  AutomationProperties.AutomationId="DevPatchesBox"
-                                  Checked="DevPatches_Changed" Unchecked="DevPatches_Changed" />
-                        <TextBlock Style="{StaticResource Hint}" Margin="0,8,0,0"
-                                   Text="Die Update-Suche nimmt dann die Vorabversionen mit „-dev“ im Namen statt der öffentlichen Releases. Diese Stände sind ungetestet und können Daten beschädigen - vorher „Alle Daten exportieren…“." />
-
-                        <!-- Nur solange keine Anwendungs-ID eingebaut ist; sonst steht
-                             die Konto-Art ohnehin allen offen. -->
-                        <TextBlock x:Name="DevMailHintText" Style="{StaticResource Hint}" Margin="0,8,0,0"
-                                   AutomationProperties.AutomationId="DevMailHintText"
-                                   Text="Im Entwicklermodus erscheint zusätzlich die Konto-Art „Microsoft 365 / Exchange Online“. Sie ist noch nicht einsatzbereit: ohne eingebaute Anwendungs-ID führt die Anmeldung ins Leere." />
-
-                        <TextBlock Style="{StaticResource Hint}" Margin="0,8,0,0"
-                                   Text="Beim Einschalten wird eine Sicherung aller Daten angelegt. „Entwicklermodus verlassen“ bietet an, den Stand von vorher wiederherzustellen: die letzte öffentliche Version installieren und diese Sicherung einspielen." />
-                        <TextBlock x:Name="DevBackupText" Style="{StaticResource Hint}" Margin="0,8,0,0"
-                                   AutomationProperties.AutomationId="DevBackupText" />
-
-                        <TextBlock Style="{StaticResource Hint}" Margin="0,8,0,0"
-                                   Text="Aufgezeichnete Fehler und der Changelog dieser Fassung stehen links in der Navigation unter „Protokoll“ - ebenfalls nur im Entwicklermodus." />
-
-                        <Button x:Name="LeaveDevButton" Content="Entwicklermodus verlassen" Margin="0,12,0,0"
-                                HorizontalAlignment="Left"
-                                AutomationProperties.AutomationId="LeaveDevButton"
-                                Click="LeaveDev_Click" />
-                    </StackPanel>
-
-                    <TextBlock x:Name="SettingsPathText" Style="{StaticResource Hint}" Margin="0,18,0,0" />
+            <!-- Bereiche; genau einer ist aktiv, wie in der Seitennavigation der App -->
+            <Border Grid.Column="0" Style="{StaticResource Card}" VerticalAlignment="Top">
+                <StackPanel Margin="-10,0">
+                    <RadioButton x:Name="NavAccountSection" GroupName="SettingsSections" Style="{StaticResource NavItem}"
+                                 Content="Konto &amp; Anmeldung" Checked="SectionNav_Checked"
+                                 AutomationProperties.AutomationId="NavAccountSection"
+                                 Tag="M1,3 H17 V13 H1 Z M1,3 L9,9 L17,3" />
+                    <RadioButton x:Name="NavTemplateSection" GroupName="SettingsSections" Style="{StaticResource NavItem}"
+                                 Content="E-Mail-Vorlage" Checked="SectionNav_Checked"
+                                 AutomationProperties.AutomationId="NavTemplateSection"
+                                 Tag="M2,1 H15 V17 H2 Z M5,5 H12 M5,9 H12 M5,13 H9" />
+                    <RadioButton x:Name="NavNotificationSection" GroupName="SettingsSections" Style="{StaticResource NavItem}"
+                                 Content="Erinnerungen" Checked="SectionNav_Checked"
+                                 AutomationProperties.AutomationId="NavNotificationSection"
+                                 Tag="M4.5,13 V8 A4.5,4.5 0 0,1 13.5,8 V13 L15,14.5 H3 Z M7.5,16.5 H10.5" />
+                    <RadioButton x:Name="NavProgramSection" GroupName="SettingsSections" Style="{StaticResource NavItem}"
+                                 Content="Programm &amp; Updates" Checked="SectionNav_Checked"
+                                 AutomationProperties.AutomationId="NavProgramSection"
+                                 Tag="M15,9 A6,6 0 1,1 13,4.5 M13,1.5 V4.5 H10" />
+                    <RadioButton x:Name="NavDataSection" GroupName="SettingsSections" Style="{StaticResource NavItem}"
+                                 Content="Daten" Checked="SectionNav_Checked"
+                                 AutomationProperties.AutomationId="NavDataSection"
+                                 Tag="M2,5 L9,1.5 L16,5 V13 L9,16.5 L2,13 Z M2,5 L9,8.5 L16,5 M9,8.5 V16.5" />
+                    <RadioButton x:Name="NavResetSection" GroupName="SettingsSections" Style="{StaticResource NavItem}"
+                                 Content="Zurücksetzen" Checked="SectionNav_Checked"
+                                 AutomationProperties.AutomationId="NavResetSection"
+                                 Tag="M2.5,4.5 H15.5 M6.5,4.5 V2.5 H11.5 V4.5 M4,4.5 L5,16 H13 L14,4.5" />
+                    <RadioButton x:Name="NavDevSection" GroupName="SettingsSections" Style="{StaticResource NavItem}"
+                                 Content="Entwickler" Checked="SectionNav_Checked" Visibility="Collapsed"
+                                 AutomationProperties.AutomationId="NavDevSection"
+                                 Tag="M6,4 L1.5,9 L6,14 M12,4 L16.5,9 L12,14" />
                 </StackPanel>
-            </ScrollViewer>
-        </Border>
+            </Border>
 
-        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
+            <Border Grid.Column="2" Style="{StaticResource Card}">
+                <ScrollViewer x:Name="SettingsScroller" VerticalScrollBarVisibility="Auto"
+                              c:WheelScroll.Forward="True">
+                    <Grid>
+                        <!-- ==== Konto & Anmeldung ==== -->
+                        <StackPanel x:Name="AccountSection">
+                            <!-- Nur im Entwicklermodus sichtbar; sonst gibt es nur Microsoft 365 -->
+                            <StackPanel x:Name="AccountKindRow">
+                                <TextBlock Text="Konto" Style="{StaticResource SectionTitle}" />
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="130" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <TextBlock Text="Art" Style="{StaticResource FieldLabel}" />
+                                    <ComboBox x:Name="AccountKindBox" Grid.Column="1"
+                                              AutomationProperties.AutomationId="AccountKindBox"
+                                              SelectionChanged="AccountKindBox_SelectionChanged" />
+                                </Grid>
+                            </StackPanel>
+                            <TextBlock x:Name="AccountHintText" Style="{StaticResource Hint}" Margin="130,8,0,18" />
+
+                            <!-- Server; bei Microsoft 365 gibt es keinen, dann verborgen -->
+                            <StackPanel x:Name="ServerPanel">
+                                <TextBlock Text="Server" Style="{StaticResource SectionTitle}" />
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="130" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="110" />
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Host" Style="{StaticResource FieldLabel}" />
+                                    <TextBox x:Name="HostBox" Grid.Row="0" Grid.Column="1" Margin="0,0,0,10"
+                                             AutomationProperties.AutomationId="HostBox" />
+                                    <TextBlock Grid.Row="0" Grid.Column="2" Text="Port"
+                                               Style="{StaticResource FieldLabel}" Margin="16,0,14,0" />
+                                    <TextBox x:Name="PortBox" Grid.Row="0" Grid.Column="3" Margin="0,0,0,10"
+                                             AutomationProperties.AutomationId="PortBox" />
+
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Verschlüsselung"
+                                               Style="{StaticResource FieldLabel}" />
+                                    <ComboBox x:Name="SecurityBox" Grid.Row="1" Grid.Column="1" Margin="0,0,0,10"
+                                              AutomationProperties.AutomationId="SecurityBox" />
+                                </Grid>
+                                <TextBlock Style="{StaticResource Hint}" Margin="130,0,0,0"
+                                           Text="Wird bei bekannten Anbietern (z. B. Gmail, GMX, Bluewin, Outlook) automatisch anhand der E-Mail-Adresse unten ausgefüllt - auch wenn hier schon etwas anderes steht." />
+
+                                <Border Height="1" Background="{StaticResource Line}" Margin="0,18,0,18" />
+                            </StackPanel>
+
+                            <!-- Anmeldung mit Passwort -->
+                            <StackPanel x:Name="PasswordPanel">
+                                <TextBlock Text="Anmeldung" Style="{StaticResource SectionTitle}" />
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="130" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Benutzername"
+                                               Style="{StaticResource FieldLabel}" />
+                                    <TextBox x:Name="UserNameBox" Grid.Row="0" Grid.Column="1" Margin="0,0,0,10"
+                                             AutomationProperties.AutomationId="UserNameBox"
+                                             LostFocus="UserNameBox_LostFocus" />
+
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Passwort"
+                                               Style="{StaticResource FieldLabel}" />
+                                    <PasswordBox x:Name="PasswordInput" Grid.Row="1" Grid.Column="1" Margin="0,0,0,10"
+                                                 AutomationProperties.AutomationId="PasswordInput" />
+                                </Grid>
+                                <TextBlock x:Name="PasswordHintText" Style="{StaticResource Hint}" Margin="130,4,0,0" />
+                            </StackPanel>
+
+                            <!-- Anmeldung über Microsoft 365: ein Knopf, sonst nichts. -->
+                            <StackPanel x:Name="OAuthPanel" Visibility="Collapsed">
+                                <TextBlock Text="Anmeldung bei Microsoft" Style="{StaticResource SectionTitle}" />
+
+                                <StackPanel Orientation="Horizontal">
+                                    <Button x:Name="SignInButton" Content="Mit Microsoft anmelden"
+                                            Style="{StaticResource AccentButton}"
+                                            AutomationProperties.AutomationId="SignInButton"
+                                            Click="SignIn_Click" />
+                                    <Button x:Name="SignInWithCodeButton" Content="Mit Code anmelden" Margin="10,0,0,0"
+                                            AutomationProperties.AutomationId="SignInWithCodeButton"
+                                            Click="SignInWithCode_Click" />
+                                    <Button x:Name="SignOutButton" Content="Abmelden" Margin="10,0,0,0"
+                                            AutomationProperties.AutomationId="SignOutButton"
+                                            Click="SignOut_Click" />
+                                </StackPanel>
+
+                                <TextBlock x:Name="SignInStateText" Style="{StaticResource Hint}" Margin="0,10,0,0"
+                                           AutomationProperties.AutomationId="SignInStateText" />
+
+                                <TextBlock Style="{StaticResource Hint}" Margin="0,8,0,0"
+                                           Text="Die Anmeldung läuft im Browser; danach wird über Microsoft Graph gesendet, und die Nachricht landet wie gewohnt in „Gesendete Elemente“. Es braucht weder Server noch Passwort. Die Anmeldung wird mit der Windows-Datenschutz-API (DPAPI) verschlüsselt im Benutzerprofil abgelegt und gilt auch nach einem Neustart." />
+
+                                <!-- Nur nötig, solange keine Anwendungs-ID eingebaut ist -->
+                                <Grid x:Name="AzureFields" Margin="0,14,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="130" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+
+                                    <TextBlock Grid.Row="0" Grid.ColumnSpan="2" Style="{StaticResource Hint}"
+                                               Margin="0,0,0,10"
+                                               Text="In dieser Fassung ist keine Anwendungs-ID eingebaut. Bis das der Fall ist, braucht es eine eigene Azure-App-Registrierung: Plattform „Mobile Geräte und Desktopanwendungen“, Umleitungs-Adresse http://localhost, delegierte Berechtigung Mail.Send." />
+
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Anwendungs-ID"
+                                               Style="{StaticResource FieldLabel}" />
+                                    <TextBox x:Name="ClientIdBox" Grid.Row="1" Grid.Column="1" Margin="0,0,0,10"
+                                             AutomationProperties.AutomationId="ClientIdBox"
+                                             ToolTip="Client-ID der Azure-App-Registrierung" />
+
+                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Verzeichnis-ID"
+                                               Style="{StaticResource FieldLabel}" />
+                                    <TextBox x:Name="TenantIdBox" Grid.Row="2" Grid.Column="1"
+                                             AutomationProperties.AutomationId="TenantIdBox"
+                                             ToolTip="Tenant-ID; leer lassen für jedes Konto" />
+                                </Grid>
+                            </StackPanel>
+
+                            <!-- Absender; bei Microsoft 365 sendet immer das angemeldete Postfach -->
+                            <StackPanel x:Name="SenderPanel">
+                                <Border Height="1" Background="{StaticResource Line}" Margin="0,18,0,18" />
+
+                                <TextBlock Text="Absender" Style="{StaticResource SectionTitle}" />
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="130" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="E-Mail-Adresse"
+                                               Style="{StaticResource FieldLabel}" />
+                                    <TextBox x:Name="FromBox" Grid.Row="0" Grid.Column="1" Margin="0,0,0,10"
+                                             AutomationProperties.AutomationId="FromBox"
+                                             ToolTip="Leer lassen, um den Benutzernamen zu verwenden" />
+
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Anzeigename"
+                                               Style="{StaticResource FieldLabel}" />
+                                    <TextBox x:Name="DisplayNameBox" Grid.Row="1" Grid.Column="1" Margin="0,0,0,10"
+                                             AutomationProperties.AutomationId="DisplayNameBox" />
+                                </Grid>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <!-- ==== E-Mail-Vorlage ==== -->
+                        <StackPanel x:Name="TemplateSection" Visibility="Collapsed">
+                            <TextBlock Text="E-Mail-Vorlage" Style="{StaticResource SectionTitle}" />
+
+                            <CheckBox x:Name="TemplateEnabledBox"
+                                      Content="Jede E-Mail mit dieser Begrüssung und diesem Abschluss einrahmen"
+                                      AutomationProperties.AutomationId="TemplateEnabledBox"
+                                      Checked="TemplateOption_Changed" Unchecked="TemplateOption_Changed" />
+                            <TextBlock Style="{StaticResource Hint}" Margin="0,8,0,16"
+                                       Text="Auf der Seite E-Mail schreibst du dann nur noch die eigentliche Nachricht. Begrüssung und Abschluss kommen beim Senden automatisch davor und danach - jedes Mal genau gleich. Einzelne Nachrichten lassen sich dort mit einem Haken auch ohne Vorlage senden." />
+
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="130" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+
+                                <TextBlock Grid.Row="0" Grid.Column="0" Text="Begrüssung"
+                                           Style="{StaticResource FieldLabel}" VerticalAlignment="Top" Margin="0,8,14,0" />
+                                <TextBox x:Name="GreetingBox" Grid.Row="0" Grid.Column="1" Margin="0,0,0,10"
+                                         AcceptsReturn="True" TextWrapping="Wrap" MinHeight="54"
+                                         AutomationProperties.AutomationId="GreetingBox"
+                                         TextChanged="TemplateText_Changed" />
+
+                                <TextBlock Grid.Row="1" Grid.Column="0" Text="Abschluss"
+                                           Style="{StaticResource FieldLabel}" VerticalAlignment="Top" Margin="0,8,14,0" />
+                                <TextBox x:Name="ClosingBox" Grid.Row="1" Grid.Column="1" Margin="0,0,0,10"
+                                         AcceptsReturn="True" TextWrapping="Wrap" MinHeight="72"
+                                         AutomationProperties.AutomationId="ClosingBox"
+                                         TextChanged="TemplateText_Changed" />
+
+                                <TextBlock Grid.Row="2" Grid.Column="0" Text="Eigene Variablen"
+                                           Style="{StaticResource FieldLabel}" VerticalAlignment="Top" Margin="0,8,14,0" />
+                                <TextBox x:Name="VariablesBox" Grid.Row="2" Grid.Column="1" Margin="0,0,0,10"
+                                         AcceptsReturn="True" TextWrapping="Wrap" MinHeight="72"
+                                         AutomationProperties.AutomationId="VariablesBox"
+                                         ToolTip="Eine je Zeile, etwa: MeinName = Mischa Fierz"
+                                         TextChanged="TemplateText_Changed" />
+                            </Grid>
+                            <TextBlock Style="{StaticResource Hint}" Margin="130,0,0,0"
+                                       Text="Variablen stehen in geschweiften Klammern. Eingebaut sind {Empfänger}, {Vorname} und {Nachname} - der Name der Lehrkraft oder aus „Name &lt;adresse&gt;“, nur bei genau einem Empfänger unter „An“ -, dazu {Betreff} und {Datum}. Eigene Variablen je Zeile als Name = Wert, etwa MeinName = Mischa Fierz; im Text dann {MeinName}." />
+
+                            <TextBlock Text="Vorschau" Style="{StaticResource SectionTitle}" Margin="0,18,0,8" />
+                            <Border Background="{StaticResource SurfaceAlt}" BorderBrush="{StaticResource Line}"
+                                    BorderThickness="1" CornerRadius="7" Padding="14,12">
+                                <TextBlock x:Name="TemplatePreviewText" TextWrapping="Wrap"
+                                           FontFamily="{StaticResource UiFont}" FontSize="12.5"
+                                           Foreground="{StaticResource Text}"
+                                           AutomationProperties.AutomationId="TemplatePreviewText" />
+                            </Border>
+
+                            <Button x:Name="SaveTemplateButton" Content="Vorlage speichern" Margin="0,14,0,0"
+                                    Style="{StaticResource AccentButton}" HorizontalAlignment="Left"
+                                    AutomationProperties.AutomationId="SaveTemplateButton"
+                                    Click="SaveTemplate_Click" />
+                        </StackPanel>
+
+                        <!-- ==== Erinnerungen ==== -->
+                        <StackPanel x:Name="NotificationSection" Visibility="Collapsed">
+                            <TextBlock Text="Erinnerungen" Style="{StaticResource SectionTitle}" />
+
+                            <CheckBox x:Name="NotificationsBox" Content="An offene Sachen erinnern"
+                                      AutomationProperties.AutomationId="NotificationsBox"
+                                      Checked="Notifications_Changed" Unchecked="Notifications_Changed" />
+                            <TextBlock Style="{StaticResource Hint}" Margin="0,8,0,0"
+                                       Text="Meldet überfällige und bald fällige Aufträge, Aufgaben, Hausaufgaben, Prüfungen, Termine und To-Dos als Sprechblase beim Symbol neben der Uhr - auch dann, wenn kein Fenster offen ist." />
+
+                            <CheckBox x:Name="AutoStartBox" Content="Beim Anmelden im Hintergrund mitstarten"
+                                      Margin="0,12,0,0"
+                                      AutomationProperties.AutomationId="AutoStartBox"
+                                      Checked="AutoStart_Changed" Unchecked="AutoStart_Changed" />
+                            <TextBlock Style="{StaticResource Hint}" Margin="0,8,0,0"
+                                       Text="Ohne diesen Start kommen Erinnerungen erst, sobald School Manager einmal geöffnet wurde. Schliesst man das Fenster, läuft er im Infobereich weiter; dort lässt er sich über „Beenden“ auch ganz schliessen." />
+
+                            <Grid Margin="0,12,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="130" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+
+                                <TextBlock Text="Vorlauf" Style="{StaticResource FieldLabel}" />
+                                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                    <TextBox x:Name="LeadDaysBox" Width="60"
+                                             AutomationProperties.AutomationId="LeadDaysBox"
+                                             ToolTip="Wie viele Tage im Voraus erinnert wird"
+                                             LostFocus="LeadDays_Changed" />
+                                    <TextBlock Text="Tage im Voraus" VerticalAlignment="Center" Margin="10,0,0,0"
+                                               FontFamily="{StaticResource UiFont}" FontSize="11.5"
+                                               Foreground="{StaticResource TextFaint}" />
+                                    <Button x:Name="TestNotificationButton" Content="Jetzt prüfen" Margin="16,0,0,0"
+                                            AutomationProperties.AutomationId="TestNotificationButton"
+                                            ToolTip="Sieht sofort nach, was offen ist, und zeigt die Sprechblase"
+                                            Click="TestNotification_Click" />
+                                </StackPanel>
+                            </Grid>
+                            <TextBlock x:Name="NotificationStateText" Style="{StaticResource Hint}" Margin="130,8,0,0"
+                                       AutomationProperties.AutomationId="NotificationStateText" />
+                        </StackPanel>
+
+                        <!-- ==== Programm & Updates ==== -->
+                        <StackPanel x:Name="ProgramSection" Visibility="Collapsed">
+                            <TextBlock Text="Programm &amp; Updates" Style="{StaticResource SectionTitle}" />
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="130" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+
+                                <TextBlock Text="Version" Style="{StaticResource FieldLabel}" />
+                                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                    <TextBlock x:Name="VersionText" VerticalAlignment="Center"
+                                               FontFamily="{StaticResource UiFont}" FontSize="13"
+                                               Foreground="{StaticResource Text}"
+                                               AutomationProperties.AutomationId="VersionText" />
+                                    <Button x:Name="CheckUpdateButton" Content="Nach Updates suchen" Margin="14,0,0,0"
+                                            AutomationProperties.AutomationId="CheckUpdateButton"
+                                            Click="CheckUpdate_Click" />
+                                    <Button x:Name="InstallUpdateButton" Content="Jetzt aktualisieren" Margin="10,0,0,0"
+                                            Style="{StaticResource AccentButton}" Visibility="Collapsed"
+                                            AutomationProperties.AutomationId="InstallUpdateButton"
+                                            Click="InstallUpdate_Click" />
+                                </StackPanel>
+                            </Grid>
+                            <TextBlock x:Name="UpdateStatusText" Style="{StaticResource Hint}" Margin="130,8,0,0"
+                                       AutomationProperties.AutomationId="UpdateStatusText" />
+                        </StackPanel>
+
+                        <!-- ==== Daten ==== -->
+                        <StackPanel x:Name="DataSection" Visibility="Collapsed">
+                            <TextBlock Text="Daten" Style="{StaticResource SectionTitle}" />
+                            <StackPanel Orientation="Horizontal">
+                                <Button x:Name="ExportConfigButton" Content="Konfiguration exportieren…"
+                                        AutomationProperties.AutomationId="ExportConfigButton"
+                                        Click="ExportConfig_Click" />
+                                <Button x:Name="ImportConfigButton" Content="Konfiguration importieren…" Margin="10,0,0,0"
+                                        AutomationProperties.AutomationId="ImportConfigButton"
+                                        Click="ImportConfig_Click" />
+                            </StackPanel>
+                            <TextBlock Style="{StaticResource Hint}" Margin="0,8,0,0"
+                                       Text="Sichert bzw. übernimmt Konto-Art, Server und Absender ohne Passwort als JSON-Datei. Nach dem Einlesen muss das Passwort neu eingegeben werden." />
+
+                            <StackPanel Orientation="Horizontal" Margin="0,16,0,0">
+                                <Button x:Name="ExportAllButton" Content="Alle Daten exportieren…"
+                                        AutomationProperties.AutomationId="ExportAllButton"
+                                        Click="ExportAll_Click" />
+                                <Button x:Name="ImportAllButton" Content="Alle Daten importieren…" Margin="10,0,0,0"
+                                        AutomationProperties.AutomationId="ImportAllButton"
+                                        Click="ImportAll_Click" />
+                            </StackPanel>
+                            <TextBlock Style="{StaticResource Hint}" Margin="0,8,0,0"
+                                       Text="Sichert bzw. ersetzt alles aus dem Benutzerprofil - Aufträge, Hausaufgaben, Prüfungen, Lehrkräfte, Stundenplan, To-Do, Notizen, E-Mail-Vorlage und Einstellungen - als ZIP-Datei. Beim Einlesen werden bestehende Daten überschrieben und School Manager wird neu gestartet." />
+
+                            <TextBlock x:Name="SettingsPathText" Style="{StaticResource Hint}" Margin="0,18,0,0" />
+                        </StackPanel>
+
+                        <!-- ==== Zurücksetzen ==== -->
+                        <StackPanel x:Name="ResetSection" Visibility="Collapsed">
+                            <TextBlock Text="Zurücksetzen und Entfernen" Style="{StaticResource SectionTitle}" />
+                            <StackPanel Orientation="Horizontal">
+                                <Button x:Name="ResetDataButton" Content="Daten zurücksetzen…"
+                                        Style="{StaticResource DangerButton}"
+                                        AutomationProperties.AutomationId="ResetDataButton"
+                                        Click="ResetData_Click" />
+                                <Button x:Name="UninstallButton" Content="School Manager deinstallieren…" Margin="10,0,0,0"
+                                        Style="{StaticResource DangerButton}"
+                                        AutomationProperties.AutomationId="UninstallButton"
+                                        Click="Uninstall_Click" />
+                            </StackPanel>
+                            <TextBlock Style="{StaticResource Hint}" Margin="0,8,0,0"
+                                       Text="„Daten zurücksetzen“ löscht alle eigenen Daten - Aufträge, Aufgaben, Hausaufgaben, Prüfungen, Lehrkräfte, Stundenplan, To-Do, Notizen und die Einstellungen samt Anmeldung; das Programm bleibt installiert und startet danach leer. „Deinstallieren“ entfernt zusätzlich die Installation mit allen Verknüpfungen - danach ist nichts von School Manager mehr auf dem Rechner. Beides lässt sich nicht rückgängig machen; vorher lohnt sich „Alle Daten exportieren…“." />
+                            <TextBlock x:Name="UninstallStateText" Style="{StaticResource Hint}" Margin="0,8,0,0"
+                                       AutomationProperties.AutomationId="UninstallStateText" />
+                        </StackPanel>
+
+                        <!-- ==== Entwickler; der Bereich erscheint nur, wenn der Modus freigeschaltet ist ==== -->
+                        <StackPanel x:Name="DevPanel" Visibility="Collapsed">
+                            <TextBlock Text="Entwickler" Style="{StaticResource SectionTitle}" />
+
+                            <!-- Wer angemeldet ist; das Panel nur für Konten mit Rechten darin -->
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,14">
+                                <TextBlock x:Name="DevAccountText" VerticalAlignment="Center"
+                                           FontFamily="{StaticResource UiFont}" FontSize="13"
+                                           Foreground="{StaticResource Text}"
+                                           AutomationProperties.AutomationId="DevAccountText" />
+                                <Button x:Name="DevSignInButton" Content="Anmelden" Margin="14,0,0,0"
+                                        Style="{StaticResource AccentButton}" Visibility="Collapsed"
+                                        AutomationProperties.AutomationId="DevSignInButton"
+                                        Click="DevSignIn_Click" />
+                                <Button x:Name="OpenPanelButton" Content="Admin-Panel öffnen" Margin="14,0,0,0"
+                                        Visibility="Collapsed"
+                                        AutomationProperties.AutomationId="OpenPanelButton"
+                                        Click="OpenPanel_Click" />
+                            </StackPanel>
+
+                            <CheckBox x:Name="DevPatchesBox" Content="Dev-Patches statt Releases beziehen"
+                                      AutomationProperties.AutomationId="DevPatchesBox"
+                                      Checked="DevPatches_Changed" Unchecked="DevPatches_Changed" />
+                            <TextBlock Style="{StaticResource Hint}" Margin="0,8,0,0"
+                                       Text="Die Update-Suche nimmt dann zusätzlich die Vorabversionen mit „-dev“ im Namen - welche davon, legt das Admin-Panel für dieses Konto fest. Diese Stände sind ungetestet und können Daten beschädigen - vorher „Alle Daten exportieren…“." />
+
+                            <!-- Schnell zwischen öffentlichen Versionen wechseln, auch abwärts -->
+                            <TextBlock Text="Version wechseln" Style="{StaticResource SectionTitle}" Margin="0,18,0,8" />
+                            <StackPanel Orientation="Horizontal">
+                                <ComboBox x:Name="ReleaseBox" Width="200"
+                                          AutomationProperties.AutomationId="ReleaseBox" />
+                                <Button x:Name="LoadReleasesButton" Content="Neu laden" Margin="10,0,0,0"
+                                        AutomationProperties.AutomationId="LoadReleasesButton"
+                                        Click="LoadReleases_Click" />
+                                <Button x:Name="SwitchReleaseButton" Content="Diese Version installieren" Margin="10,0,0,0"
+                                        Style="{StaticResource AccentButton}" IsEnabled="False"
+                                        AutomationProperties.AutomationId="SwitchReleaseButton"
+                                        Click="SwitchRelease_Click" />
+                            </StackPanel>
+                            <TextBlock x:Name="ReleaseStateText" Style="{StaticResource Hint}" Margin="0,8,0,0"
+                                       AutomationProperties.AutomationId="ReleaseStateText"
+                                       Text="Zeigt alle öffentlichen Versionen und die Dev-Versionen aus dem privaten Repository. Beim Wechsel wird die installierte Version entfernt und die gewählte installiert; die Daten bleiben unverändert." />
+
+                            <!-- Nur solange keine Anwendungs-ID eingebaut ist; sonst steht
+                                 die Konto-Art ohnehin allen offen. -->
+                            <TextBlock x:Name="DevMailHintText" Style="{StaticResource Hint}" Margin="0,8,0,0"
+                                       AutomationProperties.AutomationId="DevMailHintText"
+                                       Text="Im Entwicklermodus erscheint zusätzlich die Konto-Art „Microsoft 365 / Exchange Online“. Sie ist noch nicht einsatzbereit: ohne eingebaute Anwendungs-ID führt die Anmeldung ins Leere." />
+
+                            <TextBlock Style="{StaticResource Hint}" Margin="0,8,0,0"
+                                       Text="Beim Einschalten wird eine Sicherung aller Daten angelegt. „Entwicklermodus verlassen“ bietet an, den Stand von vorher wiederherzustellen: die letzte öffentliche Version installieren und diese Sicherung einspielen." />
+                            <TextBlock x:Name="DevBackupText" Style="{StaticResource Hint}" Margin="0,8,0,0"
+                                       AutomationProperties.AutomationId="DevBackupText" />
+
+                            <TextBlock Style="{StaticResource Hint}" Margin="0,8,0,0"
+                                       Text="Aufgezeichnete Fehler und der Changelog dieser Fassung stehen links in der Navigation unter „Protokoll“ - ebenfalls nur im Entwicklermodus." />
+
+                            <Button x:Name="LeaveDevButton" Content="Entwicklermodus verlassen" Margin="0,12,0,0"
+                                    HorizontalAlignment="Left"
+                                    AutomationProperties.AutomationId="LeaveDevButton"
+                                    Click="LeaveDev_Click" />
+                        </StackPanel>
+                    </Grid>
+                </ScrollViewer>
+            </Border>
+        </Grid>
+
+        <!-- Gehört zum Konto; in den anderen Bereichen ausgeblendet -->
+        <StackPanel x:Name="AccountActions" Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
             <Button x:Name="TestConnectionButton" Content="Verbindung testen" Margin="0,0,10,0"
                     AutomationProperties.AutomationId="TestConnectionButton"
                     Click="TestConnection_Click" />

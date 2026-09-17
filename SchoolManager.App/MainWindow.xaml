@@ -104,6 +104,52 @@
                  war. Er verschwindet von selbst, sobald der Versand wieder geht. -->
             <StackPanel Grid.Row="0">
 
+            <!-- Meldungen aus dem Admin-Panel: rot für Fehler, grau für Hinweise.
+                 Weggeklickt bleibt eine Meldung weg, bis sie dort geändert wird. -->
+            <ItemsControl x:Name="ServerMessageList"
+                          AutomationProperties.AutomationId="ServerMessageList">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border x:Name="Shell" BorderThickness="1" CornerRadius="8" Margin="26,18,26,0" Padding="12,9"
+                                Background="#3363666C" BorderBrush="{StaticResource AccentHover}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+
+                                <Border x:Name="Dot" Width="8" Height="8" CornerRadius="4" VerticalAlignment="Top"
+                                        Margin="0,6,0,0" Background="{StaticResource AccentHover}" />
+
+                                <TextBlock x:Name="MessageText" Grid.Column="1" Margin="10,0,10,0"
+                                           VerticalAlignment="Center" Text="{Binding Text}"
+                                           FontFamily="{StaticResource UiFont}" FontSize="12.5"
+                                           Foreground="{StaticResource Text}"
+                                           TextWrapping="Wrap"
+                                           AutomationProperties.AutomationId="ServerMessageText" />
+
+                                <Button x:Name="CloseButton" Grid.Column="2" Content="✕" VerticalAlignment="Top"
+                                        Style="{StaticResource GhostButton}" FontSize="12"
+                                        Tag="{Binding}"
+                                        ToolTip="Ausblenden, bis sich die Meldung ändert"
+                                        Click="ServerMessageClose_Click" />
+                            </Grid>
+                        </Border>
+
+                        <DataTemplate.Triggers>
+                            <DataTrigger Binding="{Binding IsError}" Value="True">
+                                <Setter TargetName="Shell" Property="Background" Value="#33D98C8C" />
+                                <Setter TargetName="Shell" Property="BorderBrush" Value="{StaticResource Error}" />
+                                <Setter TargetName="Dot" Property="Background" Value="{StaticResource Error}" />
+                                <Setter TargetName="MessageText" Property="Foreground" Value="{StaticResource Error}" />
+                                <Setter TargetName="CloseButton" Property="Foreground" Value="{StaticResource Error}" />
+                            </DataTrigger>
+                        </DataTemplate.Triggers>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
             <Border x:Name="MailWarningBanner" Visibility="Collapsed"
                     Background="#33D98C8C" BorderBrush="{StaticResource Error}"
                     BorderThickness="1" CornerRadius="8" Margin="26,18,26,0" Padding="12,9"

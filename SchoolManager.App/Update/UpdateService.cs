@@ -7,28 +7,39 @@ using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Windows;
+using SchoolManager.App.Logging;
+using SchoolManager.App.Online;
 
 namespace SchoolManager.App.Update;
 
-/// <summary>Eine auf GitHub verfügbare Version.</summary>
+/// <summary>Eine verfügbare Version.</summary>
+/// <param name="DownloadUrl">Bei einem Dev-Patch leer: Die Adresse gibt der Server erst unmittelbar vor dem Download heraus.</param>
 /// <param name="Size">Grösse des Installationspakets in Bytes, wie GitHub sie angibt.</param>
-/// <param name="IsDev">Ein Dev-Patch aus dem privaten Repository; sein Download braucht den eingebauten Zugang.</param>
-public sealed record UpdateInfo(string Version, string DownloadUrl, string ReleaseUrl, long Size, bool IsDev = false)
+/// <param name="IsDev">Ein Dev-Patch aus dem privaten Repository.</param>
+/// <param name="Tag">Der Tag, etwa v1.2.1-dev.</param>
+/// <param name="Note">Die Update-Info aus dem Admin-Panel; leer, wenn keine geschrieben wurde.</param>
+public sealed record UpdateInfo(
+    string Version, string DownloadUrl, string ReleaseUrl, long Size, bool IsDev = false, string Tag = "", string Note = "")
 {
     /// <summary>Die Nummer für die Anzeige, bei einem Dev-Patch mit angehängtem "-dev".</summary>
     public string Label => IsDev ? Version + "-dev" : Version;
 }
 
 /// <summary>
-/// Prüft auf GitHub nach einer neueren Version und lädt bei Bedarf das
-/// Installationspaket herunter. Öffentliche Releases liegen im Repository
-/// MischaFierz/SchoolManager, Dev-Patches im privaten MischaFierz/SchoolManager-dev.
+/// Sucht nach einer neueren Version und lädt bei Bedarf das Installationspaket
+/// herunter.
+///
+/// Gefragt wird zuerst der School-Manager-Server: Er kennt die Update-Infos aus
+/// dem Admin-Panel und entscheidet, welche Dev-Versionen ein angemeldetes Konto
+/// beziehen darf. Ist er nicht erreichbar, geht die Suche nach öffentlichen
+/// Releases wie früher direkt an GitHub - ein Update darf nie am Server hängen.
+/// Öffentliche Releases liegen im Repository MischaFierz/SchoolManager,
+/// Dev-Patches im privaten MischaFierz/SchoolManager-dev, an das nur der Server herankommt.
 /// </summary>
 public static class UpdateService
 {
     private const string RepoOwner = "MischaFierz";
     private const string RepoName = "SchoolManager";
-    private const string DevRepoName = "SchoolManager-dev";
     private const string InstallerAssetName = "SchoolManagerSetup.msi";
 
     /// <summary>So lange darf ein Download ohne ein einziges Byte bleiben, bevor er als stehen geblieben gilt.</summary>
@@ -52,24 +63,30 @@ public static class UpdateService
     /// <summary>Kennzeichen im Tag, an dem ein Dev-Patch zu erkennen ist.</summary>
     private const string DevTagMarker = "-dev";
 
-    /// <summary>
-    /// Nur-Lese-Zugang zum privaten Repository der Dev-Patches. Der Release-Bau
-    /// setzt ihn aus einem Secret ein; selbst gebaute Fassungen haben keinen.
-    /// </summary>
-    private static string DevReleasesToken =>
-        Assembly.GetExecutingAssembly().GetCustomAttributes<AssemblyMetadataAttribute>()
-            .FirstOrDefault(attribute => attribute.Key == "DevReleasesToken")?.Value ?? "";
-
-    /// <summary>Kann diese Fassung Dev-Patches sehen und herunterladen?</summary>
-    public static bool HasDevAccess => DevReleasesToken.Length > 0;
+    /// <summary>Kann diese Fassung Dev-Patches sehen? Nur mit Server und angemeldetem Entwickler.</summary>
+    public static bool HasDevAccess => ServerApi.IsConfigured && DevMode.Token is not null;
 
     /// <summary>
-    /// Fragt die neueste Veröffentlichung ab; liefert null, wenn keine neuere
-    /// Version vorliegt. Im Entwicklermodus mit eingeschaltetem Patch-Kanal
-    /// werden stattdessen die Dev-Patches durchsucht.
+    /// Fragt die neueste Version ab, die bezogen werden darf; liefert null, wenn
+    /// keine neuere vorliegt. Im Entwicklermodus mit eingeschaltetem Patch-Kanal
+    /// kommen die freigegebenen Dev-Patches dazu.
     /// </summary>
-    public static async Task<UpdateInfo?> CheckForUpdateAsync() =>
-        DevMode.UseDevPatches ? await CheckForDevPatchAsync() : await CheckForReleaseAsync();
+    public static async Task<UpdateInfo?> CheckForUpdateAsync()
+    {
+        if (ServerApi.IsConfigured)
+        {
+            try
+            {
+                return await ServerApi.UpdateAsync(CurrentVersion, DevMode.UseDevPatches, DevMode.Token);
+            }
+            catch (ServerException ex)
+            {
+                AppLog.Error($"Update-Suche über den Server fehlgeschlagen ({ex.Message}) - es wird direkt bei GitHub nach öffentlichen Releases gesucht.", "Server");
+            }
+        }
+
+        return await CheckForReleaseAsync();
+    }
 
     private static async Task<UpdateInfo?> CheckForReleaseAsync()
     {
@@ -78,10 +95,6 @@ public static class UpdateService
 
         return release is null ? null : ToUpdate(release);
     }
-
-    /// <summary>Der neueste Dev-Patch, der neuer ist als die laufende Version.</summary>
-    private static async Task<UpdateInfo?> CheckForDevPatchAsync() =>
-        (await DevReleasesAsync()).FirstOrDefault(info => Version.Parse(info.Version) > CurrentVersion);
 
     /// <summary>
     /// Die neueste öffentliche Veröffentlichung - auch dann, wenn sie älter ist
@@ -112,23 +125,16 @@ public static class UpdateService
     }
 
     /// <summary>
-    /// Alle Dev-Patches aus dem privaten Repository, der neueste zuerst. Ohne
-    /// eingebauten Zugang gibt es keine - das ist kein Fehler, sondern der Fall
-    /// jeder selbst gebauten Fassung.
+    /// Die Dev-Patches, die das angemeldete Konto beziehen darf, der neueste
+    /// zuerst. Ohne Anmeldung gibt es keine - das ist kein Fehler.
     /// </summary>
     public static async Task<IReadOnlyList<UpdateInfo>> DevReleasesAsync()
     {
         if (!HasDevAccess)
             return [];
 
-        var releases = await GetFromGitHubAsync<List<GitHubRelease>>(
-            DevRepoName, "releases?per_page=50", DevReleasesToken) ?? [];
-
-        return releases
-            .Where(release => !release.Draft)
-            .Where(release => release.TagName.Contains(DevTagMarker, StringComparison.OrdinalIgnoreCase))
-            .Select(release => ToInfo(release, isDev: true))
-            .OfType<UpdateInfo>()
+        return (await ServerApi.ReleasesAsync(DevMode.Token!))
+            .Where(info => info.IsDev)
             .OrderByDescending(info => Version.Parse(info.Version))
             .ToList();
     }
@@ -139,23 +145,16 @@ public static class UpdateService
     /// den Einstellungen „Sie verwenden bereits die aktuellste Version“, obwohl
     /// gar nicht nachgesehen werden konnte.
     /// </summary>
-    private static async Task<T?> GetFromGitHubAsync<T>(string repository, string path, string? token = null) where T : class
+    private static async Task<T?> GetFromGitHubAsync<T>(string repository, string path) where T : class
     {
         using var http = CreateClient();
         using var request = new HttpRequestMessage(HttpMethod.Get,
             $"https://api.github.com/repos/{RepoOwner}/{repository}/{path}");
 
-        if (token is not null)
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
         using var response = await http.SendAsync(request);
 
         if (response.StatusCode == HttpStatusCode.NotFound)
             return null;
-
-        if (token is not null && response.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden)
-            throw new HttpRequestException(
-                "Der eingebaute Zugang zu den Dev-Versionen gilt nicht mehr - eine neuere Fassung bringt einen gültigen mit.");
 
         // Ohne Anmeldung beantwortet GitHub nur 60 Anfragen je Stunde und
         // Internetadresse - in einem Schulnetz teilen sich viele Rechner eine.
@@ -175,7 +174,7 @@ public static class UpdateService
         ToInfo(release) is { } info && Version.Parse(info.Version) > CurrentVersion ? info : null;
 
     /// <summary>Liest Version und Installationspaket aus einer Veröffentlichung.</summary>
-    private static UpdateInfo? ToInfo(GitHubRelease release, bool isDev = false)
+    private static UpdateInfo? ToInfo(GitHubRelease release)
     {
         if (!TryParseVersion(release.TagName, out var version))
             return null;
@@ -186,11 +185,8 @@ public static class UpdateService
         if (asset is null)
             return null;
 
-        // Aus einem privaten Repository lädt nur die API-Adresse mit Zugang;
-        // die Browser-Adresse verlangte eine Anmeldung bei GitHub.
-        var downloadUrl = isDev ? asset.Url : asset.BrowserDownloadUrl;
-
-        return new UpdateInfo(Normalize(version).ToString(3), downloadUrl, release.HtmlUrl, asset.Size, isDev);
+        return new UpdateInfo(Normalize(version).ToString(3), asset.BrowserDownloadUrl, release.HtmlUrl, asset.Size,
+            Tag: release.TagName);
     }
 
     /// <summary>
@@ -200,17 +196,17 @@ public static class UpdateService
     /// </summary>
     public static async Task<string> DownloadAsync(UpdateInfo info, IProgress<int>? progress = null)
     {
+        // Ein Dev-Patch liegt im privaten Repository. Der Server prüft, ob dieses
+        // Konto ihn beziehen darf, und gibt dann eine signierte Adresse heraus,
+        // die nur wenige Minuten gilt - darum erst jetzt.
+        var url = info.IsDev
+            ? await ServerApi.DownloadUrlAsync(info.Tag,
+                DevMode.Token ?? throw new InvalidOperationException("Für Dev-Versionen muss der Entwicklermodus angemeldet sein."))
+            : info.DownloadUrl;
+
         using var http = CreateClient();
         using var stalled = new CancellationTokenSource();
-        using var request = new HttpRequestMessage(HttpMethod.Get, info.DownloadUrl);
-
-        if (info.IsDev)
-        {
-            // GitHub leitet auf eine signierte Adresse um; den Zugang schickt
-            // HttpClient dorthin von sich aus nicht mit - so soll es auch sein.
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", DevReleasesToken);
-            request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/octet-stream"));
-        }
+        using var request = new HttpRequestMessage(HttpMethod.Get, url);
 
         var path = Path.Combine(Path.GetTempPath(), $"SchoolManagerSetup-{info.Label}.msi");
         var buffer = new byte[81920];
@@ -399,10 +395,6 @@ public static class UpdateService
     {
         [JsonPropertyName("name")]
         public string Name { get; set; } = "";
-
-        /// <summary>Die API-Adresse des Pakets; aus einem privaten Repository der einzige Weg mit Zugang.</summary>
-        [JsonPropertyName("url")]
-        public string Url { get; set; } = "";
 
         [JsonPropertyName("browser_download_url")]
         public string BrowserDownloadUrl { get; set; } = "";

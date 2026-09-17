@@ -8,6 +8,7 @@ using Microsoft.Win32;
 using SchoolManager.App.Data;
 using SchoolManager.App.Logging;
 using SchoolManager.App.Notifications;
+using SchoolManager.App.Online;
 using SchoolManager.App.Update;
 using SchoolManager.Core;
 
@@ -51,6 +52,181 @@ public partial class SettingsPage : UserControl
         DevMode.Changed += ShowDevSection;
 
         ShowSettings(settingsService.Current);
+
+        ShowTemplate();
+        NavAccountSection.IsChecked = true;
+    }
+
+    // ==== Bereiche ====
+
+    /// <summary>Zeigt nur den links gewählten Bereich; die Knöpfe unten gehören zum Konto.</summary>
+    private void SectionNav_Checked(object sender, RoutedEventArgs e)
+    {
+        (RadioButton Nav, FrameworkElement Section)[] sections =
+        [
+            (NavAccountSection, AccountSection),
+            (NavTemplateSection, TemplateSection),
+            (NavNotificationSection, NotificationSection),
+            (NavProgramSection, ProgramSection),
+            (NavDataSection, DataSection),
+            (NavResetSection, ResetSection),
+            (NavDevSection, DevPanel)
+        ];
+
+        foreach (var (nav, section) in sections)
+            section.Visibility = nav.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
+
+        AccountActions.Visibility = NavAccountSection.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
+        SettingsScroller.ScrollToTop();
+
+        // Die Versionsliste erst laden, wenn jemand den Bereich öffnet - nicht bei jedem Start.
+        if (NavDevSection.IsChecked == true && ReleaseBox.ItemsSource is null)
+            _ = LoadReleasesAsync();
+    }
+
+    // ==== Version wechseln (Entwicklermodus) ====
+
+    private async void LoadReleases_Click(object sender, RoutedEventArgs e) => await LoadReleasesAsync();
+
+    private async Task LoadReleasesAsync()
+    {
+        LoadReleasesButton.IsEnabled = false;
+        SwitchReleaseButton.IsEnabled = false;
+        ReleaseStateText.Text = "Die öffentlichen Versionen werden geladen…";
+
+        try
+        {
+            var releases = await UpdateService.PublicReleasesAsync();
+            var devReleases = await UpdateService.DevReleasesAsync();
+
+            // Neueste zuerst; bei gleicher Nummer das öffentliche Release vor dem Dev-Patch.
+            var all = releases.Concat(devReleases)
+                .OrderByDescending(info => Version.Parse(info.Version))
+                .ThenBy(info => info.IsDev)
+                .ToList();
+
+            ReleaseBox.ItemsSource = all
+                .Select(info => new ReleaseChoice(info, info.Label == UpdateService.DisplayVersion))
+                .ToList();
+            ReleaseBox.SelectedIndex = all.Count > 0 ? 0 : -1;
+            SwitchReleaseButton.IsEnabled = all.Count > 0;
+
+            ReleaseStateText.Text = all.Count == 0
+                ? "Auf GitHub ist keine Version mit Installationspaket zu finden."
+                : $"{releases.Count} öffentliche und {devReleases.Count} Dev-Versionen"
+                  + (UpdateService.HasDevAccess ? " (Dev-Versionen: die für dieses Konto freigegebenen)" : " - Dev-Versionen gibt es nur mit Server und Anmeldung")
+                  + ". Beim Wechsel wird die installierte Version entfernt und die gewählte installiert; die Daten bleiben unverändert.";
+        }
+        catch (Exception ex)
+        {
+            ReleaseStateText.Text = $"Laden fehlgeschlagen: {ex.Message}";
+        }
+        finally
+        {
+            LoadReleasesButton.IsEnabled = true;
+        }
+    }
+
+    private async void SwitchRelease_Click(object sender, RoutedEventArgs e)
+    {
+        if (ReleaseBox.SelectedItem is not ReleaseChoice choice)
+            return;
+
+        var confirmed = MessageBox.Show(
+            Window.GetWindow(this),
+            $"Version {choice.Info.Version} wird heruntergeladen und installiert. Die jetzige Installation wird dazu "
+            + "entfernt; die Daten bleiben, wie sie sind. Ältere Versionen verstehen neuere Daten womöglich nicht - "
+            + "vorher lohnt sich „Alle Daten exportieren…“.\n\nSchool Manager wird dazu beendet und startet danach neu. Fortfahren?",
+            "Version wechseln",
+            MessageBoxButton.YesNo,
+            MessageBoxImage.Warning) == MessageBoxResult.Yes;
+
+        if (!confirmed)
+            return;
+
+        // Kein zweiter Download daneben - er bräche beim Beenden mittendrin ab.
+        SwitchReleaseButton.IsEnabled = false;
+        LoadReleasesButton.IsEnabled = false;
+        CheckUpdateButton.IsEnabled = false;
+        InstallUpdateButton.IsEnabled = false;
+        LeaveDevButton.IsEnabled = false;
+        Cursor = Cursors.Wait;
+
+        try
+        {
+            var progress = new Progress<int>(percent =>
+                ReleaseStateText.Text = $"Version {choice.Info.Version} wird heruntergeladen… {percent} %");
+
+            var installerPath = await UpdateService.DownloadAsync(choice.Info, progress);
+
+            PrepareForExit();
+
+            // Derselbe Weg wie beim Verlassen des Entwicklermodus - erst entfernen,
+            // dann installieren, damit es auch abwärts geht -, nur ohne Sicherung.
+            DevBackupService.RestoreAndExit(installerPath, null);
+        }
+        catch (Exception ex)
+        {
+            ReleaseStateText.Text = $"Wechsel fehlgeschlagen: {ex.Message}";
+            SwitchReleaseButton.IsEnabled = true;
+            LoadReleasesButton.IsEnabled = true;
+            CheckUpdateButton.IsEnabled = true;
+            InstallUpdateButton.IsEnabled = true;
+            LeaveDevButton.IsEnabled = true;
+            Cursor = Cursors.Arrow;
+        }
+    }
+
+    /// <summary>Ein Eintrag der Versionsliste; die laufende Version ist markiert.</summary>
+    private sealed record ReleaseChoice(UpdateInfo Info, bool Running)
+    {
+        public override string ToString() => Running ? $"{Info.Label} (läuft gerade)" : Info.Label;
+    }
+
+    /// <summary>Springt zum Bereich Programm - etwa vom Hinweis auf ein Update aus.</summary>
+    public void ShowProgramSection() => NavProgramSection.IsChecked = true;
+
+    /// <summary>Springt zum Bereich Entwickler, gleich nach dem Freischalten.</summary>
+    public void ShowDeveloperSection() => NavDevSection.IsChecked = true;
+
+    // ==== E-Mail-Vorlage ====
+
+    private void ShowTemplate()
+    {
+        TemplateEnabledBox.IsChecked = MailTemplate.Enabled;
+        GreetingBox.Text = MailTemplate.Greeting;
+        ClosingBox.Text = MailTemplate.Closing;
+        VariablesBox.Text = MailTemplate.Variables;
+        UpdateTemplatePreview();
+    }
+
+    private void TemplateText_Changed(object sender, TextChangedEventArgs e) => UpdateTemplatePreview();
+
+    private void TemplateOption_Changed(object sender, RoutedEventArgs e) => UpdateTemplatePreview();
+
+    private void UpdateTemplatePreview()
+    {
+        // Beim Aufbau der Seite melden sich die Felder, bevor die Vorschau existiert.
+        if (TemplatePreviewText is null || GreetingBox is null || ClosingBox is null || VariablesBox is null)
+            return;
+
+        TemplatePreviewText.Text = TemplateEnabledBox.IsChecked == true
+            ? MailTemplate.Compose(GreetingBox.Text, ClosingBox.Text, VariablesBox.Text,
+                "Hier steht die eigentliche Nachricht.", "Beispiel", "Anna Muster", html: false)
+            : "Die Vorlage ist ausgeschaltet - E-Mails gehen ohne Begrüssung und Abschluss hinaus.";
+    }
+
+    private void SaveTemplate_Click(object sender, RoutedEventArgs e)
+    {
+        var enabled = TemplateEnabledBox.IsChecked == true;
+
+        MailTemplate.Update(enabled, GreetingBox.Text, ClosingBox.Text, VariablesBox.Text);
+
+        status.SetStatus(
+            enabled
+                ? "E-Mail-Vorlage gespeichert - neue E-Mails bekommen Begrüssung und Abschluss."
+                : "E-Mail-Vorlage gespeichert; sie ist ausgeschaltet.",
+            StatusKind.Success);
     }
 
     /// <summary>Wird von der Seitennavigation aufgerufen, wenn die Seite erscheint.</summary>
@@ -481,9 +657,15 @@ public partial class SettingsPage : UserControl
     public void ShowAvailableUpdate(UpdateInfo update)
     {
         pendingUpdate = update;
-        UpdateStatusText.Text = $"Version {update.Version} ist verfügbar.";
+        UpdateStatusText.Text = Available(update);
         InstallUpdateButton.Visibility = Visibility.Visible;
     }
+
+    /// <summary>„Version 1.2.1 ist verfügbar.“ und darunter die Update-Info aus dem Admin-Panel.</summary>
+    private static string Available(UpdateInfo update) =>
+        update.Note.Length > 0
+            ? $"Version {update.Label} ist verfügbar.\n{update.Note}"
+            : $"Version {update.Label} ist verfügbar.";
 
     private async void CheckUpdate_Click(object sender, RoutedEventArgs e)
     {
@@ -502,7 +684,7 @@ public partial class SettingsPage : UserControl
             }
             else
             {
-                UpdateStatusText.Text = $"Version {pendingUpdate.Version} ist verfügbar.";
+                UpdateStatusText.Text = Available(pendingUpdate);
                 InstallUpdateButton.Visibility = Visibility.Visible;
             }
         }
@@ -782,7 +964,35 @@ public partial class SettingsPage : UserControl
     /// <summary>Zeigt den Entwickler-Abschnitt und die Konto-Auswahl passend an.</summary>
     private void ShowDevSection()
     {
-        DevPanel.Visibility = DevMode.IsEnabled ? Visibility.Visible : Visibility.Collapsed;
+        // Der Bereich Entwickler steht nur im Entwicklermodus in der Liste.
+        NavDevSection.Visibility = DevMode.IsEnabled ? Visibility.Visible : Visibility.Collapsed;
+
+        var account = DevMode.Account;
+        DevAccountText.Text = DevMode.IsSignedIn && account is not null
+            ? $"Angemeldet als {account.Label}"
+            : "Nicht angemeldet - Dev-Versionen und Entwickler-Meldungen gibt es erst nach der Anmeldung.";
+
+        DevSignInButton.Visibility = DevMode.IsEnabled && !DevMode.IsSignedIn
+            ? Visibility.Visible
+            : Visibility.Collapsed;
+
+        // Ins Panel kommt, wer dort mehr darf als nur den Entwicklermodus.
+        OpenPanelButton.Visibility = account?.Permissions.Any(p => p is not ("DevMode" or "AllDevUpdates")) == true
+            ? Visibility.Visible
+            : Visibility.Collapsed;
+
+        // Nach einem Wechsel des Kontos stünde sonst die Versionsliste des vorigen da.
+        if (account?.UserName != shownAccount)
+        {
+            shownAccount = account?.UserName;
+            ReleaseBox.ItemsSource = null;
+        }
+
+        if (!DevMode.IsEnabled && NavDevSection.IsChecked == true)
+            NavAccountSection.IsChecked = true;
+
+        // Ein eigener Absender zählt nur ohne Microsoft 365 - und das gibt es nur im Entwicklermodus.
+        SenderPanel.Visibility = DevMode.IsEnabled ? Visibility.Visible : Visibility.Collapsed;
 
         // Steckt eine Anwendungs-ID im Programm, ist Microsoft 365 keine Sache
         // des Entwicklermodus mehr - der Hinweis darauf wäre dann schlicht falsch.
@@ -821,6 +1031,37 @@ public partial class SettingsPage : UserControl
 
     /// <summary>Der zuletzt angezeigte Kanal; null, bevor die Seite das erste Mal gefüllt wurde.</summary>
     private bool? shownDevPatches;
+
+    /// <summary>Das Konto, für das die Versionsliste geladen wurde.</summary>
+    private string? shownAccount;
+
+    /// <summary>Neu anmelden, ohne den Entwicklermodus zu verlassen - etwa nach einem Update oder einer abgelaufenen Anmeldung.</summary>
+    private void DevSignIn_Click(object sender, RoutedEventArgs e)
+    {
+        if (new Dialogs.DevSignInDialog { Owner = Window.GetWindow(this) }.ShowDialog() != true)
+            return;
+
+        status.SetStatus($"Angemeldet als {DevMode.Account?.Label}.", StatusKind.Success);
+
+        // Mit der Anmeldung kommen die freigegebenen Dev-Versionen dazu.
+        ReleaseBox.ItemsSource = null;
+
+        if (NavDevSection.IsChecked == true)
+            _ = LoadReleasesAsync();
+    }
+
+    private void OpenPanel_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            Process.Start(new ProcessStartInfo(ServerApi.BaseUrl + "/admin/") { UseShellExecute = true });
+        }
+        catch (Exception ex)
+        {
+            AppLog.Error($"Das Admin-Panel liess sich nicht öffnen: {ex.Message}", "Einstellungen");
+            status.SetStatus($"Das Admin-Panel liess sich nicht öffnen: {ex.Message}", StatusKind.Error);
+        }
+    }
 
     private void DevPatches_Changed(object sender, RoutedEventArgs e)
     {

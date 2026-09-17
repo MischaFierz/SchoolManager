@@ -1,11 +1,16 @@
 name: Release
 
 # Läuft bei jedem Versions-Tag: baut die App und das Installationspaket und
-# veröffentlicht beides als GitHub-Release.
+# veröffentlicht beides als GitHub-Release in genau dem Repository, in dem der
+# Tag liegt. Dev-Patches wie v1.2.0-dev werden nur im privaten Repository
+# SchoolManager-dev getaggt und sind darum öffentlich weder zu sehen noch
+# herunterzuladen.
 #
-# Zwei Kanäle, am Tag unterscheidbar:
-#   v1.2.0       öffentliches Release - findet jeder über die Update-Suche
-#   v1.2.0-dev   Dev-Patch - als Vorabversion, nur im Entwicklermodus sichtbar
+# Variable SERVER_URL (Settings → Secrets and variables → Actions → Variables),
+# in beiden Repositories: die Adresse des School-Manager-Servers, etwa
+# https://schoolmanager-admin.azurewebsites.net. Über ihn melden sich Entwickler
+# an und bekommen ihre freigegebenen Dev-Patches; im Programm steckt kein
+# Zugang zu GitHub mehr.
 on:
   push:
     tags:
@@ -53,7 +58,7 @@ jobs:
           -p:DebugType=none
           -p:Version=${{ steps.version.outputs.version }}
           -p:InformationalVersion=${{ steps.version.outputs.full }}
-          -p:DevReleasesToken=${{ secrets.DEV_RELEASES_READ_TOKEN }}
+          -p:ServerUrl=${{ vars.SERVER_URL }}
           --output publish
 
       - name: Installationspaket bauen
@@ -70,9 +75,6 @@ jobs:
         with:
           name: School Manager ${{ github.ref_name }}
           generate_release_notes: true
-          # Tags mit "-dev" sind Dev-Patches: als Vorabversion veroeffentlicht,
-          # damit die Update-Suche normaler Nutzer sie ueberspringt. Nur der
-          # Entwicklermodus sucht ausdruecklich danach.
           prerelease: ${{ contains(github.ref_name, '-dev') }}
           files: |
             publish/SchoolManager.exe

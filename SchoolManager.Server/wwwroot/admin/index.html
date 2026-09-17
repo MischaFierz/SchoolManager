@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="de-CH">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Anmelden · School Manager</title>
+    <link rel="canonical" href="/admin/">
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="styles.css">
+    <script src="/banners.js" defer></script>
+    <script src="app.js" defer></script>
+</head>
+<body>
+    <!-- Anmeldung -->
+    <main id="login-view" class="signin-view" hidden>
+        <!-- Meldungen aus dem Panel für die Anmeldeseite -->
+        <div class="page-banners" data-page-messages="signin" hidden></div>
+
+        <div class="center-view">
+        <form id="login-form" class="card narrow" autocomplete="on">
+            <div class="brand">
+                <span class="brand-mark" aria-hidden="true"></span>
+                <div>
+                    <h1>School Manager</h1>
+                    <p class="muted">Anmelden</p>
+                </div>
+            </div>
+            <label>Benutzername
+                <input id="login-user" name="username" autocomplete="username" required maxlength="64" autocapitalize="none" spellcheck="false">
+            </label>
+            <label>Passwort
+                <input id="login-password" name="password" type="password" autocomplete="current-password" required maxlength="200">
+            </label>
+            <p id="login-error" class="form-error" role="alert"></p>
+            <button type="submit" class="primary wide">Anmelden</button>
+            <p class="faint small-text">Passwort vergessen? Ein Administrator kann es unter „Benutzer“ neu setzen.</p>
+            <a class="back-link" href="/">← Zur Startseite</a>
+        </form>
+        </div>
+    </main>
+
+    <!-- Neues Passwort erzwingen -->
+    <main id="password-view" class="center-view" hidden>
+        <form id="forced-password-form" class="card narrow">
+            <h1>Neues Passwort setzen</h1>
+            <p class="muted">Für dieses Konto muss vor dem ersten Arbeiten ein eigenes Passwort gesetzt werden.</p>
+            <label>Bisheriges Passwort
+                <input id="forced-current" type="password" autocomplete="current-password" required maxlength="200">
+            </label>
+            <label>Neues Passwort
+                <input id="forced-new" type="password" autocomplete="new-password" required maxlength="200">
+            </label>
+            <label>Neues Passwort wiederholen
+                <input id="forced-repeat" type="password" autocomplete="new-password" required maxlength="200">
+            </label>
+            <p id="forced-error" class="form-error" role="alert"></p>
+            <button type="submit" class="primary wide">Passwort setzen</button>
+            <button type="button" id="forced-logout" class="ghost wide">Abmelden</button>
+        </form>
+    </main>
+
+    <!-- Das Panel -->
+    <div id="app-view" class="shell" hidden>
+        <aside class="sidebar">
+            <div class="brand small">
+                <span class="brand-mark" aria-hidden="true"></span>
+                <div>
+                    <strong>School Manager</strong>
+                    <span class="muted">Admin-Panel</span>
+                </div>
+            </div>
+            <nav id="nav" aria-label="Bereiche"></nav>
+            <div class="sidebar-foot">
+                <span id="whoami" class="muted"></span>
+                <button type="button" id="logout" class="ghost">Abmelden</button>
+                <a class="back-link" href="/">Zur Startseite</a>
+            </div>
+        </aside>
+        <main id="content" class="content" tabindex="-1"></main>
+    </div>
+
+    <dialog id="dialog">
+        <form method="dialog" id="dialog-form">
+            <header>
+                <h2 id="dialog-title"></h2>
+            </header>
+            <div id="dialog-body" class="dialog-body"></div>
+            <p id="dialog-error" class="form-error" role="alert"></p>
+            <footer id="dialog-actions"></footer>
+        </form>
+    </dialog>
+
+    <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+</body>
+</html>
