@@ -29,7 +29,7 @@ public static class Changelog
     /// <summary>Die Fassungen, die neueste zuoberst.</summary>
     public static IReadOnlyList<Entry> All { get; } =
     [
-        new("1.2.0", "17.09.2026", true,
+        new("1.2.0", "17.09.2026", false,
         [
             "Der Entwicklermodus braucht eine Anmeldung: Nach sieben Klicks auf die Versionsnummer öffnet sich ein Anmeldefenster, und nur Konten, die im Admin-Panel dafür eingetragen sind, kommen hinein. Die Einstellungen zeigen unter Entwickler, wer angemeldet ist. Einmal eingeschaltet, bleibt der Entwicklermodus über Neustarts und Updates hinweg eingeschaltet, bis man ihn unter Einstellungen → Entwickler verlässt - auch ein früher ohne Anmeldung eingeschalteter. Gilt die Anmeldung nicht mehr (abgelaufen, Konto gesperrt oder gelöscht), ist er nur abgemeldet: Ein Knopf „Anmelden“ unter Entwickler - oder siebenmal auf die Versionsnummer - meldet neu an; Dev-Versionen und Entwickler-Meldungen gibt es bis dahin nicht. In der App gilt eine Anmeldung ein Jahr ab dem letzten Start.",
             "Neu: der School-Manager-Server mit einer Startseite (Funktionen, Download der neuesten Version) und einem Admin-Panel im Browser unter /admin/. Darin lassen sich Benutzer mit Stufe (Tester, Entwickler, Administrator), eigenen Rechten und Gruppen verwalten, Gruppen mit gebündelten Rechten anlegen, Konten sperren, entsperren, abmelden und Passwörter neu setzen. Ein Verlauf hält fest, wer was geändert hat.",
@@ -42,6 +42,11 @@ public static class Changelog
             "Im Entwicklermodus lässt sich unter Entwickler → Version wechseln aus allen öffentlichen Versionen eine wählen und direkt installieren - auch eine ältere. Die Daten bleiben dabei unverändert.",
             "Die Einstellungen sind in Bereiche aufgeteilt: Links stehen Konto & Anmeldung, E-Mail-Vorlage, Erinnerungen, Programm & Updates, Daten und Zurücksetzen - im Entwicklermodus zusätzlich Entwickler -, rechts nur der gewählte Bereich. „Verbindung testen“ und „Speichern“ erscheinen nur beim Konto, der Hinweis auf ein Update führt direkt zu Programm & Updates.",
             "Neu: E-Mail-Vorlage. Begrüssung und Abschluss werden einmal festgelegt und rahmen jede E-Mail beim Senden automatisch ein. Darin gehen die Variablen {Empfänger}, {Vorname}, {Nachname}, {Betreff} und {Datum} sowie eigene Variablen, je Zeile als Name = Wert. Die Einstellungen zeigen eine Vorschau; auf der Seite E-Mail lässt sich eine Nachricht mit einem Haken auch ohne Vorlage senden und vorher als Vorschau ansehen."
+        ]),
+
+        new("1.1.5", "13.09.2026", false,
+        [
+            "Dev-Patches kommen ab jetzt aus einem privaten Repository und sind öffentlich weder zu sehen noch herunterzuladen. Der Entwicklermodus lädt sie mit einem eingebauten Nur-Lese-Zugang; eine Fassung ohne diesen Zugang sieht schlicht keine Dev-Patches."
         ]),
 
         new("1.1.4", "13.09.2026", false,
