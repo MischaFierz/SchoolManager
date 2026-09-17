@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SchoolManager.Cli", "School
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SchoolManager.App", "SchoolManager.App\SchoolManager.App.csproj", "{41AE0F0C-7F0F-48A4-8288-2E98DF33F08D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SchoolManager.Server", "SchoolManager.Server\SchoolManager.Server.csproj", "{B3C79A8E-F839-4AE3-B11D-32B24D8E3114}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -55,6 +57,18 @@ Global
 		{41AE0F0C-7F0F-48A4-8288-2E98DF33F08D}.Release|x64.Build.0 = Release|Any CPU
 		{41AE0F0C-7F0F-48A4-8288-2E98DF33F08D}.Release|x86.ActiveCfg = Release|Any CPU
 		{41AE0F0C-7F0F-48A4-8288-2E98DF33F08D}.Release|x86.Build.0 = Release|Any CPU
+		{B3C79A8E-F839-4AE3-B11D-32B24D8E3114}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B3C79A8E-F839-4AE3-B11D-32B24D8E3114}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B3C79A8E-F839-4AE3-B11D-32B24D8E3114}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{B3C79A8E-F839-4AE3-B11D-32B24D8E3114}.Debug|x64.Build.0 = Debug|Any CPU
+		{B3C79A8E-F839-4AE3-B11D-32B24D8E3114}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{B3C79A8E-F839-4AE3-B11D-32B24D8E3114}.Debug|x86.Build.0 = Debug|Any CPU
+		{B3C79A8E-F839-4AE3-B11D-32B24D8E3114}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B3C79A8E-F839-4AE3-B11D-32B24D8E3114}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B3C79A8E-F839-4AE3-B11D-32B24D8E3114}.Release|x64.ActiveCfg = Release|Any CPU
+		{B3C79A8E-F839-4AE3-B11D-32B24D8E3114}.Release|x64.Build.0 = Release|Any CPU
+		{B3C79A8E-F839-4AE3-B11D-32B24D8E3114}.Release|x86.ActiveCfg = Release|Any CPU
+		{B3C79A8E-F839-4AE3-B11D-32B24D8E3114}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

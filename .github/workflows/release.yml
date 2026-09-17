@@ -6,9 +6,11 @@ name: Release
 # SchoolManager-dev getaggt und sind darum öffentlich weder zu sehen noch
 # herunterzuladen.
 #
-# Secret DEV_RELEASES_READ_TOKEN (Settings → Secrets and variables → Actions):
-# Nur-Lese-Zugang zu SchoolManager-dev. Er kommt in die App, damit der
-# Entwicklermodus die Dev-Patches findet.
+# Variable SERVER_URL (Settings → Secrets and variables → Actions → Variables),
+# in beiden Repositories: die Adresse des School-Manager-Servers, etwa
+# https://schoolmanager-admin.azurewebsites.net. Über ihn melden sich Entwickler
+# an und bekommen ihre freigegebenen Dev-Patches; im Programm steckt kein
+# Zugang zu GitHub mehr.
 on:
   push:
     tags:
@@ -56,7 +58,7 @@ jobs:
           -p:DebugType=none
           -p:Version=${{ steps.version.outputs.version }}
           -p:InformationalVersion=${{ steps.version.outputs.full }}
-          -p:DevReleasesToken=${{ secrets.DEV_RELEASES_READ_TOKEN }}
+          -p:ServerUrl=${{ vars.SERVER_URL }}
           --output publish
 
       - name: Installationspaket bauen

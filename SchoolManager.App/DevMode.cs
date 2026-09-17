@@ -1,31 +1,32 @@
 using System.IO;
 using System.Text.Json;
 using SchoolManager.App.Data;
+using SchoolManager.App.Logging;
+using SchoolManager.App.Online;
 using SchoolManager.App.Update;
 
 namespace SchoolManager.App;
 
 /// <summary>
 /// Der Entwicklermodus. Er blendet ein, was für normale Nutzung nicht gedacht
-/// ist - zurzeit die Konto-Art Microsoft 365 und den Bezug von Dev-Patches.
-///
-/// Das ist bewusst nur eine Sichtbarkeitsfrage, keine Zugriffssperre: Was in
-/// der Anwendung steckt, lässt sich ohnehin auslesen. Es geht darum, Unfertiges
-/// niemandem versehentlich vor die Nase zu setzen.
+/// ist - die Konto-Art Microsoft 365, Dev-Patches und das Protokoll.
 ///
 /// Aufgeschaltet wird er, indem man unten in der Seitenleiste siebenmal auf die
-/// Versionsnummer klickt.
+/// Versionsnummer klickt und sich dann mit einem Konto anmeldet, das im
+/// Admin-Panel dafür eingetragen ist. Welche Dev-Versionen es beziehen darf,
+/// entscheidet der Server; ein gesperrtes oder gelöschtes Konto fällt beim
+/// nächsten Start wieder heraus.
 /// </summary>
 public static class DevMode
 {
-    /// <summary>So viele Klicks auf die Versionsnummer schalten ihn frei.</summary>
+    /// <summary>So viele Klicks auf die Versionsnummer öffnen die Anmeldung.</summary>
     public const int ClicksToUnlock = 7;
 
     private static readonly string FilePath = LocalStore.PathFor("entwickler.json");
 
     private static State state = Load();
 
-    /// <summary>Ist der Entwicklermodus eingeschaltet?</summary>
+    /// <summary>Ist der Entwicklermodus eingeschaltet - also ein Entwickler angemeldet?</summary>
     public static bool IsEnabled => state.Enabled;
 
     /// <summary>
@@ -33,6 +34,12 @@ public static class DevMode
     /// bezogen werden? Ohne Entwicklermodus immer nein.
     /// </summary>
     public static bool UseDevPatches => state.Enabled && state.DevPatches;
+
+    /// <summary>Die Anmeldung beim Server; nur im Entwicklermodus vorhanden.</summary>
+    public static string? Token => state.Enabled ? state.Token : null;
+
+    /// <summary>Das angemeldete Konto, wie es der Server zuletzt beschrieben hat.</summary>
+    public static DevAccount? Account => state.Enabled ? state.Account : null;
 
     /// <summary>
     /// Die beim Einschalten angelegte Sicherung der Daten; null, wenn keine
@@ -43,35 +50,91 @@ public static class DevMode
     /// <summary>Meldet jede Änderung, damit die Oberfläche nachziehen kann.</summary>
     public static event Action? Changed;
 
-    public static void Enable()
+    /// <summary>Meldet beim Server an und schaltet bei Erfolg den Entwicklermodus ein.</summary>
+    /// <exception cref="ServerException">Mit einer Meldung, die sich so anzeigen lässt.</exception>
+    public static async Task SignInAsync(string userName, string password)
     {
-        if (state.Enabled)
-            return;
+        var (token, account) = await ServerApi.SignInAsync(userName, password);
+
+        var wasEnabled = state.Enabled;
 
         state.Enabled = true;
+        state.Token = token;
+        state.Account = account;
 
-        // Wer den Entwicklermodus einschaltet, will die Dev-Patches sehen; ohne
-        // den Haken fände die Update-Suche nur das öffentliche Release.
-        state.DevPatches = true;
+        if (!wasEnabled)
+        {
+            // Wer den Entwicklermodus einschaltet, will die Dev-Patches sehen; ohne
+            // den Haken fände die Update-Suche nur das öffentliche Release.
+            state.DevPatches = true;
 
-        // Bevor irgendein Dev-Patch die Daten anfassen kann, kommt der ganze
-        // Datenordner in eine Sicherung. Klappt das nicht, wird trotzdem
-        // eingeschaltet - die Oberfläche sagt dann, dass es keine gibt.
-        state.BackupPath = DevBackupService.TryCreate() ?? state.BackupPath;
+            // Bevor irgendein Dev-Patch die Daten anfassen kann, kommt der ganze
+            // Datenordner in eine Sicherung. Klappt das nicht, wird trotzdem
+            // eingeschaltet - die Oberfläche sagt dann, dass es keine gibt.
+            state.BackupPath = DevBackupService.TryCreate() ?? state.BackupPath;
+        }
 
         Save();
     }
 
+    /// <summary>Schaltet ab und meldet beim Server ab.</summary>
     public static void Disable()
     {
         if (!state.Enabled)
             return;
 
+        if (state.Token is { Length: > 0 } token)
+            _ = ServerApi.SignOutAsync(token);
+
         // Beim Abschalten auch den Patch-Kanal zurücksetzen; sonst zöge eine
         // später wieder eingeschaltete Installation stillschweigend Dev-Stände.
         state.Enabled = false;
         state.DevPatches = false;
+        state.Token = null;
+        state.Account = null;
         Save();
+    }
+
+    /// <summary>
+    /// Fragt beim Server nach, ob die Anmeldung noch gilt, und holt das Konto
+    /// frisch. Ist sie abgelaufen, das Konto gesperrt oder gelöscht, geht der
+    /// Entwicklermodus aus; das Ergebnis ist dann der Grund. Ist der Server nur
+    /// nicht erreichbar, bleibt alles, wie es ist - offline zu arbeiten soll
+    /// niemanden hinauswerfen.
+    /// </summary>
+    public static async Task<string?> VerifyAsync()
+    {
+        if (!state.Enabled || state.Token is not { Length: > 0 } token)
+            return null;
+
+        DevAccount? account;
+
+        try
+        {
+            account = await ServerApi.AccountAsync(token);
+        }
+        catch (ServerException ex)
+        {
+            AppLog.Error($"Die Anmeldung im Entwicklermodus liess sich nicht prüfen: {ex.Message}", "Server");
+            return null;
+        }
+
+        if (account is null || !account.Permissions.Contains("DevMode"))
+        {
+            // Das Token gilt nicht mehr; eine Abmeldung beim Server erübrigt sich.
+            state.Token = null;
+            Disable();
+
+            return "Der Entwicklermodus ist abgeschaltet: Die Anmeldung gilt nicht mehr, oder das Konto darf ihn nicht mehr öffnen.";
+        }
+
+        if (account != state.Account)
+        {
+            state.Account = account;
+            Save();
+        }
+
+        return null;
     }
 
     public static void SetDevPatches(bool value)
@@ -93,6 +156,7 @@ public static class DevMode
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
             // Nicht speicherbar: dann gilt die Einstellung eben nur diesmal.
+            AppLog.Error($"Der Entwicklermodus konnte nicht gespeichert werden: {ex.Message}", "Entwicklermodus");
         }
 
         Changed?.Invoke();
@@ -100,16 +164,27 @@ public static class DevMode
 
     private static State Load()
     {
+        State loaded;
+
         try
         {
-            return File.Exists(FilePath)
+            loaded = File.Exists(FilePath)
                 ? JsonSerializer.Deserialize<State>(File.ReadAllText(FilePath)) ?? new State()
                 : new State();
         }
         catch (Exception ex) when (ex is IOException or JsonException)
         {
-            return new State();
+            loaded = new State();
         }
+
+        // Aus der Zeit, als sieben Klicks genügten: ohne Anmeldung kein Entwicklermodus.
+        if (loaded.Enabled && string.IsNullOrEmpty(loaded.Token))
+        {
+            loaded.Enabled = false;
+            loaded.DevPatches = false;
+        }
+
+        return loaded;
     }
 
     private sealed class State
@@ -119,5 +194,13 @@ public static class DevMode
 
         /// <summary>Die Sicherung vom Einschalten, für den Weg zurück.</summary>
         public string? BackupPath { get; set; }
+
+        /// <summary>
+        /// Die Anmeldung beim Server. Sie liegt im eigenen Benutzerprofil wie
+        /// die übrigen Daten und berechtigt nur zu dem, was das Konto darf.
+        /// </summary>
+        public string? Token { get; set; }
+
+        public DevAccount? Account { get; set; }
     }
 }

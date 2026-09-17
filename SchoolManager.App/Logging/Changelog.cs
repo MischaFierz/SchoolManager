@@ -29,8 +29,15 @@ public static class Changelog
     /// <summary>Die Fassungen, die neueste zuoberst.</summary>
     public static IReadOnlyList<Entry> All { get; } =
     [
-        new("1.2.0", "13.09.2026", true,
+        new("1.2.0", "17.09.2026", true,
         [
+            "Der Entwicklermodus braucht eine Anmeldung: Nach sieben Klicks auf die Versionsnummer öffnet sich ein Anmeldefenster, und nur Konten, die im Admin-Panel dafür eingetragen sind, kommen hinein. Die Einstellungen zeigen unter Entwickler, wer angemeldet ist. Wird ein Konto gesperrt, gelöscht oder verliert es das Recht, ist der Entwicklermodus beim nächsten Start wieder aus. Ein früher ohne Anmeldung eingeschalteter Entwicklermodus ist nach dem Update abgeschaltet.",
+            "Neu: der School-Manager-Server mit einem Admin-Panel im Browser. Darin lassen sich Benutzer mit Stufe (Tester, Entwickler, Administrator), eigenen Rechten und Gruppen verwalten, Gruppen mit gebündelten Rechten anlegen, Konten sperren, entsperren, abmelden und Passwörter neu setzen. Ein Verlauf hält fest, wer was geändert hat.",
+            "Meldungen aus dem Admin-Panel erscheinen oben im Fenster - rot für Fehler, grau für Hinweise, für alle oder nur für angemeldete Entwickler, auf Wunsch mit Ablaufdatum. School Manager holt sie beim Start und alle zehn Minuten; eine weggeklickte Meldung erscheint wieder, sobald sie im Panel geändert wird.",
+            "Zu jeder Version lässt sich im Admin-Panel eine kurze Update-Info schreiben. Sie steht im Hinweis „Version … steht bereit“ und unter Programm & Updates.",
+            "Welche Dev-Version ein Konto bekommt, entscheidet jetzt der Server: Tester erhalten nur, was im Panel für sie, ihre Gruppe oder alle Entwickler freigegeben ist, Entwickler und Administratoren alle; „nur öffentliche Versionen“ sperrt Dev-Versionen ganz. Im Programm steckt dafür kein GitHub-Zugang mehr - der Download einer Dev-Version läuft über eine kurzlebige Adresse, die der Server nur einem berechtigten Konto gibt.",
+            "Aus dem Admin-Panel lassen sich Dev-Versionen und öffentliche Releases direkt auslösen (der Tag wird gesetzt, GitHub baut) und nach einem grünen Release die darin aufgegangenen Dev-Versionen aufräumen.",
+            "Ist der Server nicht erreichbar, sucht School Manager öffentliche Updates wie bisher direkt bei GitHub. Fehler bei der Verbindung zum Server stehen im Protokoll unter „Fehler“.",
             "Dev-Patches kommen aus einem privaten Repository und sind öffentlich weder zu sehen noch herunterzuladen. Unter Entwickler → Version wechseln stehen die öffentlichen Versionen und die Dev-Patches zur Wahl, und auch die Update-Suche im Entwicklermodus findet Dev-Patches dort.",
             "Im Entwicklermodus lässt sich unter Entwickler → Version wechseln aus allen öffentlichen Versionen eine wählen und direkt installieren - auch eine ältere. Die Daten bleiben dabei unverändert.",
             "Die Einstellungen sind in Bereiche aufgeteilt: Links stehen Konto & Anmeldung, E-Mail-Vorlage, Erinnerungen, Programm & Updates, Daten und Zurücksetzen - im Entwicklermodus zusätzlich Entwickler -, rechts nur der gewählte Bereich. „Verbindung testen“ und „Speichern“ erscheinen nur beim Konto, der Hinweis auf ein Update führt direkt zu Programm & Updates.",

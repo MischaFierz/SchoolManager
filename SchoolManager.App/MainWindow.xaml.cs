@@ -6,8 +6,10 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
 using SchoolManager.App.Data;
+using SchoolManager.App.Dialogs;
 using SchoolManager.App.Logging;
 using SchoolManager.App.Notifications;
+using SchoolManager.App.Online;
 using SchoolManager.App.Pages;
 using SchoolManager.App.Update;
 using SchoolManager.Core;
@@ -166,9 +168,57 @@ public partial class MainWindow : Window, IStatusSink
                 : "Für den E-Mail-Versand ist noch kein Konto eingerichtet - siehe Einstellungen.",
             StatusKind.Info);
 
-        _ = CheckForUpdateOnStartupAsync();
+        _ = StartOnlineAsync();
         ShowMailWarning();
         AskAboutNotifications();
+    }
+
+    // ==== Server: Meldungen und Anmeldung ====
+
+    /// <summary>So oft holt das Fenster neue Meldungen aus dem Admin-Panel.</summary>
+    private readonly DispatcherTimer messageTimer = new() { Interval = TimeSpan.FromMinutes(10) };
+
+    /// <summary>
+    /// Erst die Anmeldung im Entwicklermodus prüfen - ein gesperrtes Konto soll
+    /// keine Dev-Versionen mehr angeboten bekommen -, dann Meldungen und Update.
+    /// </summary>
+    private async Task StartOnlineAsync()
+    {
+        if (await DevMode.VerifyAsync() is { } reason)
+            SetStatus(reason, StatusKind.Info);
+
+        await ShowServerMessagesAsync();
+
+        messageTimer.Tick += async (_, _) => await ShowServerMessagesAsync();
+        messageTimer.Start();
+
+        // Wer sich an- oder abmeldet, sieht andere Meldungen.
+        DevMode.Changed += () => _ = ShowServerMessagesAsync();
+
+        await CheckForUpdateOnStartupAsync();
+    }
+
+    private async Task ShowServerMessagesAsync()
+    {
+        var messages = await ServerMessages.VisibleAsync();
+
+        ServerMessageList.ItemsSource = messages;
+        ServerMessageList.Visibility = messages.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    private void ServerMessageClose_Click(object sender, RoutedEventArgs e)
+    {
+        if ((sender as FrameworkElement)?.Tag is not ServerMessage message)
+            return;
+
+        ServerMessages.Dismiss(message);
+
+        if (ServerMessageList.ItemsSource is IEnumerable<ServerMessage> shown)
+        {
+            var remaining = shown.Where(m => m.Key != message.Key).ToList();
+            ServerMessageList.ItemsSource = remaining;
+            ServerMessageList.Visibility = remaining.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+        }
     }
 
     /// <summary>
@@ -213,8 +263,9 @@ public partial class MainWindow : Window, IStatusSink
     private int versionClicks;
 
     /// <summary>
-    /// Siebenmal auf die Versionsnummer schaltet den Entwicklermodus frei -
-    /// versehentlich findet das niemand, gesucht findet es jeder.
+    /// Siebenmal auf die Versionsnummer öffnet die Anmeldung für den
+    /// Entwicklermodus - versehentlich findet das niemand, und wer es findet,
+    /// braucht trotzdem ein im Admin-Panel eingetragenes Konto.
     /// </summary>
     private void VersionText_Click(object sender, MouseButtonEventArgs e)
     {
@@ -240,15 +291,22 @@ public partial class MainWindow : Window, IStatusSink
         }
 
         versionClicks = 0;
-        DevMode.Enable();
+
+        if (new DevSignInDialog { Owner = this }.ShowDialog() != true)
+        {
+            SetStatus("Anmeldung abgebrochen.", StatusKind.Info);
+            return;
+        }
+
         ShowDevMode();
 
         NavSettings.IsChecked = true;
         settingsPage.ShowDeveloperSection();
         SetStatus(
-            DevMode.BackupPath is null
-                ? "Entwicklermodus aktiv - siehe Einstellungen. Eine Sicherung der Daten kam nicht zustande."
-                : "Entwicklermodus aktiv - die Daten sind gesichert; siehe Einstellungen.",
+            $"Entwicklermodus aktiv als {DevMode.Account?.Label} - "
+            + (DevMode.BackupPath is null
+                ? "eine Sicherung der Daten kam nicht zustande."
+                : "die Daten sind gesichert; siehe Einstellungen."),
             StatusKind.Success);
     }
 
@@ -302,7 +360,12 @@ public partial class MainWindow : Window, IStatusSink
     /// </summary>
     private void ShowUpdateBanner(UpdateInfo update)
     {
-        UpdateBannerText.Text = $"Version {update.Version} steht bereit.";
+        // Die Update-Info aus dem Admin-Panel steht gleich dahinter; ist sie
+        // länger als die Zeile, steht sie ganz im Tooltip.
+        UpdateBannerText.Text = update.Note.Length > 0
+            ? $"Version {update.Label} steht bereit. {update.Note}"
+            : $"Version {update.Label} steht bereit.";
+        UpdateBannerText.ToolTip = update.Note.Length > 0 ? update.Note : null;
         UpdateBanner.Visibility = Visibility.Visible;
     }
 

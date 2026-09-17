@@ -32,11 +32,18 @@
     <Using Remove="System.Drawing" />
   </ItemGroup>
 
-  <!-- Nur-Lese-Zugang zu den Dev-Patches im privaten Repository. Kommt beim
-       Bauen auf GitHub aus einem Secret (-p:DevReleasesToken=...); selbst
-       gebaute Fassungen haben keinen und sehen darum keine Dev-Patches. -->
-  <ItemGroup Condition="'$(DevReleasesToken)' != ''">
-    <AssemblyMetadata Include="DevReleasesToken" Value="$(DevReleasesToken)" />
+  <!-- Adresse des School-Manager-Servers (SchoolManager.Server): Anmeldung für
+       den Entwicklermodus, Meldungen und Update-Freigaben. Beim Bauen auf
+       GitHub kommt sie aus der Variablen SERVER_URL (-p:ServerUrl=...). Zum
+       Entwickeln gilt der lokal gestartete Server; eine Release-Fassung ohne
+       Adresse sucht Updates wie früher allein bei GitHub und kennt keinen
+       Entwicklermodus. -->
+  <PropertyGroup Condition="'$(ServerUrl)' == '' And '$(Configuration)' == 'Debug'">
+    <ServerUrl>http://localhost:5080</ServerUrl>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(ServerUrl)' != ''">
+    <AssemblyMetadata Include="ServerUrl" Value="$(ServerUrl)" />
   </ItemGroup>
 
   <ItemGroup>

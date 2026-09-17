@@ -404,11 +404,23 @@
                         <StackPanel x:Name="DevPanel" Visibility="Collapsed">
                             <TextBlock Text="Entwickler" Style="{StaticResource SectionTitle}" />
 
+                            <!-- Wer angemeldet ist; das Panel nur für Konten mit Rechten darin -->
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,14">
+                                <TextBlock x:Name="DevAccountText" VerticalAlignment="Center"
+                                           FontFamily="{StaticResource UiFont}" FontSize="13"
+                                           Foreground="{StaticResource Text}"
+                                           AutomationProperties.AutomationId="DevAccountText" />
+                                <Button x:Name="OpenPanelButton" Content="Admin-Panel öffnen" Margin="14,0,0,0"
+                                        Visibility="Collapsed"
+                                        AutomationProperties.AutomationId="OpenPanelButton"
+                                        Click="OpenPanel_Click" />
+                            </StackPanel>
+
                             <CheckBox x:Name="DevPatchesBox" Content="Dev-Patches statt Releases beziehen"
                                       AutomationProperties.AutomationId="DevPatchesBox"
                                       Checked="DevPatches_Changed" Unchecked="DevPatches_Changed" />
                             <TextBlock Style="{StaticResource Hint}" Margin="0,8,0,0"
-                                       Text="Die Update-Suche nimmt dann die Vorabversionen mit „-dev“ im Namen statt der öffentlichen Releases. Diese Stände sind ungetestet und können Daten beschädigen - vorher „Alle Daten exportieren…“." />
+                                       Text="Die Update-Suche nimmt dann zusätzlich die Vorabversionen mit „-dev“ im Namen - welche davon, legt das Admin-Panel für dieses Konto fest. Diese Stände sind ungetestet und können Daten beschädigen - vorher „Alle Daten exportieren…“." />
 
                             <!-- Schnell zwischen öffentlichen Versionen wechseln, auch abwärts -->
                             <TextBlock Text="Version wechseln" Style="{StaticResource SectionTitle}" Margin="0,18,0,8" />

@@ -8,6 +8,7 @@ using Microsoft.Win32;
 using SchoolManager.App.Data;
 using SchoolManager.App.Logging;
 using SchoolManager.App.Notifications;
+using SchoolManager.App.Online;
 using SchoolManager.App.Update;
 using SchoolManager.Core;
 
@@ -113,7 +114,7 @@ public partial class SettingsPage : UserControl
             ReleaseStateText.Text = all.Count == 0
                 ? "Auf GitHub ist keine Version mit Installationspaket zu finden."
                 : $"{releases.Count} öffentliche und {devReleases.Count} Dev-Versionen"
-                  + (UpdateService.HasDevAccess ? "" : " - Dev-Versionen sieht nur eine Fassung, die GitHub gebaut hat")
+                  + (UpdateService.HasDevAccess ? " (Dev-Versionen: die für dieses Konto freigegebenen)" : " - Dev-Versionen gibt es nur mit Server und Anmeldung")
                   + ". Beim Wechsel wird die installierte Version entfernt und die gewählte installiert; die Daten bleiben unverändert.";
         }
         catch (Exception ex)
@@ -656,9 +657,15 @@ public partial class SettingsPage : UserControl
     public void ShowAvailableUpdate(UpdateInfo update)
     {
         pendingUpdate = update;
-        UpdateStatusText.Text = $"Version {update.Version} ist verfügbar.";
+        UpdateStatusText.Text = Available(update);
         InstallUpdateButton.Visibility = Visibility.Visible;
     }
+
+    /// <summary>„Version 1.2.1 ist verfügbar.“ und darunter die Update-Info aus dem Admin-Panel.</summary>
+    private static string Available(UpdateInfo update) =>
+        update.Note.Length > 0
+            ? $"Version {update.Label} ist verfügbar.\n{update.Note}"
+            : $"Version {update.Label} ist verfügbar.";
 
     private async void CheckUpdate_Click(object sender, RoutedEventArgs e)
     {
@@ -677,7 +684,7 @@ public partial class SettingsPage : UserControl
             }
             else
             {
-                UpdateStatusText.Text = $"Version {pendingUpdate.Version} ist verfügbar.";
+                UpdateStatusText.Text = Available(pendingUpdate);
                 InstallUpdateButton.Visibility = Visibility.Visible;
             }
         }
@@ -960,6 +967,21 @@ public partial class SettingsPage : UserControl
         // Der Bereich Entwickler steht nur im Entwicklermodus in der Liste.
         NavDevSection.Visibility = DevMode.IsEnabled ? Visibility.Visible : Visibility.Collapsed;
 
+        var account = DevMode.Account;
+        DevAccountText.Text = account is null ? "" : $"Angemeldet als {account.Label}";
+
+        // Ins Panel kommt, wer dort mehr darf als nur den Entwicklermodus.
+        OpenPanelButton.Visibility = account?.Permissions.Any(p => p is not ("DevMode" or "AllDevUpdates")) == true
+            ? Visibility.Visible
+            : Visibility.Collapsed;
+
+        // Nach einem Wechsel des Kontos stünde sonst die Versionsliste des vorigen da.
+        if (account?.UserName != shownAccount)
+        {
+            shownAccount = account?.UserName;
+            ReleaseBox.ItemsSource = null;
+        }
+
         if (!DevMode.IsEnabled && NavDevSection.IsChecked == true)
             NavAccountSection.IsChecked = true;
 
@@ -1003,6 +1025,22 @@ public partial class SettingsPage : UserControl
 
     /// <summary>Der zuletzt angezeigte Kanal; null, bevor die Seite das erste Mal gefüllt wurde.</summary>
     private bool? shownDevPatches;
+
+    /// <summary>Das Konto, für das die Versionsliste geladen wurde.</summary>
+    private string? shownAccount;
+
+    private void OpenPanel_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            Process.Start(new ProcessStartInfo(ServerApi.BaseUrl) { UseShellExecute = true });
+        }
+        catch (Exception ex)
+        {
+            AppLog.Error($"Das Admin-Panel liess sich nicht öffnen: {ex.Message}", "Einstellungen");
+            status.SetStatus($"Das Admin-Panel liess sich nicht öffnen: {ex.Message}", StatusKind.Error);
+        }
+    }
 
     private void DevPatches_Changed(object sender, RoutedEventArgs e)
     {
