@@ -14,8 +14,12 @@ namespace SchoolManager.App;
 /// Aufgeschaltet wird er, indem man unten in der Seitenleiste siebenmal auf die
 /// Versionsnummer klickt und sich dann mit einem Konto anmeldet, das im
 /// Admin-Panel dafür eingetragen ist. Welche Dev-Versionen es beziehen darf,
-/// entscheidet der Server; ein gesperrtes oder gelöschtes Konto fällt beim
-/// nächsten Start wieder heraus.
+/// entscheidet der Server.
+///
+/// Einmal eingeschaltet, bleibt er es - über Neustarts und Updates hinweg -,
+/// bis man ihn ausdrücklich verlässt. Nimmt der Server die Anmeldung nicht mehr
+/// an, bleibt der Modus eingeschaltet und ist nur abgemeldet: Dev-Versionen und
+/// Entwickler-Meldungen gibt es dann erst nach einer neuen Anmeldung.
 /// </summary>
 public static class DevMode
 {
@@ -36,7 +40,10 @@ public static class DevMode
     public static bool UseDevPatches => state.Enabled && state.DevPatches;
 
     /// <summary>Die Anmeldung beim Server; nur im Entwicklermodus vorhanden.</summary>
-    public static string? Token => state.Enabled ? state.Token : null;
+    public static string? Token => state.Enabled && !string.IsNullOrEmpty(state.Token) ? state.Token : null;
+
+    /// <summary>Eingeschaltet und beim Server angemeldet?</summary>
+    public static bool IsSignedIn => Token is not null;
 
     /// <summary>Das angemeldete Konto, wie es der Server zuletzt beschrieben hat.</summary>
     public static DevAccount? Account => state.Enabled ? state.Account : null;
@@ -97,15 +104,20 @@ public static class DevMode
 
     /// <summary>
     /// Fragt beim Server nach, ob die Anmeldung noch gilt, und holt das Konto
-    /// frisch. Ist sie abgelaufen, das Konto gesperrt oder gelöscht, geht der
-    /// Entwicklermodus aus; das Ergebnis ist dann der Grund. Ist der Server nur
-    /// nicht erreichbar, bleibt alles, wie es ist - offline zu arbeiten soll
-    /// niemanden hinauswerfen.
+    /// frisch. Gilt sie nicht mehr - abgelaufen, Konto gesperrt oder gelöscht -,
+    /// bleibt der Entwicklermodus eingeschaltet, ist aber abgemeldet; das
+    /// Ergebnis sagt das. Ist der Server nur nicht erreichbar, bleibt alles,
+    /// wie es ist - offline zu arbeiten soll niemanden hinauswerfen.
     /// </summary>
     public static async Task<string?> VerifyAsync()
     {
-        if (!state.Enabled || state.Token is not { Length: > 0 } token)
+        if (!state.Enabled)
             return null;
+
+        if (state.Token is not { Length: > 0 } token)
+            return ServerApi.IsConfigured
+                ? "Der Entwicklermodus ist eingeschaltet, aber nicht angemeldet - Anmelden unter Einstellungen → Entwickler."
+                : null;
 
         DevAccount? account;
 
@@ -121,11 +133,13 @@ public static class DevMode
 
         if (account is null || !account.Permissions.Contains("DevMode"))
         {
-            // Das Token gilt nicht mehr; eine Abmeldung beim Server erübrigt sich.
+            // Nur abmelden, nicht abschalten: Den Entwicklermodus verlässt man
+            // ausdrücklich. Eine Abmeldung beim Server erübrigt sich.
             state.Token = null;
-            Disable();
+            state.Account = null;
+            Save();
 
-            return "Der Entwicklermodus ist abgeschaltet: Die Anmeldung gilt nicht mehr, oder das Konto darf ihn nicht mehr öffnen.";
+            return "Die Anmeldung im Entwicklermodus gilt nicht mehr - neu anmelden unter Einstellungen → Entwickler. Der Entwicklermodus bleibt eingeschaltet.";
         }
 
         if (account != state.Account)
@@ -177,13 +191,8 @@ public static class DevMode
             loaded = new State();
         }
 
-        // Aus der Zeit, als sieben Klicks genügten: ohne Anmeldung kein Entwicklermodus.
-        if (loaded.Enabled && string.IsNullOrEmpty(loaded.Token))
-        {
-            loaded.Enabled = false;
-            loaded.DevPatches = false;
-        }
-
+        // Ein Entwicklermodus aus der Zeit ohne Anmeldung bleibt nach dem Update
+        // eingeschaltet - er ist nur noch nicht angemeldet.
         return loaded;
     }
 

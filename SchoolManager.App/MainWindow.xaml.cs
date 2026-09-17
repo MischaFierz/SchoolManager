@@ -297,10 +297,19 @@ public partial class MainWindow : Window, IStatusSink
     /// </summary>
     private void VersionText_Click(object sender, MouseButtonEventArgs e)
     {
-        if (DevMode.IsEnabled)
+        if (DevMode.IsSignedIn)
         {
             SetStatus("Der Entwicklermodus ist bereits aktiv - abschalten in den Einstellungen.",
                 StatusKind.Info);
+            return;
+        }
+
+        // Eingeschaltet, aber abgemeldet: gleich zur Anmeldung, ohne nochmals sieben Klicks.
+        if (DevMode.IsEnabled)
+        {
+            if (new DevSignInDialog { Owner = this }.ShowDialog() == true)
+                SetStatus($"Angemeldet als {DevMode.Account?.Label}.", StatusKind.Success);
+
             return;
         }
 

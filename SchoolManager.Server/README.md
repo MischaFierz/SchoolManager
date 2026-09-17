@@ -64,7 +64,7 @@ Der Befehl setzt ein neues, einmaliges Passwort, gibt es aus, entsperrt das Kont
 ## Sicherheit
 
 - **Passwörter:** Gespeichert wird nur ein Abdruck mit PBKDF2-SHA256 und 600 000 Durchläufen. Nach 5 Fehlversuchen ist das Konto 15 Minuten gesperrt. Zusätzlich sind je Internetadresse 10 Anmeldeversuche pro Minute erlaubt.
-- **Anmeldungen:** Sie sind zufällige Tokens, gespeichert wird nur ihr SHA-256. Im Panel gilt eine Anmeldung 12 Stunden. In der App gilt sie 60 Tage und verlängert sich bei jeder Nutzung. Sperren, Löschen und neue Passwörter beenden sie sofort.
+- **Anmeldungen:** Sie sind zufällige Tokens, gespeichert wird nur ihr SHA-256. Im Panel gilt eine Anmeldung 12 Stunden. In der App gilt sie 1 Jahr und verlängert sich bei jeder Nutzung. Sperren, Löschen und neue Passwörter beenden sie sofort.
 - **Rechte:** Niemand vergibt Rechte, die er selbst nicht hat. Nur Administratoren verwalten Administratoren, und der letzte aktive Administrator lässt sich weder sperren noch löschen.
 - **Panel:** Es zeigt alle Daten als Text an, nie als HTML. Eine strenge Content-Security-Policy erlaubt nur Skripte vom Server selbst.
 - **Dev-Versionen:** Der Server prüft, ob ein Konto eine Dev-Version beziehen darf, und gibt erst dann eine signierte Download-Adresse von GitHub heraus, die nur wenige Minuten gilt. Das GitHub-Token verlässt den Server nie.

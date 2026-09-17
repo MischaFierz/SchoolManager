@@ -14,8 +14,11 @@ public sealed class SessionService(ServerDb db, TimeProvider clock)
     /// <summary>Im Panel gilt eine Anmeldung einen Arbeitstag.</summary>
     public static readonly TimeSpan PanelLifetime = TimeSpan.FromHours(12);
 
-    /// <summary>In der App bleibt man angemeldet, solange man sie ab und zu startet.</summary>
-    public static readonly TimeSpan AppLifetime = TimeSpan.FromDays(60);
+    /// <summary>
+    /// In der App bleibt man angemeldet, solange man sie mindestens einmal im Jahr
+    /// startet - der Entwicklermodus soll nicht von selbst verloren gehen.
+    /// </summary>
+    public static readonly TimeSpan AppLifetime = TimeSpan.FromDays(365);
 
     public async Task<string> CreateAsync(User user, SessionKind kind)
     {

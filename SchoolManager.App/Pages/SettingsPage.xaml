@@ -410,6 +410,10 @@
                                            FontFamily="{StaticResource UiFont}" FontSize="13"
                                            Foreground="{StaticResource Text}"
                                            AutomationProperties.AutomationId="DevAccountText" />
+                                <Button x:Name="DevSignInButton" Content="Anmelden" Margin="14,0,0,0"
+                                        Style="{StaticResource AccentButton}" Visibility="Collapsed"
+                                        AutomationProperties.AutomationId="DevSignInButton"
+                                        Click="DevSignIn_Click" />
                                 <Button x:Name="OpenPanelButton" Content="Admin-Panel öffnen" Margin="14,0,0,0"
                                         Visibility="Collapsed"
                                         AutomationProperties.AutomationId="OpenPanelButton"

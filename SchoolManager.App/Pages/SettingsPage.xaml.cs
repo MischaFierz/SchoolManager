@@ -968,7 +968,13 @@ public partial class SettingsPage : UserControl
         NavDevSection.Visibility = DevMode.IsEnabled ? Visibility.Visible : Visibility.Collapsed;
 
         var account = DevMode.Account;
-        DevAccountText.Text = account is null ? "" : $"Angemeldet als {account.Label}";
+        DevAccountText.Text = DevMode.IsSignedIn && account is not null
+            ? $"Angemeldet als {account.Label}"
+            : "Nicht angemeldet - Dev-Versionen und Entwickler-Meldungen gibt es erst nach der Anmeldung.";
+
+        DevSignInButton.Visibility = DevMode.IsEnabled && !DevMode.IsSignedIn
+            ? Visibility.Visible
+            : Visibility.Collapsed;
 
         // Ins Panel kommt, wer dort mehr darf als nur den Entwicklermodus.
         OpenPanelButton.Visibility = account?.Permissions.Any(p => p is not ("DevMode" or "AllDevUpdates")) == true
@@ -1028,6 +1034,21 @@ public partial class SettingsPage : UserControl
 
     /// <summary>Das Konto, für das die Versionsliste geladen wurde.</summary>
     private string? shownAccount;
+
+    /// <summary>Neu anmelden, ohne den Entwicklermodus zu verlassen - etwa nach einem Update oder einer abgelaufenen Anmeldung.</summary>
+    private void DevSignIn_Click(object sender, RoutedEventArgs e)
+    {
+        if (new Dialogs.DevSignInDialog { Owner = Window.GetWindow(this) }.ShowDialog() != true)
+            return;
+
+        status.SetStatus($"Angemeldet als {DevMode.Account?.Label}.", StatusKind.Success);
+
+        // Mit der Anmeldung kommen die freigegebenen Dev-Versionen dazu.
+        ReleaseBox.ItemsSource = null;
+
+        if (NavDevSection.IsChecked == true)
+            _ = LoadReleasesAsync();
+    }
 
     private void OpenPanel_Click(object sender, RoutedEventArgs e)
     {
