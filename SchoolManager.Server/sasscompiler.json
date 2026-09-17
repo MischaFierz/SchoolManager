@@ -1,0 +1,5 @@
+{
+  "Source": "Styles",
+  "Target": "wwwroot",
+  "Arguments": "--style=expanded --no-source-map"
+}

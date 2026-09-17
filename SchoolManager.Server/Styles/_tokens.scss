@@ -1,0 +1,148 @@
+// Gemeinsame Grundlage von Startseite und Admin-Panel: dieselben Farben wie
+// School Manager (Theme.xaml) - Graustufen, weisse Schrift -, dazu Schrift,
+// Bildschirmbreiten und die Bausteine, die beide Seiten brauchen.
+//
+// Eine Datei mit Unterstrich wird nicht selbst zu CSS, sondern nur eingebunden.
+
+@use "sass:map";
+@use "sass:meta";
+
+// ==== Farben als CSS-Variablen ====
+
+$palette: (
+    bg: #232426,
+    sidebar: #1b1c1e,
+    surface: #2a2c2f,
+    surface-alt: #313337,
+    surface-hover: #3b3d42,
+    line: #3a3c40,
+    line-hover: #4b4e53,
+    text: #ffffff,
+    muted: #b9bcc2,
+    faint: #9a9ea5,
+    accent: #55585d,
+    accent-hover: #63666c,
+    success: #86be92,
+    error: #d98c8c,
+    warn: #d9b98c,
+    info: #8faacb
+);
+
+$font: "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, sans-serif;
+$mono: ui-monospace, "Cascadia Mono", Consolas, monospace;
+
+/// Schreibt die Farben als --name: Wert; zusätzliche Farben einer Seite kommen dazu.
+@mixin palette($extra: ()) {
+    @each $name, $value in map.merge($palette, $extra) {
+        --#{$name}: #{$value};
+    }
+
+    // meta.inspect behält die Anführungszeichen der Schriftnamen.
+    --font: #{meta.inspect($font)};
+    color-scheme: dark;
+}
+
+/// Eine Farbe mit Deckkraft - für Hintergründe von Streifen und Kennzeichen.
+@function tint($color, $alpha) {
+    @return rgba($color, $alpha);
+}
+
+// ==== Bildschirmbreiten ====
+
+$phone: 640px;
+$tablet: 760px;
+$narrow: 920px;
+
+@mixin below($width) {
+    @media (max-width: $width) {
+        @content;
+    }
+}
+
+// ==== Bausteine ====
+
+/// Ein runder Punkt, etwa vor einer Meldung.
+@mixin dot($size, $color: currentColor) {
+    content: "";
+    width: $size;
+    height: $size;
+    border-radius: 50%;
+    background: $color;
+    flex: none;
+}
+
+/// Der Streifen wie oben in School Manager: grau für Hinweise, rot mit .error.
+@mixin banner($error-color: map.get($palette, error), $font-size: 13px, $dot-offset: 6px) {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    border: 1px solid var(--accent-hover);
+    background: tint(map.get($palette, accent-hover), .2);
+    border-radius: 8px;
+    padding: 9px 12px;
+    font-size: $font-size;
+
+    &::before {
+        @include dot(8px, var(--accent-hover));
+        margin-top: $dot-offset;
+    }
+
+    &.error {
+        border-color: $error-color;
+        background: tint($error-color, .2);
+        color: $error-color;
+
+        &::before {
+            background: $error-color;
+        }
+    }
+}
+
+/// Die Meldungen aus dem Admin-Panel oben auf einer Seite.
+@mixin page-banners($error-color, $font-size, $dot-offset) {
+    .page-banners {
+        display: grid;
+        gap: 10px;
+    }
+
+    .page-banner {
+        @include banner($error-color, $font-size, $dot-offset);
+
+        &-text {
+            flex: 1;
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+        }
+
+        &-close {
+            background: none;
+            border: 0;
+            color: inherit;
+            font: inherit;
+            cursor: pointer;
+            padding: 0 4px;
+            opacity: .8;
+
+            &:hover {
+                background: none;
+                border: 0;
+                opacity: 1;
+            }
+        }
+    }
+}
+
+/// Grundlagen, die beide Seiten gleich haben.
+@mixin base {
+    * {
+        box-sizing: border-box;
+    }
+
+    [hidden] {
+        display: none !important;
+    }
+
+    p {
+        margin: 0;
+    }
+}

@@ -1,0 +1,782 @@
+// Startseite - dieselben Farben wie School Manager und das Admin-Panel.
+// Wird beim Bauen zu wwwroot/site.css übersetzt; die CSS-Datei nie von Hand ändern.
+
+@use "sass:map";
+@use "tokens" as *;
+
+// Die Farben der Kalender-Einträge, wie in der App
+$kinds: (
+    lesson: #83878e,
+    exam: #d98c8c,
+    event: #86be92,
+    homework: #8faacb,
+    due: #d9b98c
+);
+
+:root {
+    @include palette($kinds);
+}
+
+@include base;
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 16px/1.6 var(--font);
+    -webkit-font-smoothing: antialiased;
+}
+
+a {
+    color: inherit;
+
+    &:focus-visible {
+        outline: 2px solid var(--homework);
+        outline-offset: 2px;
+        border-radius: 6px;
+    }
+}
+
+h1, h2, h3 {
+    margin: 0;
+    line-height: 1.2;
+    font-weight: 600;
+}
+
+code {
+    font-family: $mono;
+    font-size: .9em;
+    background: var(--surface-alt);
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    padding: 0 5px;
+}
+
+.wrap {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 0 24px;
+
+    &.narrow {
+        max-width: 780px;
+    }
+
+    @include below($phone) {
+        padding: 0 16px;
+    }
+}
+
+.muted {
+    color: var(--muted);
+}
+
+// ==== Knöpfe ====
+
+.button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 11px 20px;
+    border-radius: 9px;
+    border: 1px solid var(--line-hover);
+    background: var(--surface-alt);
+    color: var(--text);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 15px;
+    white-space: nowrap;
+    transition: background .15s, border-color .15s;
+
+    &:hover {
+        background: var(--surface-hover);
+    }
+
+    &.primary {
+        background: #fff;
+        color: #1b1c1e;
+        border-color: #fff;
+
+        &:hover {
+            background: #e6e7e9;
+        }
+    }
+
+    &.ghost {
+        background: transparent;
+        border-color: var(--line);
+
+        &:hover {
+            background: var(--surface-alt);
+        }
+    }
+
+    &.small {
+        padding: 7px 14px;
+        font-size: 14px;
+    }
+}
+
+// ==== Kopf ====
+
+.topbar {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: rgba(27, 28, 30, .88);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--line);
+
+    &-inner {
+        display: flex;
+        align-items: center;
+        gap: 28px;
+        height: 62px;
+
+        @include below($phone) {
+            justify-content: space-between;
+        }
+    }
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
+    text-decoration: none;
+
+    &-mark {
+        width: 30px;
+        height: 30px;
+        border-radius: 8px;
+        background: var(--accent) url("/favicon.svg") center / cover;
+    }
+}
+
+.topnav {
+    display: flex;
+    gap: 22px;
+    margin-left: auto;
+
+    a {
+        color: var(--muted);
+        text-decoration: none;
+        font-size: 15px;
+
+        &:hover {
+            color: var(--text);
+        }
+    }
+
+    @include below($phone) {
+        display: none;
+    }
+}
+
+// ==== Meldungen aus dem Admin-Panel - wie der Streifen in der App ====
+
+@include page-banners(map.get($kinds, exam), 14px, 7px);
+
+.page-banners {
+    padding-top: 18px;
+}
+
+.page-banner {
+    color: var(--text);
+}
+
+// ==== Einstieg ====
+
+.hero {
+    padding: 72px 0 80px;
+    border-bottom: 1px solid var(--line);
+    background: radial-gradient(900px 420px at 80% 10%, tint(map.get($kinds, homework), .08), transparent 70%);
+
+    h1 {
+        font-size: clamp(34px, 5vw, 54px);
+        letter-spacing: -.02em;
+    }
+
+    &-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+        gap: 56px;
+        align-items: center;
+
+        @include below($narrow) {
+            grid-template-columns: 1fr;
+            gap: 44px;
+        }
+    }
+
+    &-actions {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-top: 30px;
+    }
+
+    &-meta {
+        color: var(--faint);
+        font-size: 14px;
+        margin-top: 14px;
+        min-height: 1.6em;
+    }
+
+    @include below($phone) {
+        padding: 44px 0 56px;
+    }
+}
+
+.eyebrow {
+    color: var(--faint);
+    font-size: 14px;
+    letter-spacing: .02em;
+    margin-bottom: 14px;
+}
+
+.lead {
+    color: var(--muted);
+    font-size: 18px;
+    margin-top: 18px;
+    max-width: 34em;
+}
+
+// ==== Nachgebaute App ====
+
+.mock {
+    background: var(--sidebar);
+    border: 1px solid var(--line-hover);
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 30px 80px rgba(0, 0, 0, .45);
+    font-size: 12px;
+    line-height: 1.3;
+
+    &-bar {
+        display: flex;
+        gap: 6px;
+        padding: 10px 12px;
+        border-bottom: 1px solid var(--line);
+
+        span {
+            @include dot(10px, var(--line-hover));
+        }
+    }
+
+    &-body {
+        display: grid;
+        grid-template-columns: 118px 1fr;
+        min-height: 320px;
+
+        @include below($phone) {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    &-side {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        padding: 12px 8px;
+        border-right: 1px solid var(--line);
+
+        i {
+            font-style: normal;
+            color: var(--faint);
+            padding: 5px 8px;
+            border-radius: 6px;
+
+            &.on {
+                background: var(--surface-alt);
+                color: var(--text);
+            }
+        }
+
+        @include below($phone) {
+            display: none;
+        }
+    }
+
+    &-logo {
+        width: 22px;
+        height: 22px;
+        border-radius: 6px;
+        background: var(--accent) url("/favicon.svg") center / cover;
+        margin: 0 6px 10px;
+    }
+
+    &-main {
+        background: var(--bg);
+        padding: 14px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        min-width: 0;
+    }
+
+    &-title {
+        font-size: 14px;
+        font-weight: 600;
+
+        small {
+            color: var(--faint);
+            font-weight: 400;
+            margin-left: 6px;
+        }
+    }
+
+    &-week {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 6px;
+        flex: 1;
+
+        @include below($phone) {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+    }
+
+    &-day {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 7px;
+        padding: 6px;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        min-width: 0;
+
+        &.today {
+            border-color: var(--line-hover);
+            background: var(--surface-alt);
+        }
+
+        b {
+            color: var(--muted);
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+
+        // Ein Eintrag, links mit dem farbigen Streifen seiner Art
+        em {
+            font-style: normal;
+            border-left: 3px solid var(--lesson);
+            background: tint(map.get($kinds, lesson), .14);
+            border-radius: 4px;
+            padding: 4px 5px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+
+            small {
+                display: block;
+                color: var(--faint);
+                font-size: 10.5px;
+            }
+
+            @each $kind, $color in map.remove($kinds, lesson) {
+                &.#{$kind} {
+                    border-color: var(--#{$kind});
+                    background: tint($color, .14);
+                }
+            }
+        }
+
+        @include below($phone) {
+            &:nth-child(n+4) {
+                display: none;
+            }
+        }
+    }
+
+    &-status {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--muted);
+        border: 1px solid var(--accent-hover);
+        background: tint(map.get($palette, accent-hover), .2);
+        border-radius: 7px;
+        padding: 6px 9px;
+
+        span {
+            @include dot(7px, var(--accent-hover));
+        }
+    }
+}
+
+// ==== Abschnitte ====
+
+.section {
+    padding: 84px 0;
+
+    &.alt {
+        background: var(--sidebar);
+        border-top: 1px solid var(--line);
+        border-bottom: 1px solid var(--line);
+    }
+
+    h2 {
+        font-size: clamp(26px, 3.4vw, 36px);
+        letter-spacing: -.01em;
+    }
+
+    &-lead {
+        color: var(--muted);
+        margin-top: 10px;
+        font-size: 17px;
+    }
+
+    @include below($phone) {
+        padding: 56px 0;
+    }
+}
+
+/// Ein Kartenraster, das auf schmalen Bildschirmen weniger Spalten hat.
+@mixin card-grid($columns) {
+    display: grid;
+    grid-template-columns: repeat($columns, minmax(0, 1fr));
+    gap: 16px;
+
+    @include below($phone) {
+        grid-template-columns: 1fr;
+    }
+}
+
+.features {
+    @include card-grid(3);
+    margin-top: 38px;
+
+    @include below($narrow) {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    @include below($phone) {
+        grid-template-columns: 1fr;
+    }
+}
+
+.feature {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 22px;
+    transition: border-color .15s;
+
+    &:hover {
+        border-color: var(--line-hover);
+    }
+
+    h3 {
+        font-size: 17px;
+        margin: 14px 0 8px;
+    }
+
+    p {
+        color: var(--muted);
+        font-size: 15px;
+    }
+}
+
+// Dieselben Symbole wie in der Seitenleiste der App - je Name der Pfad im 18×18-Raster
+$icons: (
+    orders: "M4 3H14V17H4Z M7.5 3V1.5H10.5V3 M6.5 8H11.5 M6.5 11.5H11.5 M6.5 15H9.5",
+    homework: "M2 4C2 3 3.2 2.5 5 2.5C7 2.5 8.3 3.2 9 4C9.7 3.2 11 2.5 13 2.5C14.8 2.5 16 3 16 4V14.5C16 13.5 14.8 13 13 13C11 13 9.7 13.7 9 14.5C8.3 13.7 7 13 5 13C3.2 13 2 13.5 2 14.5Z M9 4V14.5",
+    exams: "M9 1.5L11.2 6.6L16.5 7.1L12.5 10.7L13.7 16L9 13.2L4.3 16L5.5 10.7L1.5 7.1L6.8 6.6Z",
+    calendar: "M2 4H16V16H2Z M2 7.5H16 M6 2.2V5 M12 2.2V5",
+    teachers: "M6 5.5A3 3 0 1 1 12 5.5A3 3 0 1 1 6 5.5 M2.5 16.5C2.5 11.5 15.5 11.5 15.5 16.5",
+    mail: "M1 3H17V13H1Z M1 3L9 9L17 3",
+    todo: "M1.5 4H16.5 M1.5 9H16.5 M1.5 14H11",
+    bell: "M4.5 13V8A4.5 4.5 0 0 1 13.5 8V13L15 14.5H3Z M7.5 16.5H10.5",
+    settings: "M1 5H17 M1 12H17 M6 2V8 M12 9V15",
+    update: "M15 9A6 6 0 1 1 13 4.5 M13 1.5V4.5H10"
+);
+
+/// Ein Linien-Symbol als eingebettetes SVG für die CSS-Maske.
+@function glyph($path) {
+    @return url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 18 18' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='#{$path}'/%3E%3C/svg%3E");
+}
+
+.icon {
+    display: block;
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: var(--surface-alt);
+    border: 1px solid var(--line);
+    position: relative;
+
+    &::after {
+        content: "";
+        position: absolute;
+        inset: 9px;
+        background: var(--text);
+        -webkit-mask: var(--glyph) center / contain no-repeat;
+        mask: var(--glyph) center / contain no-repeat;
+    }
+
+    @each $name, $path in $icons {
+        &[data-icon="#{$name}"] {
+            --glyph: #{glyph($path)};
+        }
+    }
+}
+
+.steps {
+    @include card-grid(3);
+    list-style: none;
+    padding: 0;
+    margin: 34px 0 0;
+    counter-reset: step;
+
+    li {
+        counter-increment: step;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 22px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+
+        &::before {
+            content: counter(step);
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: var(--surface-alt);
+            border: 1px solid var(--line-hover);
+            display: grid;
+            place-items: center;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+    }
+
+    strong {
+        font-size: 17px;
+    }
+
+    span {
+        color: var(--muted);
+        font-size: 15px;
+    }
+}
+
+// ==== Download ====
+
+.card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 34px;
+
+    @include below($phone) {
+        padding: 22px;
+    }
+}
+
+/// Die kleine, grün umrandete Marke - für die Versionsnummer und „empfohlen“.
+@mixin pill($font-size, $padding) {
+    border: 1px solid tint(map.get($kinds, event), .5);
+    color: var(--event);
+    border-radius: 999px;
+    padding: $padding;
+    font-size: $font-size;
+}
+
+.badge {
+    @include pill(14px, 3px 12px);
+    white-space: nowrap;
+}
+
+.download {
+    &-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 16px;
+        flex-wrap: wrap;
+
+        p {
+            margin-top: 6px;
+        }
+    }
+
+    &-note {
+        margin-top: 18px;
+        border-left: 3px solid var(--homework);
+        background: tint(map.get($kinds, homework), .08);
+        padding: 10px 14px;
+        border-radius: 0 8px 8px 0;
+        color: var(--muted);
+        white-space: pre-wrap;
+    }
+
+    &-options {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+        margin-top: 24px;
+
+        @include below($phone) {
+            grid-template-columns: 1fr;
+        }
+    }
+}
+
+.option {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 20px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--surface-alt);
+    text-decoration: none;
+    transition: border-color .15s, background .15s;
+
+    &:hover {
+        border-color: var(--line-hover);
+        background: var(--surface-hover);
+    }
+
+    &.recommended {
+        border-color: rgba(255, 255, 255, .45);
+    }
+
+    &-title {
+        font-weight: 600;
+        font-size: 17px;
+
+        em {
+            @include pill(12px, 1px 8px);
+            font-style: normal;
+            font-weight: 600;
+            margin-left: 6px;
+            vertical-align: middle;
+        }
+    }
+
+    &-file {
+        font-family: $mono;
+        font-size: 14px;
+        color: var(--muted);
+
+        small {
+            color: var(--faint);
+        }
+    }
+
+    &-text {
+        color: var(--faint);
+        font-size: 14px;
+        margin-top: 4px;
+    }
+}
+
+.fine {
+    color: var(--faint);
+    font-size: 14px;
+    margin-top: 18px;
+
+    a {
+        color: var(--muted);
+        margin-left: 6px;
+    }
+}
+
+// ==== Fragen ====
+
+details {
+    border-bottom: 1px solid var(--line);
+    padding: 16px 0;
+
+    &:first-of-type {
+        margin-top: 26px;
+        border-top: 1px solid var(--line);
+    }
+
+    &[open] summary::after {
+        content: "–";
+    }
+
+    p {
+        color: var(--muted);
+        margin-top: 10px;
+    }
+}
+
+summary {
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 17px;
+    list-style: none;
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+
+    &::-webkit-details-marker {
+        display: none;
+    }
+
+    &::after {
+        content: "+";
+        color: var(--faint);
+        font-weight: 400;
+        font-size: 22px;
+        line-height: 1;
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--homework);
+        outline-offset: 2px;
+        border-radius: 6px;
+    }
+}
+
+// ==== Fuss ====
+
+.footer {
+    border-top: 1px solid var(--line);
+    padding: 26px 0;
+    font-size: 14px;
+
+    &-inner {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        flex-wrap: wrap;
+    }
+
+    nav {
+        display: flex;
+        gap: 20px;
+    }
+
+    a {
+        color: var(--muted);
+        text-decoration: none;
+
+        &:hover {
+            color: var(--text);
+        }
+    }
+}
+
+// ==== Weniger Bewegung, wer das eingestellt hat ====
+
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
+
+    * {
+        transition: none !important;
+    }
+}
