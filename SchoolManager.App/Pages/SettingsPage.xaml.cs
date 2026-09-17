@@ -1033,7 +1033,7 @@ public partial class SettingsPage : UserControl
     {
         try
         {
-            Process.Start(new ProcessStartInfo(ServerApi.BaseUrl) { UseShellExecute = true });
+            Process.Start(new ProcessStartInfo(ServerApi.BaseUrl + "/admin/") { UseShellExecute = true });
         }
         catch (Exception ex)
         {

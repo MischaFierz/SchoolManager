@@ -9,7 +9,7 @@ Der Server hinter dem Entwicklermodus und das Admin-Panel im Browser.
 - **Releases:** Dev-Versionen und öffentliche Releases auslösen und danach aufräumen.
 - **Benutzer, Stufen, Rechte, Gruppen und Verlauf.**
 
-Das Panel liegt unter der Adresse des Servers selbst, lokal also unter <http://localhost:5080>.
+Unter der Adresse des Servers liegt eine Startseite mit den Funktionen und dem Download der neuesten Version, lokal also <http://localhost:5080>. Oben rechts führt „Anmelden“ ins Admin-Panel unter `/admin/`.
 
 ## Lokal starten
 

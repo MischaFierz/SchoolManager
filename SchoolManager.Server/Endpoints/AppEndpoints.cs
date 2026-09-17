@@ -18,6 +18,9 @@ public static class AppEndpoints
         app.MapGet("/api/app/messages", MessagesAsync);
         app.MapGet("/api/app/update", UpdateAsync);
 
+        // Für den Download-Bereich der Startseite.
+        app.MapGet("/api/public/latest", LatestPublicAsync);
+
         app.MapGet("/api/app/releases", ReleasesAsync).RequirePermission(Permission.DevMode);
         app.MapGet("/api/app/download/{tag}", DownloadAsync).RequirePermission(Permission.DevMode);
     }
@@ -67,6 +70,30 @@ public static class AppEndpoints
         var notes = await catalog.NotesAsync();
 
         return Results.Ok(new { update = Describe(newest, notes) });
+    }
+
+    /// <summary>Die neueste öffentliche Version mit beiden Dateien - nie eine Dev-Version.</summary>
+    private static async Task<IResult> LatestPublicAsync(ReleaseCatalog catalog)
+    {
+        var latest = (await catalog.AllowedAsync(user: null, includeDev: false)).FirstOrDefault();
+
+        if (latest?.Installer is not { } installer)
+            return AuthEndpoints.Error(StatusCodes.Status404NotFound, "Es ist noch keine Version veröffentlicht.");
+
+        var exe = latest.Source.Assets.FirstOrDefault(asset =>
+            asset.Name.Equals(GitHubService.ExeAssetName, StringComparison.OrdinalIgnoreCase));
+
+        var notes = await catalog.NotesAsync();
+
+        return Results.Ok(new
+        {
+            version = latest.VersionText,
+            publishedAt = latest.Source.PublishedAt,
+            releaseUrl = latest.Source.HtmlUrl,
+            note = notes.GetValueOrDefault(latest.Tag, ""),
+            installer = new { url = installer.BrowserDownloadUrl, size = installer.Size },
+            exe = exe is null ? null : new { url = exe.BrowserDownloadUrl, size = exe.Size }
+        });
     }
 
     private static async Task<IResult> ReleasesAsync(HttpContext context, ReleaseCatalog catalog)

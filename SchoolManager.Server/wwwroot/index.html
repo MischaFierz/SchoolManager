@@ -3,84 +3,243 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="robots" content="noindex, nofollow">
-    <title>School Manager Admin</title>
-    <link rel="icon" href="favicon.svg" type="image/svg+xml">
-    <link rel="stylesheet" href="styles.css">
-    <script src="app.js" defer></script>
+    <title>School Manager</title>
+    <meta name="description" content="School Manager für Windows: Aufträge mit Zeitrechner, Hausaufgaben, Prüfungen, Kalender, Lehrkräfte, E-Mail, To-Do und Notizen an einem Ort.">
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="/site.css">
+    <script src="/site.js" defer></script>
 </head>
 <body>
-    <!-- Anmeldung -->
-    <main id="login-view" class="center-view" hidden>
-        <form id="login-form" class="card narrow" autocomplete="on">
-            <div class="brand">
+    <header class="topbar">
+        <div class="wrap topbar-inner">
+            <a class="brand" href="/">
                 <span class="brand-mark" aria-hidden="true"></span>
-                <div>
-                    <h1>School Manager</h1>
-                    <p class="muted">Admin-Panel</p>
+                <span>School Manager</span>
+            </a>
+            <nav class="topnav" aria-label="Seite">
+                <a href="#funktionen">Funktionen</a>
+                <a href="#download">Download</a>
+                <a href="#fragen">Fragen</a>
+            </nav>
+            <a class="button ghost small" href="/admin/">Anmelden</a>
+        </div>
+    </header>
+
+    <main>
+        <!-- ==== Einstieg ==== -->
+        <section class="hero">
+            <div class="wrap hero-grid">
+                <div class="hero-text">
+                    <p class="eyebrow">Für Windows · kostenloser Download</p>
+                    <h1>Die ganze Schule an einem Ort.</h1>
+                    <p class="lead">
+                        Aufträge mit Zeitrechner, Hausaufgaben, Prüfungen und ein Kalender, der alles
+                        zusammenführt – dazu Lehrkräfte, E-Mail, To-Do und Notizen. Alles bleibt auf
+                        deinem Rechner.
+                    </p>
+                    <div class="hero-actions">
+                        <a class="button primary" data-download="installer" href="https://github.com/MischaFierz/SchoolManager/releases/latest">
+                            Herunterladen
+                        </a>
+                        <a class="button" href="#funktionen">Funktionen ansehen</a>
+                    </div>
+                    <p class="hero-meta" data-latest-meta>Neueste Version wird geladen …</p>
+                </div>
+
+                <!-- Nachgebaute Wochenansicht - zeigt, wie die App aussieht -->
+                <div class="mock" aria-hidden="true">
+                    <div class="mock-bar"><span></span><span></span><span></span></div>
+                    <div class="mock-body">
+                        <aside class="mock-side">
+                            <div class="mock-logo"></div>
+                            <i>Aufträge</i><i>Aufgaben</i><i>Hausaufgaben</i><i>Prüfungen</i>
+                            <i class="on">Kalender</i><i>Lehrkräfte</i><i>E-Mail</i><i>To-Do</i><i>Notizen</i>
+                        </aside>
+                        <div class="mock-main">
+                            <div class="mock-title">Kalender <small>KW 38</small></div>
+                            <div class="mock-week">
+                                <div class="mock-day"><b>Mo</b>
+                                    <em class="lesson">Mathematik<small>08:15 · B12</small></em>
+                                    <em class="lesson">Deutsch<small>10:05 · A04</small></em>
+                                    <em class="homework">Aufsatz</em>
+                                </div>
+                                <div class="mock-day today"><b>Di</b>
+                                    <em class="exam">Prüfung Englisch<small>08:15 · 45 min</small></em>
+                                    <em class="lesson">Physik<small>13:30 · Labor</small></em>
+                                </div>
+                                <div class="mock-day"><b>Mi</b>
+                                    <em class="lesson">Informatik<small>08:15 · C21</small></em>
+                                    <em class="due">Abgabe Projekt</em>
+                                </div>
+                                <div class="mock-day"><b>Do</b>
+                                    <em class="lesson">Mathematik<small>09:10 · B12</small></em>
+                                    <em class="event">Elternabend</em>
+                                </div>
+                                <div class="mock-day"><b>Fr</b>
+                                    <em class="lesson">Geschichte<small>08:15 · A02</small></em>
+                                    <em class="homework">Arbeitsblatt 7</em>
+                                </div>
+                            </div>
+                            <div class="mock-status"><span></span>Version 1.2.0 steht bereit.</div>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <label>Benutzername
-                <input id="login-user" name="username" autocomplete="username" required maxlength="64" autocapitalize="none" spellcheck="false">
-            </label>
-            <label>Passwort
-                <input id="login-password" name="password" type="password" autocomplete="current-password" required maxlength="200">
-            </label>
-            <p id="login-error" class="form-error" role="alert"></p>
-            <button type="submit" class="primary wide">Anmelden</button>
-        </form>
-    </main>
+        </section>
 
-    <!-- Neues Passwort erzwingen -->
-    <main id="password-view" class="center-view" hidden>
-        <form id="forced-password-form" class="card narrow">
-            <h1>Neues Passwort setzen</h1>
-            <p class="muted">Für dieses Konto muss vor dem ersten Arbeiten ein eigenes Passwort gesetzt werden.</p>
-            <label>Bisheriges Passwort
-                <input id="forced-current" type="password" autocomplete="current-password" required maxlength="200">
-            </label>
-            <label>Neues Passwort
-                <input id="forced-new" type="password" autocomplete="new-password" required maxlength="200">
-            </label>
-            <label>Neues Passwort wiederholen
-                <input id="forced-repeat" type="password" autocomplete="new-password" required maxlength="200">
-            </label>
-            <p id="forced-error" class="form-error" role="alert"></p>
-            <button type="submit" class="primary wide">Passwort setzen</button>
-            <button type="button" id="forced-logout" class="ghost wide">Abmelden</button>
-        </form>
-    </main>
+        <!-- ==== Funktionen ==== -->
+        <section id="funktionen" class="section">
+            <div class="wrap">
+                <h2>Was School Manager kann</h2>
+                <p class="section-lead">Jede Seite hat eine Aufgabe – und alles, was ein Datum hat, landet von selbst im Kalender.</p>
 
-    <!-- Das Panel -->
-    <div id="app-view" class="shell" hidden>
-        <aside class="sidebar">
-            <div class="brand small">
-                <span class="brand-mark" aria-hidden="true"></span>
-                <div>
-                    <strong>School Manager</strong>
-                    <span class="muted">Admin-Panel</span>
+                <div class="features">
+                    <article class="feature">
+                        <span class="icon" data-icon="orders"></span>
+                        <h3>Aufträge mit Zeitrechner</h3>
+                        <p>Aufträge, ihre Aufgaben und Leistungsdetails auf drei Ebenen. Die Zeit summiert sich nach oben – „3:15 h von 6:00 h“. Eingabe als <code>90</code>, <code>1:30</code> oder <code>1,5h</code>.</p>
+                    </article>
+                    <article class="feature">
+                        <span class="icon" data-icon="homework"></span>
+                        <h3>Hausaufgaben</h3>
+                        <p>Titel tippen, Enter, fertig. Der Termin steht in Worten da („heute fällig“, „2 Tage überfällig“), und jede Hausaufgabe lässt sich mit einem Auftrag verknüpfen.</p>
+                    </article>
+                    <article class="feature">
+                        <span class="icon" data-icon="exams"></span>
+                        <h3>Prüfungen</h3>
+                        <p>Fach, Thema, Datum, Dauer und Raum – die Prüfung steht sofort im Kalender und lässt sich als ICS-Datei weitergeben.</p>
+                    </article>
+                    <article class="feature">
+                        <span class="icon" data-icon="calendar"></span>
+                        <h3>Kalender</h3>
+                        <p>Eine Woche mit Stundenplan, Prüfungen, Terminen, Hausaufgaben und Abgaben. Stundenpläne als ICS einlesen, Wochen exportieren – für Outlook, Google und Apple.</p>
+                    </article>
+                    <article class="feature">
+                        <span class="icon" data-icon="teachers"></span>
+                        <h3>Lehrkräfte</h3>
+                        <p>Mit Kürzel, Fach und E-Mail. Einmal einem Fach zugeordnet, steht die Lehrkraft in jeder Lektion – und wird bei neuen Aufgaben als Auftraggeber vorgeschlagen.</p>
+                    </article>
+                    <article class="feature">
+                        <span class="icon" data-icon="mail"></span>
+                        <h3>E-Mail</h3>
+                        <p>Direkt aus der App senden – mit Microsoft 365 genügt eine Anmeldung. Empfänger kommen mit einem Klick aus der Liste der Lehrkräfte.</p>
+                    </article>
+                    <article class="feature">
+                        <span class="icon" data-icon="todo"></span>
+                        <h3>To-Do und Notizen</h3>
+                        <p>Kurze Listen und längere Gedanken, auf Wunsch einem Fach zugeordnet.</p>
+                    </article>
+                    <article class="feature">
+                        <span class="icon" data-icon="bell"></span>
+                        <h3>Erinnerungen</h3>
+                        <p>Überfälliges und bald Fälliges meldet sich neben der Uhr – auch wenn das Fenster zu ist.</p>
+                    </article>
+                    <article class="feature">
+                        <span class="icon" data-icon="update"></span>
+                        <h3>Updates von selbst</h3>
+                        <p>School Manager sucht beim Start nach einer neuen Version und installiert sie mit einem Klick – danach geht es sofort weiter.</p>
+                    </article>
                 </div>
             </div>
-            <nav id="nav" aria-label="Bereiche"></nav>
-            <div class="sidebar-foot">
-                <span id="whoami" class="muted"></span>
-                <button type="button" id="logout" class="ghost">Abmelden</button>
+        </section>
+
+        <!-- ==== Einstieg in drei Schritten ==== -->
+        <section class="section alt">
+            <div class="wrap">
+                <h2>In einer Minute startklar</h2>
+                <ol class="steps">
+                    <li>
+                        <strong>Herunterladen</strong>
+                        <span>Das Installationspaket unten laden.</span>
+                    </li>
+                    <li>
+                        <strong>Doppelklick</strong>
+                        <span>Installiert ohne Administratorrechte, mit Verknüpfung im Startmenü und auf dem Desktop.</span>
+                    </li>
+                    <li>
+                        <strong>Loslegen</strong>
+                        <span>Stundenplan einlesen oder den ersten Auftrag anlegen – das war's.</span>
+                    </li>
+                </ol>
             </div>
-        </aside>
-        <main id="content" class="content" tabindex="-1"></main>
-    </div>
+        </section>
 
-    <dialog id="dialog">
-        <form method="dialog" id="dialog-form">
-            <header>
-                <h2 id="dialog-title"></h2>
-            </header>
-            <div id="dialog-body" class="dialog-body"></div>
-            <p id="dialog-error" class="form-error" role="alert"></p>
-            <footer id="dialog-actions"></footer>
-        </form>
-    </dialog>
+        <!-- ==== Download ==== -->
+        <section id="download" class="section">
+            <div class="wrap">
+                <div class="download card">
+                    <div class="download-head">
+                        <div>
+                            <h2>Download</h2>
+                            <p class="muted" data-latest-title>Die neueste Version für Windows 10 und 11 (64 Bit).</p>
+                        </div>
+                        <span class="badge" data-latest-badge hidden></span>
+                    </div>
 
-    <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+                    <p class="download-note" data-latest-note hidden></p>
+
+                    <div class="download-options">
+                        <a class="option recommended" data-download="installer" href="https://github.com/MischaFierz/SchoolManager/releases/latest">
+                            <span class="option-title">Installationspaket <em>empfohlen</em></span>
+                            <span class="option-file">SchoolManagerSetup.msi <small data-size="installer"></small></span>
+                            <span class="option-text">Mit Startmenü, Desktop-Verknüpfung und Eintrag in „Apps &amp; Features“.</span>
+                        </a>
+                        <a class="option" data-download="exe" href="https://github.com/MischaFierz/SchoolManager/releases/latest">
+                            <span class="option-title">Nur die Programmdatei</span>
+                            <span class="option-file">SchoolManager.exe <small data-size="exe"></small></span>
+                            <span class="option-text">Ohne Installation – läuft von jedem Ort, auch vom USB-Stick.</span>
+                        </a>
+                    </div>
+
+                    <p class="fine">
+                        Die .NET-Laufzeit ist enthalten, es muss nichts weiter installiert werden.
+                        <a data-release-link href="https://github.com/MischaFierz/SchoolManager/releases">Alle Versionen auf GitHub</a>
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==== Fragen ==== -->
+        <section id="fragen" class="section alt">
+            <div class="wrap narrow">
+                <h2>Häufige Fragen</h2>
+
+                <details>
+                    <summary>Wo liegen meine Daten?</summary>
+                    <p>Nur auf deinem Rechner, im Benutzerprofil unter <code>%APPDATA%\SchoolManager</code>. Unter Einstellungen → Daten lassen sich alle Daten als ZIP sichern und wieder einlesen.</p>
+                </details>
+                <details>
+                    <summary>Brauche ich Administratorrechte?</summary>
+                    <p>Nein. Das Installationspaket installiert in dein Benutzerprofil. Die Programmdatei läuft sogar ganz ohne Installation.</p>
+                </details>
+                <details>
+                    <summary>Wie bekomme ich Updates?</summary>
+                    <p>Von selbst: Beim Start sucht School Manager nach einer neuen Version und zeigt oben im Fenster einen Hinweis. Ein Klick auf „Jetzt aktualisieren“ genügt.</p>
+                </details>
+                <details>
+                    <summary>Welche E-Mail-Konten gehen?</summary>
+                    <p>Am einfachsten Microsoft 365 – Schul-, Geschäfts- oder privates Microsoft-Konto. Eine Anmeldung im Browser, kein Passwort in der App. Verlangt die Schule eine Freigabe, muss die Schul-IT sie einmal erteilen.</p>
+                </details>
+                <details>
+                    <summary>Wie werde ich School Manager wieder los?</summary>
+                    <p>Unter Einstellungen → Zurücksetzen oder wie jedes Programm über „Apps &amp; Features“. Vorher lohnt sich „Alle Daten exportieren…“.</p>
+                </details>
+                <details>
+                    <summary>Was ist „Anmelden“ oben rechts?</summary>
+                    <p>Der Zugang für das Team hinter School Manager – zum Entwicklermodus und zur Verwaltung. Für die normale Nutzung braucht es kein Konto.</p>
+                </details>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="wrap footer-inner">
+            <span class="muted">School Manager</span>
+            <nav aria-label="Weiteres">
+                <a href="https://github.com/MischaFierz/SchoolManager">GitHub</a>
+                <a href="/admin/">Admin-Panel</a>
+            </nav>
+        </div>
+    </footer>
 </body>
 </html>

@@ -165,7 +165,7 @@ button.wide { width: 100%; }
     width: 34px;
     height: 34px;
     border-radius: 9px;
-    background: var(--accent) url("favicon.svg") center / cover;
+    background: var(--accent) url("/favicon.svg") center / cover;
     flex: none;
 }
 
@@ -217,6 +217,9 @@ nav button[aria-current="page"] { background: var(--surface-alt); border-color: 
 }
 
 .sidebar-foot button { align-self: flex-start; padding-left: 0; }
+
+.back-link { color: var(--muted); font-size: 12.5px; text-decoration: none; justify-self: start; }
+.back-link:hover { color: var(--text); text-decoration: underline; }
 
 .content { padding: 26px 30px 40px; max-width: 1080px; width: 100%; outline: none; }
 

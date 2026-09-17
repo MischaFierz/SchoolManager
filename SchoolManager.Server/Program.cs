@@ -119,6 +119,18 @@ app.Use(async (context, next) =>
     }
 });
 
+// Das Panel liegt unter /admin/; ohne Schrägstrich fänden seine Dateien nicht zusammen.
+app.Use(async (context, next) =>
+{
+    if (context.Request.Path.Equals("/admin", StringComparison.OrdinalIgnoreCase))
+    {
+        context.Response.Redirect("/admin/");
+        return;
+    }
+
+    await next();
+});
+
 app.UseDefaultFiles();
 app.UseStaticFiles();
 app.UseRateLimiter();
