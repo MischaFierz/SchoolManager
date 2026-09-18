@@ -83,12 +83,16 @@ jobs:
 
       # Erst der Code, dann der Startbefehl: Umgekehrt startete Azure eine Datei,
       # die es noch nicht gibt, und verbrauchte das Kontingent in einer Absturzschleife.
+      # --track-status false: Azure wartet sonst beim Hochladen darauf, dass die App
+      # startet, und gibt nach 10 Minuten auf - auf dem Gratis-Plan dauert der erste
+      # Start länger als das. Ob der Server läuft, prüft der nächste Schritt selbst.
       - name: Hochladen
         if: steps.state.outputs.skip != 'true'
         run: |
           (cd server-publish && zip -qr ../server.zip .)
-          az webapp deploy -g "$RESOURCE_GROUP" -n "$WEBAPP" --src-path server.zip --type zip --async false
+          az webapp deploy -g "$RESOURCE_GROUP" -n "$WEBAPP" --src-path server.zip --type zip --async false --track-status false
           az webapp config set -g "$RESOURCE_GROUP" -n "$WEBAPP" --startup-file "dotnet SchoolManager.Server.dll" -o none
+          az webapp restart -g "$RESOURCE_GROUP" -n "$WEBAPP" -o none
 
       - name: Antwortet der Server?
         if: steps.state.outputs.skip != 'true'
