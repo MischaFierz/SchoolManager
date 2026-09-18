@@ -1,6 +1,6 @@
 name: Server hochladen
 
-# Stellt den School-Manager-Server auf Azure (Web-App schoolmanager-admin-269a90,
+# Stellt den School-Manager-Server auf Azure (Web-App school-manager-ch,
 # Gratis-Plan F1). Läuft nur im privaten Repository SchoolManager-dev: bei jedem
 # Push auf einen Entwicklungszweig, der den Server betrifft, oder von Hand.
 #
@@ -27,7 +27,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  WEBAPP: schoolmanager-admin-269a90
+  WEBAPP: school-manager-ch
   RESOURCE_GROUP: rg-schoolmanager
 
 jobs:

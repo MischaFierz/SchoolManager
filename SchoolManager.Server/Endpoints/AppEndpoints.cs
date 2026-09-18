@@ -24,6 +24,9 @@ public static class AppEndpoints
         // Streifen oben auf der Startseite und der Anmeldeseite.
         app.MapGet("/api/public/messages", PageMessagesAsync);
 
+        // Das Changelog auf der Startseite.
+        app.MapGet("/api/public/changelog", ChangelogAsync);
+
         app.MapGet("/api/app/releases", ReleasesAsync).RequirePermission(Permission.DevMode);
         app.MapGet("/api/app/download/{tag}", DownloadAsync).RequirePermission(Permission.DevMode);
     }
@@ -132,6 +135,54 @@ public static class AppEndpoints
             installer = new { url = installer.BrowserDownloadUrl, size = installer.Size },
             exe = exe is null ? null : new { url = exe.BrowserDownloadUrl, size = exe.Size }
         });
+    }
+
+    /// <summary>
+    /// Alle öffentlichen Versionen mit ihren Punkten, die neueste zuerst. Die
+    /// Punkte stammen aus der Release-Notiz (release-notes/vX.Y.Z.md) und, wo
+    /// eine Update-Info im Panel steht, aus dieser.
+    /// </summary>
+    private static async Task<IResult> ChangelogAsync(ReleaseCatalog catalog)
+    {
+        var releases = await catalog.AllAsync();
+        var notes = await catalog.NotesAsync();
+
+        return Results.Ok(releases
+            .Where(release => release is { InPublicRepo: true, IsLegacyDev: false })
+            .Select(release => new
+            {
+                version = release.VersionText,
+                publishedAt = release.Source.PublishedAt,
+                note = notes.GetValueOrDefault(release.Tag, ""),
+                // Die Punkte der Release-Notiz, ohne Aufzählungszeichen und Fettschrift.
+                changes = Bullets(release.Source.Body)
+            }));
+    }
+
+    /// <summary>
+    /// Liest die Punkte einer Release-Notiz: Zeilen, die mit „-“ oder „*“
+    /// beginnen. Fehlt so eine Zeile, gilt der ganze Text als ein Punkt.
+    /// </summary>
+    private static string[] Bullets(string? body)
+    {
+        if (string.IsNullOrWhiteSpace(body))
+            return [];
+
+        var lines = body.ReplaceLineEndings("\n").Split('\n');
+
+        var bullets = lines
+            .Select(line => line.Trim())
+            .Where(line => line.StartsWith("- ") || line.StartsWith("* "))
+            .Select(line => line[2..].Replace("**", "").Replace("`", "").Trim())
+            .Where(line => line.Length > 0)
+            .ToArray();
+
+        if (bullets.Length > 0)
+            return bullets;
+
+        var text = string.Join(" ", lines.Where(line => !line.StartsWith('#')).Select(line => line.Trim())).Trim();
+
+        return text.Length > 0 ? [text.Replace("**", "").Replace("`", "")] : [];
     }
 
     private static async Task<IResult> ReleasesAsync(HttpContext context, ReleaseCatalog catalog)

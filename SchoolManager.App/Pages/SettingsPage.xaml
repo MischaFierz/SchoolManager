@@ -414,7 +414,7 @@
                                         Style="{StaticResource AccentButton}" Visibility="Collapsed"
                                         AutomationProperties.AutomationId="DevSignInButton"
                                         Click="DevSignIn_Click" />
-                                <Button x:Name="OpenPanelButton" Content="Admin-Panel öffnen" Margin="14,0,0,0"
+                                <Button x:Name="OpenPanelButton" Content="Panel öffnen" Margin="14,0,0,0"
                                         Visibility="Collapsed"
                                         AutomationProperties.AutomationId="OpenPanelButton"
                                         Click="OpenPanel_Click" />

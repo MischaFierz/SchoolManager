@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
@@ -359,10 +360,49 @@ public partial class MainWindow : Window, IStatusSink
 
         NavLog.Visibility = DevMode.IsEnabled ? Visibility.Visible : Visibility.Collapsed;
 
+        // Der Weg ins Panel steht nur angemeldeten Konten offen und heisst nach ihrer Stufe.
+        NavPanel.Content = PanelName(DevMode.Account?.Level);
+        NavPanel.Visibility = DevMode.IsSignedIn && ServerApi.IsConfigured
+            ? Visibility.Visible
+            : Visibility.Collapsed;
+
         // Wer den Entwicklermodus abschaltet, während das Protokoll offen ist,
         // stünde sonst vor einer Seite, die es nicht mehr gibt.
         if (!DevMode.IsEnabled && NavLog.IsChecked == true)
             NavSettings.IsChecked = true;
+    }
+
+    /// <summary>Wie das Panel für diese Stufe heisst.</summary>
+    public static string PanelName(string? level) => level switch
+    {
+        "Administrator" => "Admin-Panel",
+        "Entwickler" => "Dev-Panel",
+        "Tester" => "Tester-Panel",
+        _ => "Panel"
+    };
+
+    /// <summary>Die Seite, die vor dem Klick auf das Panel offen war.</summary>
+    private RadioButton? lastPage;
+
+    /// <summary>
+    /// Öffnet das Panel im Browser. Die Navigation springt dabei nicht weg: Der
+    /// Punkt ist kein Seitenwechsel, darum wird die vorige Seite wieder gewählt.
+    /// </summary>
+    private void NavPanel_Checked(object sender, RoutedEventArgs e)
+    {
+        if (lastPage is { } back)
+            back.IsChecked = true;
+
+        try
+        {
+            Process.Start(new ProcessStartInfo($"{ServerApi.BaseUrl}/admin/") { UseShellExecute = true });
+            SetStatus($"{PanelName(DevMode.Account?.Level)} im Browser geöffnet.", StatusKind.Info);
+        }
+        catch (Exception ex)
+        {
+            AppLog.Error($"Das Panel liess sich nicht öffnen: {ex.Message}", "Panel");
+            SetStatus($"Das Panel liess sich nicht öffnen: {ex.Message}", StatusKind.Error);
+        }
     }
 
     /// <summary>
@@ -425,6 +465,9 @@ public partial class MainWindow : Window, IStatusSink
 
         // Offene Änderungen beim Verlassen einer Seite sichern.
         FlushPages();
+
+        // Merken, wohin es zurückgeht, wenn der Punkt „Panel“ nur den Browser öffnet.
+        lastPage = nav;
 
         // Meldungen, die nur für eine bestimmte Seite gedacht sind, wechseln mit.
         currentPageKey = PageKeys.GetValueOrDefault(nav.Name, "");

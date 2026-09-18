@@ -76,7 +76,7 @@ dotnet user-secrets set "GitHub:Token" "github_pat_…"
 ## Ins Internet stellen
 
 Der Server läuft auf **Azure App Service** (Linux, Gratis-Plan F1): Web-App
-`schoolmanager-admin-269a90` in der Ressourcengruppe `rg-schoolmanager`.
+`school-manager-ch` in der Ressourcengruppe `rg-schoolmanager`.
 
 **Hochladen** übernimmt der Workflow `.github/workflows/deploy-server.yml` im
 privaten Repository: bei jedem Push auf einen `entwicklung-*`-Zweig, der den

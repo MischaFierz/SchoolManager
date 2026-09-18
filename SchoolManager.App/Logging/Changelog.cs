@@ -29,6 +29,15 @@ public static class Changelog
     /// <summary>Die Fassungen, die neueste zuoberst.</summary>
     public static IReadOnlyList<Entry> All { get; } =
     [
+        new("1.2.1", "18.09.2026", false,
+        [
+            "Der Server hat eine neue Adresse (school-manager-ch.azurewebsites.net). Version 1.2.0 fand ihn deshalb nicht mehr: keine Meldungen und kein Entwicklermodus. Diese Fassung findet ihn wieder.",
+            "Die Website heisst jetzt school-manager und hat einen neuen Punkt „Änderungen“, der zu jeder Version zeigt, was sie gebracht hat. Der Verweis auf GitHub unter den Downloads ist weg; die Dateien selbst kommen weiterhin von dort.",
+            "Im Entwicklermodus steht der Weg ins Panel jetzt links in der Navigation. Er heisst nach der Stufe des angemeldeten Kontos: Admin-Panel, Dev-Panel oder Tester-Panel, und öffnet es im Browser. Darin erscheinen nur die Bereiche, für die das Konto Rechte hat.",
+            "Die Anmeldung im Entwicklermodus liegt jetzt verschlüsselt im Benutzerprofil (Windows-Datenschutz-API), wie schon das Passwort des Mail-Kontos, und gilt ein Jahr ab dem letzten Start statt 60 Tage.",
+            "Dev-Versionen gibt es nur noch für Fassungen ab 1.2.0. Ältere Fassungen bekommen ausschliesslich öffentliche Releases."
+        ]),
+
         new("1.2.0", "17.09.2026", false,
         [
             "Der Entwicklermodus braucht eine Anmeldung: Nach sieben Klicks auf die Versionsnummer öffnet sich ein Anmeldefenster, und nur Konten, die im Admin-Panel dafür eingetragen sind, kommen hinein. Die Einstellungen zeigen unter Entwickler, wer angemeldet ist. Einmal eingeschaltet, bleibt der Entwicklermodus über Neustarts und Updates hinweg eingeschaltet, bis man ihn unter Einstellungen → Entwickler verlässt - auch ein früher ohne Anmeldung eingeschalteter. Gilt die Anmeldung nicht mehr (abgelaufen, Konto gesperrt oder gelöscht), ist er nur abgemeldet: Ein Knopf „Anmelden“ unter Entwickler - oder siebenmal auf die Versionsnummer - meldet neu an; Dev-Versionen und Entwickler-Meldungen gibt es bis dahin nicht. In der App gilt eine Anmeldung ein Jahr ab dem letzten Start.",

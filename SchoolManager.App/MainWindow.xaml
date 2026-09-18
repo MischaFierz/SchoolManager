@@ -74,6 +74,13 @@
                 <!-- Fuss der Seitenleiste -->
                 <StackPanel Grid.Row="2" Margin="0,0,0,16">
                     <Border Height="1" Background="{StaticResource Line}" Margin="20,0,20,10" />
+                    <!-- Nur angemeldet sichtbar; heisst nach der Stufe Admin-, Dev- oder Tester-Panel
+                         und öffnet es im Browser. Die Seite selbst wechselt dabei nicht. -->
+                    <RadioButton x:Name="NavPanel" GroupName="Nav" Style="{StaticResource NavItem}"
+                                 Content="Panel" Checked="NavPanel_Checked" Visibility="Collapsed"
+                                 AutomationProperties.AutomationId="NavPanel"
+                                 Tag="M2,3 H16 V15 H2 Z M2,6.5 H16 M4.5,4.75 H5.5 M7,4.75 H8 M5,10 H9 M5,12.5 H11" />
+
                     <!-- Nur im Entwicklermodus sichtbar -->
                     <RadioButton x:Name="NavLog" GroupName="Nav" Style="{StaticResource NavItem}"
                                  Content="Protokoll" Checked="Nav_Checked" Visibility="Collapsed"
