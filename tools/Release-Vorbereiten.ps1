@@ -38,15 +38,15 @@ param(
 $ErrorActionPreference = "Stop"
 Set-Location (Split-Path $PSScriptRoot -Parent)
 
-function Git {
-    & git @args
+function Invoke-Git {
+    & git.exe @args
     if ($LASTEXITCODE -ne 0) { throw "git $($args -join ' ') ist gescheitert." }
 }
 
-if (-not $Entwicklungszweig) { $Entwicklungszweig = (git branch --show-current).Trim() }
+if (-not $Entwicklungszweig) { $Entwicklungszweig = (git.exe branch --show-current).Trim() }
 
 if ($Entwicklungszweig -eq "master") { throw "Das Skript läuft vom Entwicklungszweig aus, nicht von master." }
-if (git status --porcelain) { throw "Es gibt noch offene Änderungen - erst committen." }
+if (git.exe status --porcelain) { throw "Es gibt noch offene Änderungen - erst committen." }
 
 $projekt = Get-Content "SchoolManager.App/SchoolManager.App.csproj" -Raw
 if ($projekt -notmatch "<Version>$([regex]::Escape($Version))</Version>") {
@@ -58,31 +58,31 @@ if (-not (Test-Path "release-notes/v$Version.md")) {
 }
 
 Write-Host "1/3  master auf den Stand von origin bringen" -ForegroundColor Cyan
-Git fetch origin
-Git checkout master
-Git merge --ff-only origin/master
+Invoke-Git fetch origin
+Invoke-Git checkout master
+Invoke-Git merge --ff-only origin/master
 
 Write-Host "2/3  $Entwicklungszweig als ein Commit auf master" -ForegroundColor Cyan
-& git merge --squash $Entwicklungszweig | Out-Host
-$konflikte = git diff --name-only --diff-filter=U
+& git.exe merge --squash $Entwicklungszweig | Out-Host
+$konflikte = git.exe diff --name-only --diff-filter=U
 foreach ($datei in $konflikte) {
     Write-Host "     Konflikt in $datei - der Stand der Entwicklung gilt"
-    Git checkout --theirs -- $datei
-    Git add -- $datei
+    Invoke-Git checkout --theirs -- $datei
+    Invoke-Git add -- $datei
 }
-Git commit -m $Nachricht
+Invoke-Git commit -m $Nachricht
 
 Write-Host "3/3  master zurück in $Entwicklungszweig" -ForegroundColor Cyan
-Git checkout $Entwicklungszweig
-& git merge --no-edit -m "fix: version $Version" master | Out-Host
-$konflikte = git diff --name-only --diff-filter=U
+Invoke-Git checkout $Entwicklungszweig
+& git.exe merge --no-edit -m "fix: version $Version" master | Out-Host
+$konflikte = git.exe diff --name-only --diff-filter=U
 foreach ($datei in $konflikte) {
-    Git checkout --theirs -- $datei
-    Git add -- $datei
+    Invoke-Git checkout --theirs -- $datei
+    Invoke-Git add -- $datei
 }
 if ($konflikte) { Git commit -m "fix: version $Version" }
 
-if (git diff master $Entwicklungszweig --name-only) { throw "master und $Entwicklungszweig unterscheiden sich noch - bitte nachsehen." }
+if (git.exe diff master $Entwicklungszweig --name-only) { throw "master und $Entwicklungszweig unterscheiden sich noch - bitte nachsehen." }
 
 Write-Host ""
 Write-Host "Fertig vorbereitet. master und $Entwicklungszweig sind gleich." -ForegroundColor Green
