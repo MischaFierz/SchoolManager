@@ -235,15 +235,29 @@ function showSecret(title, text, secret) {
 
 // ==== Anmelden ====
 
-const viewTitles = {
-    "login-view": "Anmelden · School Manager",
-    "password-view": "Neues Passwort · School Manager",
-    "app-view": "Admin-Panel · School Manager"
+/**
+ * Wie das Panel heisst: nach der Stufe des angemeldeten Kontos. Ein Tester
+ * sieht darin ohnehin nur, was er darf - der Name sagt es gleich.
+ */
+const panelNames = {
+    Administrator: "Admin-Panel",
+    Entwickler: "Dev-Panel",
+    Tester: "Tester-Panel"
 };
 
+function panelName(level = state.meta?.me.level) {
+    return panelNames[level] ?? "Panel";
+}
+
 function showOnly(id) {
-    for (const view of Object.keys(viewTitles)) $(view).hidden = view !== id;
-    document.title = viewTitles[id];
+    const titles = {
+        "login-view": "Anmelden · school-manager",
+        "password-view": "Neues Passwort · school-manager",
+        "app-view": `${panelName()} · school-manager`
+    };
+
+    for (const view of Object.keys(titles)) $(view).hidden = view !== id;
+    document.title = titles[id];
 }
 
 function signedOut(message) {
@@ -334,6 +348,7 @@ async function start() {
     showOnly("app-view");
     const me = state.meta.me;
     $("whoami").textContent = `${me.displayName || me.userName} · ${me.level}`;
+    $("panel-name").textContent = panelName(me.level);
     buildNav();
 }
 

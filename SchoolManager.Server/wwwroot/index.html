@@ -3,8 +3,8 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>School Manager</title>
-    <meta name="description" content="School Manager für Windows: Aufträge mit Zeitrechner, Hausaufgaben, Prüfungen, Kalender, Lehrkräfte, E-Mail, To-Do und Notizen an einem Ort.">
+    <title>school-manager</title>
+    <meta name="description" content="school-manager für Windows: Aufträge mit Zeitrechner, Hausaufgaben, Prüfungen, Kalender, Lehrkräfte, E-Mail, To-Do und Notizen an einem Ort.">
     <link rel="icon" href="/favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="/site.css">
     <script src="/site.js" defer></script>
@@ -15,11 +15,12 @@
         <div class="wrap topbar-inner">
             <a class="brand" href="/">
                 <span class="brand-mark" aria-hidden="true"></span>
-                <span>School Manager</span>
+                <span>school-manager</span>
             </a>
             <nav class="topnav" aria-label="Seite">
                 <a href="#funktionen">Funktionen</a>
                 <a href="#download">Download</a>
+                <a href="#aenderungen">Änderungen</a>
                 <a href="#fragen">Fragen</a>
             </nav>
             <a class="button ghost small" href="/admin/">Anmelden</a>
@@ -44,7 +45,7 @@
                         deinem Rechner.
                     </p>
                     <div class="hero-actions">
-                        <a class="button primary" data-download="installer" href="https://github.com/MischaFierz/SchoolManager/releases/latest">
+                        <a class="button primary" data-download="installer" href="#download">
                             Herunterladen
                         </a>
                         <a class="button" href="#funktionen">Funktionen ansehen</a>
@@ -185,12 +186,12 @@
                     <p class="download-note" data-latest-note hidden></p>
 
                     <div class="download-options">
-                        <a class="option recommended" data-download="installer" href="https://github.com/MischaFierz/SchoolManager/releases/latest">
+                        <a class="option recommended" data-download="installer" href="#download">
                             <span class="option-title">Installationspaket <em>empfohlen</em></span>
                             <span class="option-file">SchoolManagerSetup.msi <small data-size="installer"></small></span>
                             <span class="option-text">Mit Startmenü, Desktop-Verknüpfung und Eintrag in „Apps &amp; Features“.</span>
                         </a>
-                        <a class="option" data-download="exe" href="https://github.com/MischaFierz/SchoolManager/releases/latest">
+                        <a class="option" data-download="exe" href="#download">
                             <span class="option-title">Nur die Programmdatei</span>
                             <span class="option-file">SchoolManager.exe <small data-size="exe"></small></span>
                             <span class="option-text">Ohne Installation – läuft von jedem Ort, auch vom USB-Stick.</span>
@@ -199,14 +200,25 @@
 
                     <p class="fine">
                         Die .NET-Laufzeit ist enthalten, es muss nichts weiter installiert werden.
-                        <a data-release-link href="https://github.com/MischaFierz/SchoolManager/releases">Alle Versionen auf GitHub</a>
                     </p>
                 </div>
             </div>
         </section>
 
+        <!-- ==== Änderungen ==== -->
+        <section id="aenderungen" class="section alt">
+            <div class="wrap narrow">
+                <h2>Änderungen</h2>
+                <p class="section-lead">Was jede Version gebracht hat, die neueste zuoberst.</p>
+
+                <div class="changelog" data-changelog>
+                    <p class="faint">Wird geladen …</p>
+                </div>
+            </div>
+        </section>
+
         <!-- ==== Fragen ==== -->
-        <section id="fragen" class="section alt">
+        <section id="fragen" class="section">
             <div class="wrap narrow">
                 <h2>Häufige Fragen</h2>
 
@@ -240,9 +252,8 @@
 
     <footer class="footer">
         <div class="wrap footer-inner">
-            <span class="muted">School Manager</span>
+            <span class="muted">school-manager</span>
             <nav aria-label="Weiteres">
-                <a href="https://github.com/MischaFierz/SchoolManager">GitHub</a>
                 <a href="/admin/">Anmelden</a>
             </nav>
         </div>

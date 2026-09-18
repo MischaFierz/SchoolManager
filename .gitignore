@@ -40,3 +40,7 @@ packages/
 # Betriebssystem
 Thumbs.db
 desktop.ini
+
+# Aus Styles/*.scss beim Bauen übersetzt - nicht von Hand ändern, nicht einchecken.
+SchoolManager.Server/wwwroot/site.css
+SchoolManager.Server/wwwroot/admin/styles.css

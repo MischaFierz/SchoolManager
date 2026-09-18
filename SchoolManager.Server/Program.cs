@@ -10,13 +10,15 @@ using SchoolManager.Server.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var databasePath = Path.GetFullPath(
-    builder.Configuration["Storage:Database"] ?? Path.Combine("App_Data", "schoolmanager.db"),
-    builder.Environment.ContentRootPath);
+var storage = StorageLocations.From(builder.Configuration, builder.Environment.ContentRootPath);
 
-Directory.CreateDirectory(Path.GetDirectoryName(databasePath)!);
+// Aufgeteilte Abfragen: Benutzer samt Gruppen und Anmeldungen kämen sonst als ein grosses Kreuzprodukt.
+builder.Services.AddDbContext<ServerDb>(options => options.UseSqlite(
+    $"Data Source={storage.Database}",
+    sqlite => sqlite.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery)));
 
-builder.Services.AddDbContext<ServerDb>(options => options.UseSqlite($"Data Source={databasePath}"));
+builder.Services.AddSingleton(storage);
+builder.Services.AddHostedService<DatabaseMaintenance>();
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddMemoryCache();
 builder.Services.Configure<GitHubOptions>(builder.Configuration.GetSection("GitHub"));
@@ -34,7 +36,10 @@ builder.Services.AddScoped<ServerSettings>();
 builder.Services.ConfigureHttpJsonOptions(options =>
     options.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 
-// Gegen das Durchprobieren von Passwörtern: je Internetadresse 10 Versuche pro Minute.
+// Gegen das Durchprobieren von Passwörtern: je Internetadresse 10 Versuche pro Minute
+// (Security:AttemptsPerMinute - nur die Tests setzen das höher).
+var attemptsPerMinute = builder.Configuration.GetValue("Security:AttemptsPerMinute", 10);
+
 builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
@@ -43,12 +48,12 @@ builder.Services.AddRateLimiter(options =>
 
     options.AddPolicy("login", context => RateLimitPartition.GetFixedWindowLimiter(
         context.Connection.RemoteIpAddress?.ToString() ?? "unbekannt",
-        _ => new FixedWindowRateLimiterOptions { PermitLimit = 10, Window = TimeSpan.FromMinutes(1) }));
+        _ => new FixedWindowRateLimiterOptions { PermitLimit = attemptsPerMinute, Window = TimeSpan.FromMinutes(1) }));
 
     // Eigene Bremse fürs Passwortändern, damit sie nicht die Anmeldungen im selben Netz aufbraucht.
     options.AddPolicy("password", context => RateLimitPartition.GetFixedWindowLimiter(
         context.Connection.RemoteIpAddress?.ToString() ?? "unbekannt",
-        _ => new FixedWindowRateLimiterOptions { PermitLimit = 10, Window = TimeSpan.FromMinutes(1) }));
+        _ => new FixedWindowRateLimiterOptions { PermitLimit = attemptsPerMinute, Window = TimeSpan.FromMinutes(1) }));
 });
 
 if (builder.Configuration.GetValue<bool>("Server:BehindProxy"))
@@ -63,6 +68,9 @@ if (builder.Configuration.GetValue<bool>("Server:BehindProxy"))
 }
 
 var app = builder.Build();
+
+// Vor dem ersten Zugriff: Auf einer leeren Platte die gesicherte Datenbank zurückholen.
+DatabaseMaintenance.RestoreIfMissing(storage, app.Logger);
 
 await using (var scope = app.Services.CreateAsyncScope())
 {
@@ -151,3 +159,6 @@ app.MapReleaseEndpoints();
 app.MapGet("/api/health", () => Results.Ok(new { status = "ok" }));
 
 app.Run();
+
+/// <summary>Sichtbar gemacht für die Tests (WebApplicationFactory).</summary>
+public partial class Program;

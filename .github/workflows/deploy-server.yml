@@ -1,0 +1,108 @@
+name: Server hochladen
+
+# Stellt den School-Manager-Server auf Azure (Web-App school-manager-ch,
+# Gratis-Plan F1). Läuft nur im privaten Repository SchoolManager-dev: bei jedem
+# Push auf einen Entwicklungszweig, der den Server betrifft, oder von Hand.
+#
+# Anmeldung bei Azure ohne gespeichertes Passwort (OIDC): Azure vertraut
+# Läufen aus diesem Repository in der GitHub-Umgebung "azure". Deren Variablen
+# AZURE_CLIENT_ID, AZURE_TENANT_ID und AZURE_SUBSCRIPTION_ID sind Kennungen,
+# keine Geheimnisse; die App-Registrierung darf nur diese eine Web-App ändern.
+on:
+  push:
+    branches:
+      - "entwicklung-*"
+    paths:
+      - "SchoolManager.Server/**"
+      - "SchoolManager.Server.Tests/**"
+      - ".github/workflows/deploy-server.yml"
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+concurrency:
+  group: server-hochladen
+  cancel-in-progress: false
+
+env:
+  WEBAPP: school-manager-ch
+  RESOURCE_GROUP: rg-schoolmanager
+
+jobs:
+  deploy:
+    if: github.repository == 'MischaFierz/SchoolManager-dev'
+    runs-on: ubuntu-latest
+    environment: azure
+
+    steps:
+      - name: Quellcode auschecken
+        uses: actions/checkout@v4
+
+      - name: .NET einrichten
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Tests
+        run: dotnet test SchoolManager.Server.Tests --configuration Release
+
+      # Vorkompiliert (ReadyToRun): weniger Rechenzeit beim Kaltstart - auf F1 zählt jede Sekunde.
+      - name: Server veröffentlichen
+        run: >
+          dotnet publish SchoolManager.Server/SchoolManager.Server.csproj
+          --configuration Release
+          --runtime linux-x64
+          --self-contained false
+          -p:PublishReadyToRun=true
+          --output server-publish
+
+      - name: Bei Azure anmelden
+        uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+      # Ist das Tageskontingent von F1 aufgebraucht, geht bis Mitternacht (UTC) nichts -
+      # dann sauber abbrechen, statt die gesperrte App zu bedrängen.
+      - name: Zustand der Web-App prüfen
+        id: state
+        run: |
+          state=$(az webapp show -g "$RESOURCE_GROUP" -n "$WEBAPP" --query state -o tsv)
+          echo "Zustand: $state"
+          if [ "$state" = "QuotaExceeded" ]; then
+            echo "::warning::Tageskontingent des Gratis-Plans aufgebraucht - Hochladen übersprungen. Nach Mitternacht (UTC) von Hand neu starten."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          fi
+          if [ "$state" = "Stopped" ]; then
+            az webapp start -g "$RESOURCE_GROUP" -n "$WEBAPP" -o none
+            echo "Web-App gestartet"
+          fi
+
+      # Erst der Code, dann der Startbefehl: Umgekehrt startete Azure eine Datei,
+      # die es noch nicht gibt, und verbrauchte das Kontingent in einer Absturzschleife.
+      # --track-status false: Azure wartet sonst beim Hochladen darauf, dass die App
+      # startet, und gibt nach 10 Minuten auf - auf dem Gratis-Plan dauert der erste
+      # Start länger als das. Ob der Server läuft, prüft der nächste Schritt selbst.
+      - name: Hochladen
+        if: steps.state.outputs.skip != 'true'
+        run: |
+          (cd server-publish && zip -qr ../server.zip .)
+          az webapp deploy -g "$RESOURCE_GROUP" -n "$WEBAPP" --src-path server.zip --type zip --async false --track-status false
+          az webapp config set -g "$RESOURCE_GROUP" -n "$WEBAPP" --startup-file "dotnet SchoolManager.Server.dll" -o none
+          az webapp restart -g "$RESOURCE_GROUP" -n "$WEBAPP" -o none
+
+      - name: Antwortet der Server?
+        if: steps.state.outputs.skip != 'true'
+        run: |
+          url="https://$WEBAPP.azurewebsites.net/api/health"
+          for i in $(seq 1 30); do
+            code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 60 "$url" || true)
+            echo "Versuch $i: $code"
+            if [ "$code" = "200" ]; then exit 0; fi
+            sleep 10
+          done
+          echo "::error::Der Server antwortet nicht."
+          exit 1

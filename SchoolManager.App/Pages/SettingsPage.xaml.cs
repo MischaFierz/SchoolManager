@@ -977,7 +977,8 @@ public partial class SettingsPage : UserControl
             : Visibility.Collapsed;
 
         // Ins Panel kommt, wer dort mehr darf als nur den Entwicklermodus.
-        OpenPanelButton.Visibility = account?.Permissions.Any(p => p is not ("DevMode" or "AllDevUpdates")) == true
+        OpenPanelButton.Content = $"{MainWindow.PanelName(account?.Level)} öffnen";
+        OpenPanelButton.Visibility = DevMode.IsSignedIn && ServerApi.IsConfigured
             ? Visibility.Visible
             : Visibility.Collapsed;
 

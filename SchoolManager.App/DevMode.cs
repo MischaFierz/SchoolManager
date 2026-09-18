@@ -1,5 +1,8 @@
 using System.IO;
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using SchoolManager.App.Data;
 using SchoolManager.App.Logging;
 using SchoolManager.App.Online;
@@ -162,18 +165,25 @@ public static class DevMode
 
     private static void Save()
     {
+        Write(state);
+        Changed?.Invoke();
+    }
+
+    private static void Write(State value)
+    {
         try
         {
+            value.ProtectedToken = Protect(value.Token);
+            value.PlainToken = null;
+
             Directory.CreateDirectory(LocalStore.Folder);
-            File.WriteAllText(FilePath, JsonSerializer.Serialize(state));
+            File.WriteAllText(FilePath, JsonSerializer.Serialize(value));
         }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or CryptographicException)
         {
             // Nicht speicherbar: dann gilt die Einstellung eben nur diesmal.
             AppLog.Error($"Der Entwicklermodus konnte nicht gespeichert werden: {ex.Message}", "Entwicklermodus");
         }
-
-        Changed?.Invoke();
     }
 
     private static State Load()
@@ -188,12 +198,45 @@ public static class DevMode
         }
         catch (Exception ex) when (ex is IOException or JsonException)
         {
-            loaded = new State();
+            return new State();
         }
+
+        loaded.Token = Unprotect(loaded.ProtectedToken) ?? loaded.PlainToken;
+
+        // Eine Anmeldung aus der Zeit vor der Verschlüsselung gleich verschlüsselt ablegen.
+        if (loaded.PlainToken is not null)
+            Write(loaded);
 
         // Ein Entwicklermodus aus der Zeit ohne Anmeldung bleibt nach dem Update
         // eingeschaltet - er ist nur noch nicht angemeldet.
         return loaded;
+    }
+
+    /// <summary>
+    /// Verschlüsselt mit der Windows-Datenschutz-API für dieses Windows-Konto -
+    /// wie das Passwort des Mail-Kontos. Kopiert jemand die Datei auf einen
+    /// anderen Rechner oder in ein anderes Konto, ist sie dort nutzlos.
+    /// </summary>
+    private static string? Protect(string? token) =>
+        string.IsNullOrEmpty(token)
+            ? null
+            : Convert.ToBase64String(ProtectedData.Protect(Encoding.UTF8.GetBytes(token), null, DataProtectionScope.CurrentUser));
+
+    /// <summary>Null, wenn nichts gespeichert ist oder es sich nicht entschlüsseln lässt - dann ist man eben abgemeldet.</summary>
+    private static string? Unprotect(string? protectedToken)
+    {
+        if (string.IsNullOrEmpty(protectedToken))
+            return null;
+
+        try
+        {
+            return Encoding.UTF8.GetString(
+                ProtectedData.Unprotect(Convert.FromBase64String(protectedToken), null, DataProtectionScope.CurrentUser));
+        }
+        catch (Exception ex) when (ex is CryptographicException or FormatException)
+        {
+            return null;
+        }
     }
 
     private sealed class State
@@ -204,11 +247,17 @@ public static class DevMode
         /// <summary>Die Sicherung vom Einschalten, für den Weg zurück.</summary>
         public string? BackupPath { get; set; }
 
-        /// <summary>
-        /// Die Anmeldung beim Server. Sie liegt im eigenen Benutzerprofil wie
-        /// die übrigen Daten und berechtigt nur zu dem, was das Konto darf.
-        /// </summary>
+        /// <summary>Die Anmeldung beim Server im Speicher - nie so in der Datei.</summary>
+        [JsonIgnore]
         public string? Token { get; set; }
+
+        /// <summary>Die Anmeldung, mit DPAPI für dieses Windows-Konto verschlüsselt.</summary>
+        public string? ProtectedToken { get; set; }
+
+        /// <summary>Nur zum Einlesen älterer Dateien, in denen die Anmeldung noch im Klartext stand.</summary>
+        [JsonPropertyName("Token")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public string? PlainToken { get; set; }
 
         public DevAccount? Account { get; set; }
     }

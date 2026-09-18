@@ -24,6 +24,9 @@ public static class AppEndpoints
         // Streifen oben auf der Startseite und der Anmeldeseite.
         app.MapGet("/api/public/messages", PageMessagesAsync);
 
+        // Das Changelog auf der Startseite.
+        app.MapGet("/api/public/changelog", ChangelogAsync);
+
         app.MapGet("/api/app/releases", ReleasesAsync).RequirePermission(Permission.DevMode);
         app.MapGet("/api/app/download/{tag}", DownloadAsync).RequirePermission(Permission.DevMode);
     }
@@ -96,7 +99,8 @@ public static class AppEndpoints
             return AuthEndpoints.Error(StatusCodes.Status400BadRequest, "Die laufende Version fehlt oder ist unlesbar.");
 
         var user = CurrentUser.Of(context);
-        var allowed = await catalog.AllowedAsync(user, dev == true);
+        // Dev-Versionen nur für eine App, die sie auch erwarten darf - mit Wunsch und ab 1.2.0.
+        var allowed = await catalog.AllowedAsync(user, dev == true && ClientVersion.MayUseDevVersions(context, running));
 
         // Bei gleicher Nummer steht das öffentliche Release vorne - es ist das fertige.
         var newest = allowed.FirstOrDefault(r => r.Version > running);
@@ -133,9 +137,57 @@ public static class AppEndpoints
         });
     }
 
+    /// <summary>
+    /// Alle öffentlichen Versionen mit ihren Punkten, die neueste zuerst. Die
+    /// Punkte stammen aus der Release-Notiz (release-notes/vX.Y.Z.md) und, wo
+    /// eine Update-Info im Panel steht, aus dieser.
+    /// </summary>
+    private static async Task<IResult> ChangelogAsync(ReleaseCatalog catalog)
+    {
+        var releases = await catalog.AllAsync();
+        var notes = await catalog.NotesAsync();
+
+        return Results.Ok(releases
+            .Where(release => release is { InPublicRepo: true, IsLegacyDev: false })
+            .Select(release => new
+            {
+                version = release.VersionText,
+                publishedAt = release.Source.PublishedAt,
+                note = notes.GetValueOrDefault(release.Tag, ""),
+                // Die Punkte der Release-Notiz, ohne Aufzählungszeichen und Fettschrift.
+                changes = Bullets(release.Source.Body)
+            }));
+    }
+
+    /// <summary>
+    /// Liest die Punkte einer Release-Notiz: Zeilen, die mit „-“ oder „*“
+    /// beginnen. Fehlt so eine Zeile, gilt der ganze Text als ein Punkt.
+    /// </summary>
+    private static string[] Bullets(string? body)
+    {
+        if (string.IsNullOrWhiteSpace(body))
+            return [];
+
+        var lines = body.ReplaceLineEndings("\n").Split('\n');
+
+        var bullets = lines
+            .Select(line => line.Trim())
+            .Where(line => line.StartsWith("- ") || line.StartsWith("* "))
+            .Select(line => line[2..].Replace("**", "").Replace("`", "").Trim())
+            .Where(line => line.Length > 0)
+            .ToArray();
+
+        if (bullets.Length > 0)
+            return bullets;
+
+        var text = string.Join(" ", lines.Where(line => !line.StartsWith('#')).Select(line => line.Trim())).Trim();
+
+        return text.Length > 0 ? [text.Replace("**", "").Replace("`", "")] : [];
+    }
+
     private static async Task<IResult> ReleasesAsync(HttpContext context, ReleaseCatalog catalog)
     {
-        var allowed = await catalog.AllowedAsync(CurrentUser.Of(context), includeDev: true);
+        var allowed = await catalog.AllowedAsync(CurrentUser.Of(context), includeDev: ClientVersion.MayUseDevVersions(context));
         var notes = await catalog.NotesAsync();
 
         return Results.Ok(allowed.Select(r => Describe(r, notes)));
@@ -149,7 +201,7 @@ public static class AppEndpoints
     private static async Task<IResult> DownloadAsync(
         string tag, HttpContext context, ReleaseCatalog catalog, GitHubService github)
     {
-        var allowed = await catalog.AllowedAsync(CurrentUser.Of(context), includeDev: true);
+        var allowed = await catalog.AllowedAsync(CurrentUser.Of(context), includeDev: ClientVersion.MayUseDevVersions(context));
         var release = allowed.FirstOrDefault(r => r.Tag == tag);
 
         if (release?.Installer is not { } installer)

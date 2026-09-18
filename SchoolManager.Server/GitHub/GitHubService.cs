@@ -47,7 +47,9 @@ public sealed record GitHubRelease(
     [property: JsonPropertyName("prerelease")] bool Prerelease,
     [property: JsonPropertyName("html_url")] string HtmlUrl,
     [property: JsonPropertyName("published_at")] DateTimeOffset? PublishedAt,
-    [property: JsonPropertyName("assets")] List<GitHubAsset> Assets);
+    [property: JsonPropertyName("assets")] List<GitHubAsset> Assets,
+    /// <summary>Die Release-Notiz, wie sie bei GitHub steht - die Quelle für das Changelog auf der Website.</summary>
+    [property: JsonPropertyName("body")] string? Body = null);
 
 public sealed record GitHubRun(
     [property: JsonPropertyName("head_branch")] string? HeadBranch,
